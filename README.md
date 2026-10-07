@@ -56,7 +56,7 @@ Most cleaning apps are built around fear: big red numbers, warnings about a "slo
 
 ## Download
 
-Get the latest DMG from [Ko-fi](https://ko-fi.com/kabdullah) — pay what you want, **$0 included**. Drag to Applications.
+Get the latest DMG from [Ko-fi](https://ko-fi.com/s/b18fe31629) — pay what you want, **$0 included**. Drag to Applications.
 
 The app is **not signed or notarized yet**, so macOS will warn you on first launch:
 - Right-click the app → **Open**, or
@@ -93,4 +93,4 @@ App Store apps must be sandboxed, and a sandboxed app cannot scan `~/Library`, r
 
 [GPL-3.0](LICENSE). Use it, study it, change it — just keep derivatives open under the same terms.
 
-Respite is also on [Ko-fi](https://ko-fi.com/kabdullah) as pay-what-you-want, $0 included. That's not a contradiction: the GPL explicitly allows selling copies at any price, and it guarantees the paid copy and the free copy are byte-for-byte the same app. Paying there just supports development.
+Respite is distributed on [Ko-fi](https://ko-fi.com/s/b18fe31629) as pay-what-you-want, $0 included. If you want to tip or support ongoing development directly, you can visit [ko-fi.com/kabdullah](https://ko-fi.com/kabdullah). That's not a contradiction: the GPL explicitly allows selling copies at any price, and it guarantees the paid copy and the free copy are byte-for-byte the same app.
