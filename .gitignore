@@ -6,3 +6,5 @@ build/
 .build/
 *.xcworkspace
 !Respite.xcodeproj/project.xcworkspace
+dist/
+*.dmg
