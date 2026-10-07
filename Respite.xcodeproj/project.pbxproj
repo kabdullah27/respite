@@ -1,0 +1,678 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0AC92982452654FAFE51842D /* TopProcessesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C80C43FF6ED995983F003BE /* TopProcessesSection.swift */; };
+		0C6AEE19994D4425BA50960B /* MemoryMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E903CACF2D7BFAA12B9989D /* MemoryMonitorView.swift */; };
+		18506052BD08E8FCABC143D5 /* LargeFilesModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AB6A94B94682147DB51DFDC /* LargeFilesModel.swift */; };
+		18DC8AB4AAF88D71F61B6F92 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93AFF2E2BA5CE88EC36CDEB0 /* MenuBarView.swift */; };
+		1A58C1940BE13C37D78312AF /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF57CD955B0BAD75A2554FAF /* OnboardingView.swift */; };
+		32BDA6841A1A3C9033F5E2F6 /* RespiteUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6D8D8FDFA0440F5AD84546D /* RespiteUITests.swift */; };
+		34681A6D3058666086A09279 /* scripts in Resources */ = {isa = PBXBuildFile; fileRef = 29DD06990732CDA0E9F46838 /* scripts */; };
+		396DAF657FDC173460840D26 /* BatteryHealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EB8A281830CA39A956B3CF9 /* BatteryHealthView.swift */; };
+		421C04EA50A76AE603842923 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 241AA450E100800D41D05AB8 /* StatusBarController.swift */; };
+		43B95DEC8297DF6FE439294F /* DuplicateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0A5896F2C85DD9797C6434 /* DuplicateView.swift */; };
+		4A86672EE0C11F78EF7FBDB7 /* StartupItemsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8552CA979955FBEB147C4E97 /* StartupItemsView.swift */; };
+		50A0B543F9CDAF98D5C883B0 /* KeyboardLockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DBB6EC15900F5F4CC24DA9 /* KeyboardLockView.swift */; };
+		54F119841BF1B1DB21BE5871 /* SimilarPhotosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A045F3D361E153D8699A81A5 /* SimilarPhotosView.swift */; };
+		57EA1DE7AE6F2D9DE3749AD6 /* Module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 852608FB1CCE291E95B4BB1C /* Module.swift */; };
+		5A53E8FC1FB8F1A6E2E30C77 /* Notifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48601E3C6B838EE9DD582CBC /* Notifier.swift */; };
+		5B211DC832482C754815A73E /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51429290F5AF8E1E3C52296 /* AboutView.swift */; };
+		5C8E8D8E94DAB4D8E9945E50 /* RespiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D353A3A9FE2DC470E548BA /* RespiteApp.swift */; };
+		5E73952ABFAE9B76A2DC776E /* DonationConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F46B96FF9EA5579192B5B77 /* DonationConfig.swift */; };
+		5E772CA3B63293C7718AE095 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3384CC61E98E30ECBECA21E8 /* HomeView.swift */; };
+		66B892F970BD028B6F9E8534 /* SystemStatsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9101830FA0938AADC9307DD /* SystemStatsModel.swift */; };
+		6F4D77B6F3454B9021A98B1D /* RespiteCore in Frameworks */ = {isa = PBXBuildFile; productRef = 89D5ACE8BA9EAB69F336B144 /* RespiteCore */; };
+		70E490FC35988295F4EDEC44 /* QuickLook.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DE27FC752081FE13C320BB /* QuickLook.swift */; };
+		777A8212B6464436F3F59DC9 /* PowerLidView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E65F9C60011567ACB6DF36 /* PowerLidView.swift */; };
+		78253E84F521B690D81EB180 /* KeyboardLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F418E5A1F5D3A38A657B478 /* KeyboardLock.swift */; };
+		8411AB17A36DF85400DE7CE5 /* UptimeFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8191926DA73CD56D9A1B4437 /* UptimeFormat.swift */; };
+		949220FCE03BEE5227D1F8A3 /* SmartScanModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4095DCD9B772112E1E14B0A0 /* SmartScanModel.swift */; };
+		97984DA5A76AFA2490DC6ED8 /* ShredderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731B88D7912AB4928B4ED087 /* ShredderView.swift */; };
+		993431CE279889699166DB3C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3F913E5525A88123AFA2A1E0 /* Localizable.strings */; };
+		A0CFE93FC50706F3DE61996E /* SmartScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EA03BB264D37C23D60DEB68 /* SmartScanView.swift */; };
+		A6B80A20C933BED236585889 /* UninstallerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7638F08722B963BE77C58B5E /* UninstallerModel.swift */; };
+		ACADE7860DFD7E68D5E75E21 /* DevCacheModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E551325EB257DD7C54F5FD9 /* DevCacheModel.swift */; };
+		ACCD86DAA844DDB25875A970 /* DevCacheView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF953ACA946A6B543866654 /* DevCacheView.swift */; };
+		C75CB0C75B9DA4F39564521B /* BrowserCleanerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F01310EC59B5857C7F0D2487 /* BrowserCleanerModel.swift */; };
+		CD7D2C87CEC397E8FD22D4E6 /* AppUninstallerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3459BA77C7295ED8EB809023 /* AppUninstallerView.swift */; };
+		D8BE1D31DA8F45D1E6CD772B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2B6DDE2964B7DC076002F3 /* SettingsView.swift */; };
+		DA631F52278FA113E1A0864B /* LargeFilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12438B60A2B9AF0E144BE3AE /* LargeFilesView.swift */; };
+		DD026E7961B688AE59E9969C /* SimilarPhotosModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC18C631D631F9D7FBC80610 /* SimilarPhotosModel.swift */; };
+		E6A5CF28E184AC5902EA85AB /* PermanentDeleteConfirmSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638FBCB3DA7015FDA020309F /* PermanentDeleteConfirmSheet.swift */; };
+		E6B041B6A713FB13DC63E84D /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 3A16443CD16C1B253C7C59A3 /* AppIcon.icns */; };
+		E7142A50BD8EAA0473C0E44E /* ThermalDetectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB0E47F294C94066020B108 /* ThermalDetectorView.swift */; };
+		EDA518D69CB1494B0AF44B3A /* PhotoThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A7783BE13B4F2EB2656A227 /* PhotoThumbnail.swift */; };
+		F2E83688C40268A2EFFF5DCC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9C704CB88F481250541D674D /* Assets.xcassets */; };
+		FBE93B344EF9437B5C6BAF1F /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E143D24621B16A607580DDB4 /* DashboardView.swift */; };
+		FC4D068E6C9CFD8BA0278559 /* DesignKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5847978CC15F9B1C513ED36F /* DesignKit */; };
+		FD29D96942E44E93953EF771 /* DuplicateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2D7C63D3A7DFAE71935F8FE /* DuplicateModel.swift */; };
+		FD314B6255908B077F13CB3D /* BrowserCleanerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A58655399CA4AAF4731353 /* BrowserCleanerView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F102ECDB1453DCD694E831A1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 34E3A6B84DDC4ED91954F892 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C45A4F1C9FA4D5C6D5DDAF70;
+			remoteInfo = Respite;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		05A58655399CA4AAF4731353 /* BrowserCleanerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserCleanerView.swift; sourceTree = "<group>"; };
+		0A0A5896F2C85DD9797C6434 /* DuplicateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateView.swift; sourceTree = "<group>"; };
+		0EA03BB264D37C23D60DEB68 /* SmartScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartScanView.swift; sourceTree = "<group>"; };
+		0EB8A281830CA39A956B3CF9 /* BatteryHealthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryHealthView.swift; sourceTree = "<group>"; };
+		0F46B96FF9EA5579192B5B77 /* DonationConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationConfig.swift; sourceTree = "<group>"; };
+		12438B60A2B9AF0E144BE3AE /* LargeFilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeFilesView.swift; sourceTree = "<group>"; };
+		22B9C2B1AC0C621EA4E98692 /* DesignKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = DesignKit; path = DesignKit; sourceTree = SOURCE_ROOT; };
+		241AA450E100800D41D05AB8 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		29DD06990732CDA0E9F46838 /* scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = scripts; sourceTree = SOURCE_ROOT; };
+		3384CC61E98E30ECBECA21E8 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		3459BA77C7295ED8EB809023 /* AppUninstallerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUninstallerView.swift; sourceTree = "<group>"; };
+		3A16443CD16C1B253C7C59A3 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		3AE26A94C2584BA6DE40CE61 /* RespiteUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RespiteUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3C80C43FF6ED995983F003BE /* TopProcessesSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopProcessesSection.swift; sourceTree = "<group>"; };
+		3E551325EB257DD7C54F5FD9 /* DevCacheModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCacheModel.swift; sourceTree = "<group>"; };
+		3E903CACF2D7BFAA12B9989D /* MemoryMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryMonitorView.swift; sourceTree = "<group>"; };
+		4095DCD9B772112E1E14B0A0 /* SmartScanModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartScanModel.swift; sourceTree = "<group>"; };
+		48601E3C6B838EE9DD582CBC /* Notifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifier.swift; sourceTree = "<group>"; };
+		4A7783BE13B4F2EB2656A227 /* PhotoThumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoThumbnail.swift; sourceTree = "<group>"; };
+		4CB0E47F294C94066020B108 /* ThermalDetectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalDetectorView.swift; sourceTree = "<group>"; };
+		5AB6A94B94682147DB51DFDC /* LargeFilesModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeFilesModel.swift; sourceTree = "<group>"; };
+		638FBCB3DA7015FDA020309F /* PermanentDeleteConfirmSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermanentDeleteConfirmSheet.swift; sourceTree = "<group>"; };
+		65DBB6EC15900F5F4CC24DA9 /* KeyboardLockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLockView.swift; sourceTree = "<group>"; };
+		6BF953ACA946A6B543866654 /* DevCacheView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCacheView.swift; sourceTree = "<group>"; };
+		6CBFD56E894821FCC0497895 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		731B88D7912AB4928B4ED087 /* ShredderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShredderView.swift; sourceTree = "<group>"; };
+		7638F08722B963BE77C58B5E /* UninstallerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UninstallerModel.swift; sourceTree = "<group>"; };
+		8191926DA73CD56D9A1B4437 /* UptimeFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UptimeFormat.swift; sourceTree = "<group>"; };
+		852608FB1CCE291E95B4BB1C /* Module.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module.swift; sourceTree = "<group>"; };
+		8552CA979955FBEB147C4E97 /* StartupItemsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupItemsView.swift; sourceTree = "<group>"; };
+		87E65F9C60011567ACB6DF36 /* PowerLidView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerLidView.swift; sourceTree = "<group>"; };
+		8F418E5A1F5D3A38A657B478 /* KeyboardLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLock.swift; sourceTree = "<group>"; };
+		93AFF2E2BA5CE88EC36CDEB0 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		9C704CB88F481250541D674D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A045F3D361E153D8699A81A5 /* SimilarPhotosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPhotosView.swift; sourceTree = "<group>"; };
+		A134916F63B35E77C19BE0AC /* RespiteCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = RespiteCore; path = RespiteCore; sourceTree = SOURCE_ROOT; };
+		A2D7C63D3A7DFAE71935F8FE /* DuplicateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateModel.swift; sourceTree = "<group>"; };
+		AD07815E2B75B7DD14E451B9 /* Respite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Respite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AF57CD955B0BAD75A2554FAF /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		C1D353A3A9FE2DC470E548BA /* RespiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RespiteApp.swift; sourceTree = "<group>"; };
+		C51429290F5AF8E1E3C52296 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		DC18C631D631F9D7FBC80610 /* SimilarPhotosModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPhotosModel.swift; sourceTree = "<group>"; };
+		E143D24621B16A607580DDB4 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		E6D8D8FDFA0440F5AD84546D /* RespiteUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RespiteUITests.swift; sourceTree = "<group>"; };
+		E8DE27FC752081FE13C320BB /* QuickLook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLook.swift; sourceTree = "<group>"; };
+		E9101830FA0938AADC9307DD /* SystemStatsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatsModel.swift; sourceTree = "<group>"; };
+		EB2B6DDE2964B7DC076002F3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		ECBED7F047AD10A408E93B9C /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F01310EC59B5857C7F0D2487 /* BrowserCleanerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserCleanerModel.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0DA44658067B587B22F6E847 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FC4D068E6C9CFD8BA0278559 /* DesignKit in Frameworks */,
+				6F4D77B6F3454B9021A98B1D /* RespiteCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5EF0EC04202CB8AB72382CFD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AD07815E2B75B7DD14E451B9 /* Respite.app */,
+				3AE26A94C2584BA6DE40CE61 /* RespiteUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		75DBFE4F8AE455D76C405EFF /* MenuBar */ = {
+			isa = PBXGroup;
+			children = (
+				93AFF2E2BA5CE88EC36CDEB0 /* MenuBarView.swift */,
+				241AA450E100800D41D05AB8 /* StatusBarController.swift */,
+				E9101830FA0938AADC9307DD /* SystemStatsModel.swift */,
+			);
+			path = MenuBar;
+			sourceTree = "<group>";
+		};
+		760A8415B1C24243AFCB9B2B /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				22B9C2B1AC0C621EA4E98692 /* DesignKit */,
+				A134916F63B35E77C19BE0AC /* RespiteCore */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		7FEEDDBDDCF91A40109AFF8C /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				0F46B96FF9EA5579192B5B77 /* DonationConfig.swift */,
+				48601E3C6B838EE9DD582CBC /* Notifier.swift */,
+				4A7783BE13B4F2EB2656A227 /* PhotoThumbnail.swift */,
+				E8DE27FC752081FE13C320BB /* QuickLook.swift */,
+				8191926DA73CD56D9A1B4437 /* UptimeFormat.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		82B64A9CB72ADA1884B74399 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A817BDC0DDF46F1375C43558 /* Resources */,
+				BBB110A4DAEDB4F8161F881B /* Sources */,
+				9F6BA1EED9A3DBF3243C1BCE /* UITests */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		9F6BA1EED9A3DBF3243C1BCE /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				E6D8D8FDFA0440F5AD84546D /* RespiteUITests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
+		A4CACFBB46780475E2872906 = {
+			isa = PBXGroup;
+			children = (
+				29DD06990732CDA0E9F46838 /* scripts */,
+				82B64A9CB72ADA1884B74399 /* App */,
+				760A8415B1C24243AFCB9B2B /* Packages */,
+				5EF0EC04202CB8AB72382CFD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A817BDC0DDF46F1375C43558 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				3A16443CD16C1B253C7C59A3 /* AppIcon.icns */,
+				9C704CB88F481250541D674D /* Assets.xcassets */,
+				3F913E5525A88123AFA2A1E0 /* Localizable.strings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		AC4BDD382FC8631026311044 /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				3459BA77C7295ED8EB809023 /* AppUninstallerView.swift */,
+				0EB8A281830CA39A956B3CF9 /* BatteryHealthView.swift */,
+				F01310EC59B5857C7F0D2487 /* BrowserCleanerModel.swift */,
+				05A58655399CA4AAF4731353 /* BrowserCleanerView.swift */,
+				3E551325EB257DD7C54F5FD9 /* DevCacheModel.swift */,
+				6BF953ACA946A6B543866654 /* DevCacheView.swift */,
+				A2D7C63D3A7DFAE71935F8FE /* DuplicateModel.swift */,
+				0A0A5896F2C85DD9797C6434 /* DuplicateView.swift */,
+				3384CC61E98E30ECBECA21E8 /* HomeView.swift */,
+				65DBB6EC15900F5F4CC24DA9 /* KeyboardLockView.swift */,
+				5AB6A94B94682147DB51DFDC /* LargeFilesModel.swift */,
+				12438B60A2B9AF0E144BE3AE /* LargeFilesView.swift */,
+				3E903CACF2D7BFAA12B9989D /* MemoryMonitorView.swift */,
+				638FBCB3DA7015FDA020309F /* PermanentDeleteConfirmSheet.swift */,
+				87E65F9C60011567ACB6DF36 /* PowerLidView.swift */,
+				731B88D7912AB4928B4ED087 /* ShredderView.swift */,
+				DC18C631D631F9D7FBC80610 /* SimilarPhotosModel.swift */,
+				A045F3D361E153D8699A81A5 /* SimilarPhotosView.swift */,
+				4095DCD9B772112E1E14B0A0 /* SmartScanModel.swift */,
+				0EA03BB264D37C23D60DEB68 /* SmartScanView.swift */,
+				8552CA979955FBEB147C4E97 /* StartupItemsView.swift */,
+				4CB0E47F294C94066020B108 /* ThermalDetectorView.swift */,
+				3C80C43FF6ED995983F003BE /* TopProcessesSection.swift */,
+				7638F08722B963BE77C58B5E /* UninstallerModel.swift */,
+			);
+			path = Modules;
+			sourceTree = "<group>";
+		};
+		BBB110A4DAEDB4F8161F881B /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				C1D353A3A9FE2DC470E548BA /* RespiteApp.swift */,
+				75DBFE4F8AE455D76C405EFF /* MenuBar */,
+				7FEEDDBDDCF91A40109AFF8C /* Utils */,
+				D83BA6FCD49AC1D3C1D58275 /* Windows */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		D83BA6FCD49AC1D3C1D58275 /* Windows */ = {
+			isa = PBXGroup;
+			children = (
+				C51429290F5AF8E1E3C52296 /* AboutView.swift */,
+				E143D24621B16A607580DDB4 /* DashboardView.swift */,
+				8F418E5A1F5D3A38A657B478 /* KeyboardLock.swift */,
+				852608FB1CCE291E95B4BB1C /* Module.swift */,
+				AF57CD955B0BAD75A2554FAF /* OnboardingView.swift */,
+				EB2B6DDE2964B7DC076002F3 /* SettingsView.swift */,
+				AC4BDD382FC8631026311044 /* Modules */,
+			);
+			path = Windows;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C45A4F1C9FA4D5C6D5DDAF70 /* Respite */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9FFB9D3E93BF6622536C63FA /* Build configuration list for PBXNativeTarget "Respite" */;
+			buildPhases = (
+				E66AA20BFA3513F1FEF88D22 /* Sources */,
+				382D07392CC550E6391551EE /* Resources */,
+				0DA44658067B587B22F6E847 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Respite;
+			packageProductDependencies = (
+				5847978CC15F9B1C513ED36F /* DesignKit */,
+				89D5ACE8BA9EAB69F336B144 /* RespiteCore */,
+			);
+			productName = Respite;
+			productReference = AD07815E2B75B7DD14E451B9 /* Respite.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D476962BF53AFA4B067BD915 /* RespiteUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9B2A64BE7EAD27AE66B112BD /* Build configuration list for PBXNativeTarget "RespiteUITests" */;
+			buildPhases = (
+				05B34E0B8C1A63D9ADD41DC0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A8D0DF011118FC50FFB3F5DF /* PBXTargetDependency */,
+			);
+			name = RespiteUITests;
+			packageProductDependencies = (
+			);
+			productName = RespiteUITests;
+			productReference = 3AE26A94C2584BA6DE40CE61 /* RespiteUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		34E3A6B84DDC4ED91954F892 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					D476962BF53AFA4B067BD915 = {
+						TestTargetID = C45A4F1C9FA4D5C6D5DDAF70;
+					};
+				};
+			};
+			buildConfigurationList = ADE52B280E4D40BC3311B697 /* Build configuration list for PBXProject "Respite" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+				id,
+			);
+			mainGroup = A4CACFBB46780475E2872906;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A0323FDB08EAB7A0B338497B /* XCLocalSwiftPackageReference "DesignKit" */,
+				3A64DB5EA76B1EC70274EC8F /* XCLocalSwiftPackageReference "RespiteCore" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 5EF0EC04202CB8AB72382CFD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C45A4F1C9FA4D5C6D5DDAF70 /* Respite */,
+				D476962BF53AFA4B067BD915 /* RespiteUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		382D07392CC550E6391551EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E6B041B6A713FB13DC63E84D /* AppIcon.icns in Resources */,
+				F2E83688C40268A2EFFF5DCC /* Assets.xcassets in Resources */,
+				993431CE279889699166DB3C /* Localizable.strings in Resources */,
+				34681A6D3058666086A09279 /* scripts in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		05B34E0B8C1A63D9ADD41DC0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				32BDA6841A1A3C9033F5E2F6 /* RespiteUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E66AA20BFA3513F1FEF88D22 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B211DC832482C754815A73E /* AboutView.swift in Sources */,
+				CD7D2C87CEC397E8FD22D4E6 /* AppUninstallerView.swift in Sources */,
+				396DAF657FDC173460840D26 /* BatteryHealthView.swift in Sources */,
+				C75CB0C75B9DA4F39564521B /* BrowserCleanerModel.swift in Sources */,
+				FD314B6255908B077F13CB3D /* BrowserCleanerView.swift in Sources */,
+				FBE93B344EF9437B5C6BAF1F /* DashboardView.swift in Sources */,
+				ACADE7860DFD7E68D5E75E21 /* DevCacheModel.swift in Sources */,
+				ACCD86DAA844DDB25875A970 /* DevCacheView.swift in Sources */,
+				5E73952ABFAE9B76A2DC776E /* DonationConfig.swift in Sources */,
+				FD29D96942E44E93953EF771 /* DuplicateModel.swift in Sources */,
+				43B95DEC8297DF6FE439294F /* DuplicateView.swift in Sources */,
+				5E772CA3B63293C7718AE095 /* HomeView.swift in Sources */,
+				78253E84F521B690D81EB180 /* KeyboardLock.swift in Sources */,
+				50A0B543F9CDAF98D5C883B0 /* KeyboardLockView.swift in Sources */,
+				18506052BD08E8FCABC143D5 /* LargeFilesModel.swift in Sources */,
+				DA631F52278FA113E1A0864B /* LargeFilesView.swift in Sources */,
+				0C6AEE19994D4425BA50960B /* MemoryMonitorView.swift in Sources */,
+				18DC8AB4AAF88D71F61B6F92 /* MenuBarView.swift in Sources */,
+				57EA1DE7AE6F2D9DE3749AD6 /* Module.swift in Sources */,
+				5A53E8FC1FB8F1A6E2E30C77 /* Notifier.swift in Sources */,
+				1A58C1940BE13C37D78312AF /* OnboardingView.swift in Sources */,
+				E6A5CF28E184AC5902EA85AB /* PermanentDeleteConfirmSheet.swift in Sources */,
+				EDA518D69CB1494B0AF44B3A /* PhotoThumbnail.swift in Sources */,
+				777A8212B6464436F3F59DC9 /* PowerLidView.swift in Sources */,
+				70E490FC35988295F4EDEC44 /* QuickLook.swift in Sources */,
+				5C8E8D8E94DAB4D8E9945E50 /* RespiteApp.swift in Sources */,
+				D8BE1D31DA8F45D1E6CD772B /* SettingsView.swift in Sources */,
+				97984DA5A76AFA2490DC6ED8 /* ShredderView.swift in Sources */,
+				DD026E7961B688AE59E9969C /* SimilarPhotosModel.swift in Sources */,
+				54F119841BF1B1DB21BE5871 /* SimilarPhotosView.swift in Sources */,
+				949220FCE03BEE5227D1F8A3 /* SmartScanModel.swift in Sources */,
+				A0CFE93FC50706F3DE61996E /* SmartScanView.swift in Sources */,
+				4A86672EE0C11F78EF7FBDB7 /* StartupItemsView.swift in Sources */,
+				421C04EA50A76AE603842923 /* StatusBarController.swift in Sources */,
+				66B892F970BD028B6F9E8534 /* SystemStatsModel.swift in Sources */,
+				E7142A50BD8EAA0473C0E44E /* ThermalDetectorView.swift in Sources */,
+				0AC92982452654FAFE51842D /* TopProcessesSection.swift in Sources */,
+				A6B80A20C933BED236585889 /* UninstallerModel.swift in Sources */,
+				8411AB17A36DF85400DE7CE5 /* UptimeFormat.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A8D0DF011118FC50FFB3F5DF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C45A4F1C9FA4D5C6D5DDAF70 /* Respite */;
+			targetProxy = F102ECDB1453DCD694E831A1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		3F913E5525A88123AFA2A1E0 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6CBFD56E894821FCC0497895 /* en */,
+				ECBED7F047AD10A408E93B9C /* id */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		1EA7D481F17ECF2BC7DBC591 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.respite.Respite;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		2EFB924EE24167F8D591CD27 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.respite.Respite;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		8850D0C7EAC3D30A8026D35C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.respite.RespiteUITests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = Respite;
+			};
+			name = Release;
+		};
+		8D7C23CA171911AAD4998160 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		D7E732A8920C3C347AB2ACCB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		F2A214A3569376819E763FEA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.respite.RespiteUITests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = Respite;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9B2A64BE7EAD27AE66B112BD /* Build configuration list for PBXNativeTarget "RespiteUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2A214A3569376819E763FEA /* Debug */,
+				8850D0C7EAC3D30A8026D35C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9FFB9D3E93BF6622536C63FA /* Build configuration list for PBXNativeTarget "Respite" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2EFB924EE24167F8D591CD27 /* Debug */,
+				1EA7D481F17ECF2BC7DBC591 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		ADE52B280E4D40BC3311B697 /* Build configuration list for PBXProject "Respite" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8D7C23CA171911AAD4998160 /* Debug */,
+				D7E732A8920C3C347AB2ACCB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		3A64DB5EA76B1EC70274EC8F /* XCLocalSwiftPackageReference "RespiteCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = RespiteCore;
+		};
+		A0323FDB08EAB7A0B338497B /* XCLocalSwiftPackageReference "DesignKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = DesignKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5847978CC15F9B1C513ED36F /* DesignKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DesignKit;
+		};
+		89D5ACE8BA9EAB69F336B144 /* RespiteCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RespiteCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 34E3A6B84DDC4ED91954F892 /* Project object */;
+}

@@ -1,0 +1,63 @@
+name: Respite
+options:
+  bundleIdPrefix: app.respite
+  developmentLanguage: en
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+packages:
+  DesignKit:
+    path: DesignKit
+  RespiteCore:
+    path: RespiteCore
+targets:
+  Respite:
+    type: application
+    platform: macOS
+    sources:
+      - path: App/Sources
+      - path: App/Resources
+      # Folder reference (biru) — ke-copy utuh ke Resources/scripts di
+      # dalam bundle, bisa direveal dari Settings > Integrasi.
+      - path: scripts
+        type: folder
+    dependencies:
+      - package: DesignKit
+      - package: RespiteCore
+    settings:
+      base:
+        # Ikon via .icns klasik — actool Xcode 26 diam2 skip appiconset.
+        # (ASSETCATALOG_COMPILER_APPICON_NAME sengaja nggak dipake.)
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Respite
+        CFBundleIconFile: AppIcon
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [id, en]
+        CFBundleShortVersionString: "1.1.0"
+        CFBundleVersion: "3"
+        LSMinimumSystemVersion: "13.0"
+        NSHighResolutionCapable: true
+        CFBundleURLTypes:
+          - CFBundleURLName: app.respite
+            CFBundleURLSchemes: [respite]
+  RespiteUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: App/UITests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Respite
+
+schemes:
+  Respite:
+    build:
+      targets:
+        Respite: all
+    test:
+      targets:
+        - RespiteUITests
