@@ -6,6 +6,10 @@ import DesignKit
 struct RespiteApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
+    init() {
+        AppLanguage.applyDefaultIfNeeded()
+    }
+
     var body: some Scene {
         WindowGroup(id: "main") {
             DashboardView(model: .shared)
@@ -23,6 +27,8 @@ struct RespiteApp: App {
                     Self.openMainWindow(to: module)
                 }
         }
+        // Cukup lega buat sidebar + halaman alat tanpa banyak scroll.
+        .defaultSize(width: 1120, height: 780)
         .windowResizability(.contentSize)
         .commands {
             CommandGroup(replacing: .newItem) {
@@ -39,7 +45,7 @@ struct RespiteApp: App {
                 }
                 // Cek pembaruan manual — buka Settings di tab Pembaruan.
                 Button(NSLocalizedString("Periksa Pembaruan…", comment: "")) {
-                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                    NSApp.sendAction(NSSelectorFromString("showSettingsWindow:"), to: nil, from: nil)
                 }
                 .keyboardShortcut("u")
             }
@@ -98,12 +104,15 @@ struct RespiteApp: App {
         let candidates = NSApp.windows.filter {
             !$0.isKind(of: NSPanel.self) && $0.canBecomeMain
         }
-        if let existing = candidates.first(where: { $0.title.contains("Respite") }) ?? candidates.first {
+        // Cocokkan identifier scene ("main-AppWindow-N"), bukan judul —
+        // window Settings ("Respite Settings") juga mengandung "Respite".
+        if let existing = candidates.first(where: { $0.identifier?.rawValue.hasPrefix("main") == true })
+            ?? candidates.first(where: { $0.title == "Respite" }) {
             existing.makeKeyAndOrderFront(nil)
         } else if let open = MainWindowOpener.open {
             open()
         } else {
-            NSApp.sendAction(Selector(("newWindowForTab:")), to: nil, from: nil)
+            NSApp.sendAction(NSSelectorFromString("newWindowForTab:"), to: nil, from: nil)
         }
 
         if let module {
@@ -225,5 +234,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         isTerminating = true
         return .terminateNow
+    }
+}
+
+/// Bahasa default = English (bukan ikut bahasa sistem). Dipasang sekali di
+/// launch pertama, SEBELUM string apa pun dimuat; setelah itu pilihan user
+/// di Pengaturan yang berlaku (termasuk "Ikut Sistem").
+enum AppLanguage {
+    static let initializedKey = "app.respite.language.initialized"
+
+    static func applyDefaultIfNeeded(defaults: UserDefaults = .standard) {
+        guard !defaults.bool(forKey: initializedKey) else { return }
+        defaults.set(true, forKey: initializedKey)
+        // Sudah pernah memilih bahasa secara eksplisit → hormati.
+        if appDomainLanguages(defaults) != nil { return }
+        defaults.set(["en"], forKey: "AppleLanguages")
+    }
+
+    /// AppleLanguages milik domain app saja (bukan global/sistem).
+    static func appDomainLanguages(_ defaults: UserDefaults = .standard) -> [String]? {
+        guard let id = Bundle.main.bundleIdentifier else { return nil }
+        return defaults.persistentDomain(forName: id)?["AppleLanguages"] as? [String]
     }
 }

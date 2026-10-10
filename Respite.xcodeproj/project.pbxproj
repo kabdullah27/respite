@@ -32,6 +32,7 @@
 		777A8212B6464436F3F59DC9 /* PowerLidView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E65F9C60011567ACB6DF36 /* PowerLidView.swift */; };
 		78253E84F521B690D81EB180 /* KeyboardLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F418E5A1F5D3A38A657B478 /* KeyboardLock.swift */; };
 		8411AB17A36DF85400DE7CE5 /* UptimeFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8191926DA73CD56D9A1B4437 /* UptimeFormat.swift */; };
+		89CF1EAC8CC55332CAFB789B /* DiagnosticView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B64EB6055CFA75C9BF679CD6 /* DiagnosticView.swift */; };
 		949220FCE03BEE5227D1F8A3 /* SmartScanModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4095DCD9B772112E1E14B0A0 /* SmartScanModel.swift */; };
 		97984DA5A76AFA2490DC6ED8 /* ShredderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731B88D7912AB4928B4ED087 /* ShredderView.swift */; };
 		993431CE279889699166DB3C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3F913E5525A88123AFA2A1E0 /* Localizable.strings */; };
@@ -42,6 +43,7 @@
 		C75CB0C75B9DA4F39564521B /* BrowserCleanerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F01310EC59B5857C7F0D2487 /* BrowserCleanerModel.swift */; };
 		CD7D2C87CEC397E8FD22D4E6 /* AppUninstallerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3459BA77C7295ED8EB809023 /* AppUninstallerView.swift */; };
 		D8BE1D31DA8F45D1E6CD772B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2B6DDE2964B7DC076002F3 /* SettingsView.swift */; };
+		D9C235302A908C9A3ABF6C5C /* ToolPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 611A908ADD8CFA4EE54847E5 /* ToolPage.swift */; };
 		DA631F52278FA113E1A0864B /* LargeFilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12438B60A2B9AF0E144BE3AE /* LargeFilesView.swift */; };
 		DD026E7961B688AE59E9969C /* SimilarPhotosModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC18C631D631F9D7FBC80610 /* SimilarPhotosModel.swift */; };
 		E6A5CF28E184AC5902EA85AB /* PermanentDeleteConfirmSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638FBCB3DA7015FDA020309F /* PermanentDeleteConfirmSheet.swift */; };
@@ -87,6 +89,7 @@
 		4A7783BE13B4F2EB2656A227 /* PhotoThumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoThumbnail.swift; sourceTree = "<group>"; };
 		4CB0E47F294C94066020B108 /* ThermalDetectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalDetectorView.swift; sourceTree = "<group>"; };
 		5AB6A94B94682147DB51DFDC /* LargeFilesModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeFilesModel.swift; sourceTree = "<group>"; };
+		611A908ADD8CFA4EE54847E5 /* ToolPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolPage.swift; sourceTree = "<group>"; };
 		638FBCB3DA7015FDA020309F /* PermanentDeleteConfirmSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermanentDeleteConfirmSheet.swift; sourceTree = "<group>"; };
 		65DBB6EC15900F5F4CC24DA9 /* KeyboardLockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLockView.swift; sourceTree = "<group>"; };
 		6BF953ACA946A6B543866654 /* DevCacheView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCacheView.swift; sourceTree = "<group>"; };
@@ -105,6 +108,7 @@
 		A2D7C63D3A7DFAE71935F8FE /* DuplicateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateModel.swift; sourceTree = "<group>"; };
 		AD07815E2B75B7DD14E451B9 /* Respite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Respite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF57CD955B0BAD75A2554FAF /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		B64EB6055CFA75C9BF679CD6 /* DiagnosticView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticView.swift; sourceTree = "<group>"; };
 		C1D353A3A9FE2DC470E548BA /* RespiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RespiteApp.swift; sourceTree = "<group>"; };
 		C51429290F5AF8E1E3C52296 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		DC18C631D631F9D7FBC80610 /* SimilarPhotosModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPhotosModel.swift; sourceTree = "<group>"; };
@@ -217,6 +221,7 @@
 				05A58655399CA4AAF4731353 /* BrowserCleanerView.swift */,
 				3E551325EB257DD7C54F5FD9 /* DevCacheModel.swift */,
 				6BF953ACA946A6B543866654 /* DevCacheView.swift */,
+				B64EB6055CFA75C9BF679CD6 /* DiagnosticView.swift */,
 				A2D7C63D3A7DFAE71935F8FE /* DuplicateModel.swift */,
 				0A0A5896F2C85DD9797C6434 /* DuplicateView.swift */,
 				3384CC61E98E30ECBECA21E8 /* HomeView.swift */,
@@ -259,6 +264,7 @@
 				852608FB1CCE291E95B4BB1C /* Module.swift */,
 				AF57CD955B0BAD75A2554FAF /* OnboardingView.swift */,
 				EB2B6DDE2964B7DC076002F3 /* SettingsView.swift */,
+				611A908ADD8CFA4EE54847E5 /* ToolPage.swift */,
 				AC4BDD382FC8631026311044 /* Modules */,
 			);
 			path = Windows;
@@ -380,6 +386,7 @@
 				FBE93B344EF9437B5C6BAF1F /* DashboardView.swift in Sources */,
 				ACADE7860DFD7E68D5E75E21 /* DevCacheModel.swift in Sources */,
 				ACCD86DAA844DDB25875A970 /* DevCacheView.swift in Sources */,
+				89CF1EAC8CC55332CAFB789B /* DiagnosticView.swift in Sources */,
 				5E73952ABFAE9B76A2DC776E /* DonationConfig.swift in Sources */,
 				FD29D96942E44E93953EF771 /* DuplicateModel.swift in Sources */,
 				43B95DEC8297DF6FE439294F /* DuplicateView.swift in Sources */,
@@ -408,6 +415,7 @@
 				421C04EA50A76AE603842923 /* StatusBarController.swift in Sources */,
 				66B892F970BD028B6F9E8534 /* SystemStatsModel.swift in Sources */,
 				E7142A50BD8EAA0473C0E44E /* ThermalDetectorView.swift in Sources */,
+				D9C235302A908C9A3ABF6C5C /* ToolPage.swift in Sources */,
 				0AC92982452654FAFE51842D /* TopProcessesSection.swift in Sources */,
 				A6B80A20C933BED236585889 /* UninstallerModel.swift in Sources */,
 				8411AB17A36DF85400DE7CE5 /* UptimeFormat.swift in Sources */,

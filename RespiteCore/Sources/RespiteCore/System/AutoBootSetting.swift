@@ -41,32 +41,36 @@ public enum AutoBootSetting {
     // MARK: Read
 
     /// Nilai mentah variabel NVRAM (nil = variabel tidak ada / gagal baca).
-    static func rawValue(_ key: String) -> String? {
+    /// `launched == false` = nvram gagal dijalankan (status tak diketahui),
+    /// beda dengan variabel yang memang tidak ada (perilaku pabrik).
+    static func rawValue(_ key: String) -> (launched: Bool, value: String?) {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: nvramPath)
         process.arguments = [key]
         let pipe = Pipe()
         process.standardOutput = pipe
-        process.standardError = Pipe()
+        process.standardError = FileHandle.nullDevice
         do {
             try process.run()
-            process.waitUntilExit()
         } catch {
-            return nil
+            return (false, nil)
         }
+        let data = try? pipe.fileHandleForReading.readToEnd()
+        process.waitUntilExit()
         guard process.terminationStatus == 0,
-              let data = try? pipe.fileHandleForReading.readToEnd(),
+              let data,
               let output = String(data: data, encoding: .utf8)
-        else { return nil }
+        else { return (true, nil) }
         // Format: "Key\tvalue"
         let parts = output.split(separator: "\t", maxSplits: 1)
-        return parts.count == 2 ? String(parts[1]).trimmingCharacters(in: .whitespacesAndNewlines) : nil
+        return (true, parts.count == 2 ? String(parts[1]).trimmingCharacters(in: .whitespacesAndNewlines) : nil)
     }
 
     /// Baca status sekarang — tanpa admin.
     public static func read() -> State {
         let key = nvramKey
-        let value = rawValue(key)
+        let (launched, value) = rawValue(key)
+        guard launched else { return .unknown }
         guard let value else {
             // Variabel tidak ada → perilaku pabrik (aktif). Kecuali di AS,
             // sisa AutoBoot=%00 dari percobaan lama tidak dianggap.
@@ -78,8 +82,10 @@ public enum AutoBootSetting {
     /// Parse nilai variabel → state. Pure — diuji unit test.
     static func parse(_ value: String) -> State {
         switch value {
-        case "%00": return .disabled
-        case "%03": return .enabled
+        // Dari sudut pandang fitur "nyala saat lid dibuka":
+        // %01 (lid dimatikan) = disabled; %02 (cuma charger) = lid tetap aktif.
+        case "%00", "%01": return .disabled
+        case "%02", "%03": return .enabled
         case "": return .enabledDefault
         default: return .unknown
         }

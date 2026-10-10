@@ -335,6 +335,7 @@ public struct DevCacheScanner {
     ) -> DevCacheTarget? {
         guard let url,
               FileManager.default.fileExists(atPath: url.path),
+              !whitelist.isExcluded(url),
               !ProtectedList.isProtected(url) else { return nil }
         let measured = FileTreeSizer.sizeAndLatestModified(of: url)
         guard measured.sizeBytes > 0 else { return nil }

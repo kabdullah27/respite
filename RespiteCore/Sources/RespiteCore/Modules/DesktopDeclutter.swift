@@ -56,9 +56,11 @@ public enum DesktopDeclutter {
     /// Fallback ke mtime kalau nama tidak memuat tanggal valid.
     static func archiveFolderName(fromFileName name: String, modified: Date) -> String {
         // "Screenshot 2025-01-01 at ..." → ambil "2025-01-01".
-        let parts = name.split(separator: " ")
-        guard parts.count >= 2 else { return archiveFolderName(for: modified) }
-        let datePart = String(parts[1])
+        // "Screen Shot 2020-01-05 at ..." → tanggal di kata ke-3, bukan ke-2:
+        // cari kata pertama berbentuk yyyy-MM-dd.
+        guard let datePart = name.split(separator: " ").first(where: {
+            $0.split(separator: "-").count == 3 && $0.first?.isNumber == true
+        }) else { return archiveFolderName(for: modified) }
         let subparts = datePart.split(separator: "-")
         guard subparts.count == 3,
               let year = Int(subparts[0]), (1900...2999).contains(year),

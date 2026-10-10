@@ -94,6 +94,14 @@ public struct LargeFilesScanner {
                         group.addTask { [config, whitelist] in
                             // FileManager fresh per task — enumerator thread-safe.
                             let fileManager = FileManager()
+                            // Anak top-level yang berupa file: enumerator(at:) untuk
+                            // file biasa nggak yield apa-apa — cek langsung.
+                            let isDir = (try? scanRoot.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+                            if !isDir {
+                                guard let hit = Self.hit(for: scanRoot, config: config) else { return (0, 0) }
+                                continuation.yield(.found(hit))
+                                return (1, hit.sizeBytes)
+                            }
                             guard let enumerator = fileManager.enumerator(
                                 at: scanRoot,
                                 includingPropertiesForKeys: [.fileSizeKey, .contentModificationDateKey, .isRegularFileKey],
@@ -110,29 +118,14 @@ public struct LargeFilesScanner {
                                 autoreleasepool {
                                 guard let url = item as? URL else { return }
 
-                                if isInTrash(url) { return }
-                                if whitelist.isExcluded(url) { return }
-                                if ProtectedList.isProtected(url, homeDirectory: config.homeDirectory) {
+                                if isInTrash(url)
+                                    || whitelist.isExcluded(url)
+                                    || ProtectedList.isProtected(url, homeDirectory: config.homeDirectory) {
+                                    // Jangan jalan ke dalam subtree yang dikecualikan.
+                                    enumerator.skipDescendants()
                                     return
                                 }
-                                guard
-                                    let values = try? url.resourceValues(
-                                        forKeys: [.fileSizeKey, .contentModificationDateKey, .isRegularFileKey]
-                                    ),
-                                    values.isRegularFile == true,
-                                    let size = values.fileSize,
-                                    Int64(size) >= config.minBytes
-                                else { return }
-
-                                let modified = values.contentModificationDate ?? .distantPast
-                                let hit = FileHit(
-                                    url: url,
-                                    sizeBytes: Int64(size),
-                                    lastModified: modified,
-                                    isSelectedByDefault: RecencyGuard.shouldSelectByDefault(
-                                        lastModified: modified, days: config.recencyDays
-                                    )
-                                )
+                                guard let hit = Self.hit(for: url, config: config) else { return }
                                 count += 1
                                 bytes += hit.sizeBytes
                                 continuation.yield(.found(hit))
@@ -152,5 +145,26 @@ public struct LargeFilesScanner {
             }
             continuation.onTermination = { _ in task.cancel() }
         }
+    }
+    /// FileHit kalau `url` file biasa ≥ minBytes, selain itu nil.
+    private static func hit(for url: URL, config: Config) -> FileHit? {
+        guard
+            let values = try? url.resourceValues(
+                forKeys: [.fileSizeKey, .contentModificationDateKey, .isRegularFileKey]
+            ),
+            values.isRegularFile == true,
+            let size = values.fileSize,
+            Int64(size) >= config.minBytes
+        else { return nil }
+
+        let modified = values.contentModificationDate ?? .distantPast
+        return FileHit(
+            url: url,
+            sizeBytes: Int64(size),
+            lastModified: modified,
+            isSelectedByDefault: RecencyGuard.shouldSelectByDefault(
+                lastModified: modified, days: config.recencyDays
+            )
+        )
     }
 }

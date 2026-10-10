@@ -20,75 +20,65 @@ struct KeyboardLockView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DKSpacing.lg) {
-            HStack(spacing: DKSpacing.md) {
-                Image(systemName: "keyboard")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(Color.mint)
-                    .frame(width: 44, height: 44)
-                    .background(Color.mint.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(NSLocalizedString("Kunci Keyboard", comment: ""))
-                        .font(.title3.weight(.semibold))
-                    Text(NSLocalizedString("bersihkan layar & keyboard tanpa salah tekan", comment: ""))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                Spacer()
-                if lock.isLocked {
-                    Label(NSLocalizedString("Terkunci", comment: ""), systemImage: "lock.fill")
-                        .font(.callout.weight(.semibold))
-                        .foregroundStyle(Color.mint)
-                }
-            }
-
-            Text(NSLocalizedString("Menahan semua ketukan keyboard selama layar kunci aktif — trackpad & mouse tetap berfungsi.", comment: ""))
-                .font(.callout)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            HStack(spacing: DKSpacing.md) {
-                Text(NSLocalizedString("Buka otomatis setelah", comment: ""))
+            ToolCard {
+                Text(NSLocalizedString("Mau mengelap keyboard atau layar? Kunci keyboard dulu supaya tidak ada tombol yang tertekan. Trackpad dan mouse tetap bisa dipakai.", comment: ""))
                     .font(.callout)
-                Picker("", selection: $lockSeconds) {
-                    ForEach(durationOptions, id: \.seconds) { option in
-                        Text(option.label).tag(option.seconds)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(maxWidth: 400)
-            }
+                    .fixedSize(horizontal: false, vertical: true)
 
-            Button {
-                lock.lock(autoUnlockAfter: lockSeconds > 0 ? TimeInterval(lockSeconds) : nil)
-            } label: {
                 Label(
                     lock.isLocked
-                        ? NSLocalizedString("Sudah Terkunci — buka di layar penuh", comment: "")
-                        : NSLocalizedString("Kunci Keyboard Sekarang", comment: ""),
-                    systemImage: "lock"
+                        ? NSLocalizedString("Saat ini: keyboard terkunci", comment: "")
+                        : NSLocalizedString("Saat ini: keyboard bisa dipakai seperti biasa", comment: ""),
+                    systemImage: lock.isLocked ? "lock.fill" : "lock.open"
                 )
+                .font(.callout.weight(.semibold))
+                .foregroundStyle(lock.isLocked ? Color.mint : Color.secondary)
+
+                HStack(spacing: DKSpacing.md) {
+                    Text(NSLocalizedString("Buka sendiri setelah", comment: ""))
+                        .font(.callout)
+                    Picker("", selection: $lockSeconds) {
+                        ForEach(durationOptions, id: \.seconds) { option in
+                            Text(option.label).tag(option.seconds)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 400)
+                }
+
+                Button {
+                    lock.lock(autoUnlockAfter: lockSeconds > 0 ? TimeInterval(lockSeconds) : nil)
+                } label: {
+                    Label(
+                        lock.isLocked
+                            ? NSLocalizedString("Keyboard sedang terkunci", comment: "")
+                            : NSLocalizedString("Kunci Keyboard Sekarang", comment: ""),
+                        systemImage: "lock"
+                    )
+                    .frame(minWidth: 180)
+                }
+                .controlSize(.large)
+                .buttonStyle(.borderedProminent)
+                .tint(Color.mint)
+                .disabled(lock.isLocked)
+
+                Divider()
+
+                VStack(alignment: .leading, spacing: DKSpacing.sm) {
+                    Text(NSLocalizedString("Cara membuka kunci:", comment: ""))
+                        .font(.callout.weight(.semibold))
+                    exitRow(icon: "hand.tap", text: NSLocalizedString("Tekan dan tahan tombol di layar selama 1 detik", comment: ""))
+                    exitRow(icon: "timer", text: NSLocalizedString("Atau tunggu waktunya habis — terbuka sendiri", comment: ""))
+                    exitRow(icon: "command", text: NSLocalizedString("Darurat: tekan ⌘⌥L", comment: ""))
+                }
             }
-            .controlSize(.large)
-            .buttonStyle(.borderedProminent)
-            .tint(Color.mint)
-            .disabled(lock.isLocked)
 
-            Divider()
-
-            VStack(alignment: .leading, spacing: DKSpacing.sm) {
-                Text(NSLocalizedString("Cara keluar (semua via trackpad):", comment: ""))
-                    .font(.callout.weight(.semibold))
-                exitRow(icon: "hand.tap", text: NSLocalizedString("Tahan tombol di layar selama 1 detik", comment: ""))
-                exitRow(icon: "timer", text: NSLocalizedString("Tunggu timer habis — terbuka sendiri, plus notifikasi", comment: ""))
-                exitRow(icon: "command", text: NSLocalizedString("⌘⌥L — pintasan darurat yang tetap jalan saat terkunci", comment: ""))
-                exitRow(icon: "xmark.app", text: NSLocalizedString("Paksa keluar Respite — kunci hilang sendiri", comment: ""))
+            ToolDetails {
+                Text(NSLocalizedString("Paksa keluar Respite — kunci hilang sendiri", comment: ""))
+                Text(NSLocalizedString("Overlay menahan input selama aktif, bukan mematikan keyboard di level hardware — tidak ada state yang tertinggal.", comment: ""))
+                    .fixedSize(horizontal: false, vertical: true)
             }
-
-            Text(NSLocalizedString("Overlay menahan input selama aktif, bukan mematikan keyboard di level hardware — tidak ada state yang tertinggal.", comment: ""))
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 

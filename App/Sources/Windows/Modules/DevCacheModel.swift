@@ -73,8 +73,17 @@ final class DevCacheModel: ObservableObject {
     }
 
     func addNodeRoots(_ urls: [URL]) {
-        nodeRoots.append(contentsOf: urls)
-        if phase == .results || phase == .idle { startScan() }
+        // Folder sama / bersarang di root yang sudah ada → target dobel
+        // (UUID beda, dua-duanya tercentang, pindah kedua pasti gagal).
+        func covers(_ root: URL, _ url: URL) -> Bool {
+            let r = root.standardizedFileURL.path, u = url.standardizedFileURL.path
+            return u == r || u.hasPrefix(r + "/")
+        }
+        for url in urls where !nodeRoots.contains(where: { covers($0, url) }) {
+            nodeRoots.removeAll { covers(url, $0) }
+            nodeRoots.append(url)
+        }
+        if phase != .scanning { startScan() }
     }
 
     /// Buang satu target ("Selalu kecualikan" dari context menu).
@@ -105,7 +114,9 @@ final class DevCacheModel: ObservableObject {
         failedItems = outcome.failed
         let cleanedURLs = Set(outcome.cleaned.map(\.url))
         targets.removeAll { cleanedURLs.contains($0.url) }
-        selected = Set(targets.filter(\.isSelectedByDefault).map(\.id))
+        // Pertahankan pilihan user (minus yang sudah bersih) — reset ke
+        // default bakal mencentang lagi item yang sengaja di-uncheck.
+        selected.formIntersection(targets.map(\.id))
         phase = .cleaned(outcome.freedBytes)
     }
 }

@@ -3,9 +3,10 @@ import RespiteCore
 import DesignKit
 import AppKit
 
-/// App Uninstaller (TRD §4.2): pilih app → deteksi sisa data (bundle ID =
-/// exact tercentang, nama = "Perkiraan" nggak tercentang) → uninstall =
-/// pindah semuanya ke Trash.
+/// Copot Aplikasi: pilih app → cari file sisanya (cocok ID aplikasi =
+/// tercentang, cocok nama = "Mungkin milik" tidak tercentang) → semuanya
+/// dipindah ke Trash. Di bawahnya: sisa dari aplikasi yang sudah dihapus.
+/// Pola halaman mengikuti ToolPage (mulai → mencari → hasil → selesai).
 struct AppUninstallerView: View {
     private static let dryRunKey = "app.respite.dryRunConfirmed.appUninstaller"
 
@@ -16,12 +17,15 @@ struct AppUninstallerView: View {
     @State private var isLoadingLeftovers = false
     @State private var leftovers: [LeftoverItem] = []
     @State private var selectedLeftovers: Set<UUID> = []
+    @State private var leftoverTask: Task<Void, Never>?
 
     @State private var cleanedMessage: String?
     @State private var failureCount = 0
     @State private var showConfirm = false
 
     @State private var showOrphanConfirm = false
+    /// Membedakan "belum pernah dipindai" dari "dipindai, hasilnya kosong".
+    @State private var orphanScanStarted = false
 
     private var filteredApps: [InstalledApp] {
         guard !search.isEmpty else { return model.apps }
@@ -37,9 +41,9 @@ struct AppUninstallerView: View {
 
         var label: String {
             switch self {
-            case .largest: return NSLocalizedString("Terbesar", comment: "")
-            case .oldest: return NSLocalizedString("Terlama", comment: "")
-            case .name: return NSLocalizedString("Nama", comment: "")
+            case .largest: return NSLocalizedString("Terbesar dulu", comment: "")
+            case .oldest: return NSLocalizedString("Terlama dulu", comment: "")
+            case .name: return NSLocalizedString("Nama (A–Z)", comment: "")
             }
         }
     }
@@ -65,252 +69,254 @@ struct AppUninstallerView: View {
         return app.sizeBytes + leftoverBytes
     }
 
+    private var selectedLeftoverCount: Int {
+        leftovers.filter { selectedLeftovers.contains($0.id) }.count
+    }
+
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: DKSpacing.lg) {
             if let app = selectedApp {
                 detailSection(app)
             } else {
-                List {
-                    listContent
-                    orphanSection
+                if let cleanedMessage {
+                    resultBanner(cleanedMessage, isFailure: false)
                 }
-                .listStyle(.inset)
+                appList
+                Divider().padding(.vertical, DKSpacing.sm)
+                orphanSection
             }
         }
-        .frame(minHeight: 420)
         .task {
             model.loadAppsIfNeeded()
         }
         .alert(
-            NSLocalizedString("Konfirmasi uninstall", comment: ""),
+            ToolConfirm.title(count: 1 + selectedLeftoverCount, bytes: selectedTotalBytes),
             isPresented: $showConfirm
         ) {
             Button(NSLocalizedString("Batal", comment: ""), role: .cancel) {}
-            Button(NSLocalizedString("Lanjutkan", comment: ""), role: .destructive) {
+            Button(NSLocalizedString("Hapus Aplikasi", comment: "")) {
                 UserDefaults.standard.set(true, forKey: Self.dryRunKey)
                 performUninstall()
             }
         } message: {
             Text(String(
-                format: NSLocalizedString(
-                    "%@ beserta %d item sisa data (%@) akan dipindah ke Trash — bisa dikembalikan dari sana.",
-                    comment: ""
-                ),
+                format: NSLocalizedString("%@ dan %d file sisanya akan dipindahkan ke Trash.", comment: ""),
                 selectedApp?.name ?? "",
-                leftovers.filter { selectedLeftovers.contains($0.id) }.count,
-                ByteFormat.string(from: selectedTotalBytes)
-            ))
+                selectedLeftoverCount
+            ) + " " + ToolConfirm.message)
         }
         .alert(
-            NSLocalizedString("Pindahkan sisa data ke Trash?", comment: ""),
+            ToolConfirm.title(count: model.selectedOrphans.count, bytes: selectedOrphanBytes),
             isPresented: $showOrphanConfirm
         ) {
             Button(NSLocalizedString("Batal", comment: ""), role: .cancel) {}
-            Button(NSLocalizedString("Pindahkan", comment: ""), role: .destructive) {
+            Button(NSLocalizedString("Pindahkan", comment: "")) {
                 // Paritas pola uninstaller: konfirmasi eksplisit = consent
-                // pertama, dicatat ke dry-run gate modul ini. (Key-nya masih
+                // pertama, dicatat ke gate modul ini. (Key-nya masih
                 // "app.respite.dryRun.orphanFinder" — data consent user yang
                 // sudah ada jangan dibuang.)
                 UserDefaults.standard.set(true, forKey: "app.respite.dryRun.orphanFinder")
                 model.performOrphanClean()
             }
         } message: {
-            Text(String(
-                format: NSLocalizedString(
-                    "%d item (%@) akan dipindah ke Trash. Respite hanya menghapus yang tercentang — bisa dikembalikan dari Trash.",
-                    comment: ""
-                ),
-                model.selectedOrphans.count,
-                ByteFormat.string(from: selectedOrphanBytes)
-            ))
+            Text(ToolConfirm.message)
         }
-    }
-
-    /// Whitelist permanen + buang dari hasil (context menu Orphan).
-    private func whitelistAndExclude(_ item: OrphanItem) {
-        var whitelist = UserWhitelist.load()
-        whitelist.add(item.url.path)
-        whitelist.save()
-        model.excludeOrphan(item)
     }
 
     // MARK: Daftar aplikasi
 
-    private var listSection: some View {
-        List {
-            listContent
-            orphanSection
-        }
-        .listStyle(.inset)
-    }
+    @ViewBuilder
+    private var appList: some View {
+        if model.isLoadingApps && model.apps.isEmpty {
+            ToolProgressCard(
+                title: NSLocalizedString("Memuat aplikasi…", comment: ""),
+                detail: NSLocalizedString("Sedang menghitung ukuran tiap aplikasi.", comment: "")
+            )
+        } else {
+            ToolResultHeader(
+                title: String(
+                    format: NSLocalizedString("%d aplikasi terpasang", comment: ""),
+                    model.apps.count
+                ),
+                subtitle: NSLocalizedString("Klik aplikasi yang ingin kamu hapus. File sisanya akan dicarikan sekalian.", comment: "")
+            ) {
+                HStack(spacing: DKSpacing.md) {
+                    TextField(NSLocalizedString("Cari aplikasi…", comment: ""), text: $search)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: 240)
+                    if model.isLoadingApps {
+                        ProgressView().controlSize(.small)
+                        Text(String(
+                            format: NSLocalizedString("Memuat… %d aplikasi", comment: ""),
+                            model.apps.count
+                        ))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                }
+            }
 
-    /// Header pencarian — Section biar nempel di List.
-    private var listContent: some View {
-        Section {
             if !model.isLoadingApps && filteredApps.isEmpty {
                 Text(NSLocalizedString("Tidak ada aplikasi yang cocok.", comment: ""))
                     .font(.callout)
                     .foregroundColor(.secondary)
             } else {
-                ForEach(filteredApps) { app in
-                    HStack(spacing: DKSpacing.md) {
-                        Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
-                            .resizable()
-                            .frame(width: 28, height: 28)
-                        ReadoutRow(
-                            value: ByteFormat.string(from: app.sizeBytes),
-                            label: app.name,
-                            detail: app.bundleID
-                        )
-                        .contentShape(Rectangle())
-                        .onTapGesture { select(app) }
-                    }
-                    .padding(.vertical, DKSpacing.xs)
-                    .contentShape(Rectangle())
-                    .onTapGesture { select(app) }
+                List(filteredApps) { app in
+                    appRow(app)
                 }
+                .listStyle(.inset)
+                .frame(height: 360)
             }
-        } header: {
-            HStack(spacing: DKSpacing.md) {
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                TextField(NSLocalizedString("Cari aplikasi…", comment: ""), text: $search)
-                    .textFieldStyle(.plain)
-                if model.isLoadingApps {
-                    ProgressView().controlSize(.small)
-                    Text(model.apps.isEmpty
-                         ? NSLocalizedString("Memuat aplikasi…", comment: "")
-                         : String(format: NSLocalizedString("Memuat… %d aplikasi", comment: ""), model.apps.count)
-                    )
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }
-            }
-            .padding(.vertical, DKSpacing.xs)
         }
     }
 
-    // MARK: Orphan Finder — sisa data tanpa pemilik
-
-    private var orphanSection: some View {
-        Section {
-            if model.orphans.isEmpty {
-                if model.isScanningOrphans {
-                    HStack(spacing: DKSpacing.sm) {
-                        ProgressView().controlSize(.small)
-                        Text(NSLocalizedString("Memindai Library…", comment: ""))
-                            .foregroundColor(.secondary)
-                    }
-                } else {
-                    Text(NSLocalizedString("Belum dipindai — mulai untuk mencari sisa data aplikasi yang sudah tidak terpasang.", comment: ""))
-                        .font(.callout)
-                        .foregroundColor(.secondary)
-                }
-            } else {
-                HStack(spacing: DKSpacing.xs) {
-                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                    TextField(
-                        NSLocalizedString("Cari nama atau folder…", comment: ""),
-                        text: $orphanSearch
-                    )
-                    .textFieldStyle(.roundedBorder)
-                    if !orphanSearch.isEmpty {
-                        Button {
-                            orphanSearch = ""
-                        } label: {
-                            Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(NSLocalizedString("Bersihkan pencarian", comment: ""))
-                    }
-                    Picker("", selection: $orphanSort) {
-                        ForEach(OrphanSort.allCases) { sort in
-                            Text(sort.label).tag(sort)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .frame(width: 110)
-                }
-
-                ForEach(visibleOrphans) { item in
-                    HStack(spacing: DKSpacing.md) {
-                        Toggle("", isOn: Binding(
-                            get: { model.selectedOrphans.contains(item.id) },
-                            set: { on in
-                                if on { model.selectedOrphans.insert(item.id) }
-                                else { model.selectedOrphans.remove(item.id) }
-                            }
-                        ))
-                        .labelsHidden()
-                        ReadoutRow(
-                            value: ByteFormat.string(from: item.sizeBytes),
-                            label: item.url.lastPathComponent,
-                            detail: "\(item.locationName) · \(URL(fileURLWithPath: item.url.path).deletingLastPathComponent().path)"
-                        )
-                        .lineLimit(1)
-                        .contextMenu {
-                            Button {
-                                QuickLookCoordinator.shared.show(item.url)
-                            } label: {
-                                Label(NSLocalizedString("Pratinjau", comment: ""), systemImage: "eye")
-                            }
-                            Button {
-                                NSWorkspace.shared.activateFileViewerSelecting([item.url])
-                            } label: {
-                                Label(NSLocalizedString("Tampilkan di Finder", comment: ""), systemImage: "magnifyingglass")
-                            }
-                            Divider()
-                            Button(NSLocalizedString("Selalu kecualikan folder ini", comment: "")) {
-                                whitelistAndExclude(item)
-                            }
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture(count: 2) {
-                        QuickLookCoordinator.shared.show(item.url)
-                    }
-                }
-                if let orphanMessage = model.orphanMessage {
-                    Label(orphanMessage, systemImage: "checkmark.circle")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                Button {
-                    showOrphanConfirm = true
-                } label: {
-                    Label(
-                        String(
-                            format: NSLocalizedString("Pindahkan %d item terpilih (%@) ke Trash", comment: ""),
-                            model.selectedOrphans.count,
-                            ByteFormat.string(from: selectedOrphanBytes)
-                        ),
-                        systemImage: "arrow.down.trash"
-                    )
-                }
-                .disabled(model.selectedOrphans.isEmpty)
-            }
-        } header: {
-            HStack {
-                Label(NSLocalizedString("Sisa Data Tanpa Pemilik", comment: ""), systemImage: "questionmark.folder")
-                    .font(.headline)
-                Spacer()
-                Text(model.orphans.isEmpty
-                     ? ""
-                     : ByteFormat.string(from: model.orphanTotalBytes)
-                )
+    private func appRow(_ app: InstalledApp) -> some View {
+        HStack(spacing: DKSpacing.md) {
+            Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
+                .resizable()
+                .frame(width: 28, height: 28)
+            Text(app.name)
+                .font(.callout.weight(.medium))
+                .lineLimit(1)
+            Spacer(minLength: DKSpacing.sm)
+            Text(ByteFormat.string(from: app.sizeBytes))
                 .font(.dkData(12))
                 .foregroundColor(.secondary)
-                Button {
-                    Task { await model.scanOrphans() }
-                } label: {
-                    Label(NSLocalizedString("Pindai", comment: ""), systemImage: "magnifyingglass")
-                }
-                .controlSize(.small)
-                .disabled(model.isScanningOrphans)
-            }
-        } footer: {
-            Text(NSLocalizedString("Item di Library yang tidak cocok dengan aplikasi mana pun yang masih terpasang. Matching ketat — kalau ragu, biarkan tidak tercentang.", comment: ""))
-                .font(.caption2)
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
         }
+        .padding(.vertical, 2)
+        .contentShape(Rectangle())
+        .onTapGesture { select(app) }
+        .contextMenu {
+            Button {
+                NSWorkspace.shared.activateFileViewerSelecting([app.url])
+            } label: {
+                Label(NSLocalizedString("Tampilkan di Finder", comment: ""), systemImage: "folder")
+            }
+        }
+    }
+
+    // MARK: Sisa dari aplikasi yang sudah dihapus
+
+    @ViewBuilder
+    private var orphanSection: some View {
+        if model.isScanningOrphans {
+            ToolProgressCard(
+                title: NSLocalizedString("Mencari sisa aplikasi lama…", comment: ""),
+                detail: String(
+                    format: NSLocalizedString("%d item ditemukan · %@", comment: ""),
+                    model.orphans.count,
+                    ByteFormat.string(from: model.orphanTotalBytes)
+                )
+            )
+        } else if model.orphans.isEmpty && model.orphanMessage == nil && !orphanScanStarted {
+            ToolStartCard(
+                headline: NSLocalizedString("Sisa dari aplikasi yang sudah dihapus", comment: ""),
+                points: [
+                    NSLocalizedString("Mencari file yang ditinggalkan aplikasi yang sudah tidak ada di Mac kamu.", comment: ""),
+                    NSLocalizedString("Yang tidak yakin milik siapa tidak dicentang otomatis.", comment: ""),
+                    NSLocalizedString("Semua dipindah ke Trash, jadi masih bisa dikembalikan.", comment: ""),
+                ],
+                action: startOrphanScan
+            )
+        } else {
+            if let orphanMessage = model.orphanMessage {
+                ToolDoneCard(title: orphanMessage, onRescan: startOrphanScan)
+            }
+            if model.orphans.isEmpty {
+                if model.orphanMessage == nil {
+                    ToolEmptyResult(
+                        message: NSLocalizedString("Tidak ada sisa dari aplikasi yang sudah dihapus.", comment: ""),
+                        onRescan: startOrphanScan
+                    )
+                }
+            } else {
+                orphanResults
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var orphanResults: some View {
+        ToolResultHeader(
+            title: String(
+                format: NSLocalizedString("Sisa aplikasi lama · %@", comment: ""),
+                ByteFormat.string(from: model.orphanTotalBytes)
+            ),
+            subtitle: NSLocalizedString("File ini milik aplikasi yang sudah tidak terpasang. Kalau ragu, biarkan tidak dicentang.", comment: ""),
+            onRescan: startOrphanScan
+        ) {
+            HStack(spacing: DKSpacing.md) {
+                Picker("", selection: $orphanSort) {
+                    ForEach(OrphanSort.allCases) { sort in
+                        Text(sort.label).tag(sort)
+                    }
+                }
+                .labelsHidden()
+                .fixedSize()
+                TextField(NSLocalizedString("Cari nama atau folder…", comment: ""), text: $orphanSearch)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: 240)
+                Spacer()
+            }
+        }
+
+        List(visibleOrphans) { item in
+            ToolResultRow(
+                title: item.url.lastPathComponent,
+                subtitle: String(
+                    format: NSLocalizedString("%@ · terakhir diubah %@", comment: ""),
+                    item.locationName,
+                    FriendlyDate.string(item.lastModified)
+                ),
+                size: item.sizeBytes,
+                isOn: Binding(
+                    get: { model.selectedOrphans.contains(item.id) },
+                    set: { on in
+                        if on { model.selectedOrphans.insert(item.id) }
+                        else { model.selectedOrphans.remove(item.id) }
+                    }
+                )
+            )
+            .help(item.url.path)
+            .onTapGesture(count: 2) {
+                QuickLookCoordinator.shared.show(item.url)
+            }
+            .contextMenu {
+                Button {
+                    QuickLookCoordinator.shared.show(item.url)
+                } label: {
+                    Label(NSLocalizedString("Lihat isi", comment: ""), systemImage: "eye")
+                }
+                Button {
+                    NSWorkspace.shared.activateFileViewerSelecting([item.url])
+                } label: {
+                    Label(NSLocalizedString("Tampilkan di Finder", comment: ""), systemImage: "folder")
+                }
+                Divider()
+                Button {
+                    whitelistAndExclude(item)
+                } label: {
+                    Label(NSLocalizedString("Jangan tampilkan folder ini lagi", comment: ""), systemImage: "hand.raised")
+                }
+            }
+        }
+        .listStyle(.inset)
+        .frame(height: 300)
+
+        ToolActionBar(
+            selectedCount: model.selectedOrphans.count,
+            selectedBytes: selectedOrphanBytes,
+            action: { showOrphanConfirm = true }
+        )
+    }
+
+    private func startOrphanScan() {
+        orphanScanStarted = true
+        model.scanOrphans()
     }
 
     private var selectedOrphanBytes: Int64 {
@@ -319,152 +325,152 @@ struct AppUninstallerView: View {
             .reduce(0) { $0 + $1.sizeBytes }
     }
 
+    /// Whitelist permanen + buang dari hasil (context menu sisa aplikasi lama).
+    private func whitelistAndExclude(_ item: OrphanItem) {
+        var whitelist = UserWhitelist.load()
+        whitelist.add(item.url.path)
+        whitelist.save()
+        model.excludeOrphan(item)
+    }
 
     // MARK: Detail app terpilih
 
+    @ViewBuilder
     private func detailSection(_ app: InstalledApp) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: DKSpacing.lg) {
+        Button {
+            leftoverTask?.cancel()
+            selectedApp = nil
+            leftovers = []
+            selectedLeftovers = []
+        } label: {
+            Label(NSLocalizedString("Kembali ke daftar", comment: ""), systemImage: "chevron.left")
+        }
+
+        HStack(spacing: DKSpacing.md) {
+            Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
+                .resizable()
+                .frame(width: 44, height: 44)
+            Text(app.name).font(.title2.weight(.semibold))
+            Spacer()
+        }
+
+        if let cleanedMessage {
+            resultBanner(cleanedMessage, isFailure: true)
+        }
+
+        if isLoadingLeftovers {
+            ToolProgressCard(
+                title: NSLocalizedString("Mencari file sisa…", comment: ""),
+                detail: NSLocalizedString("Biasanya hanya beberapa detik.", comment: "")
+            )
+        } else {
+            ToolResultHeader(
+                title: String(
+                    format: NSLocalizedString("Aplikasi ini + %d file sisa · %@", comment: ""),
+                    leftovers.count,
+                    ByteFormat.string(from: app.sizeBytes + leftovers.reduce(0) { $0 + $1.sizeBytes })
+                ),
+                subtitle: leftovers.isEmpty
+                    ? NSLocalizedString("Tidak ada file sisa — hanya aplikasinya yang akan dihapus.", comment: "")
+                    : NSLocalizedString("Aplikasinya selalu ikut dihapus. Centang file sisa yang mau ikut dibuang.", comment: "")
+            )
+
+            List {
                 HStack(spacing: DKSpacing.md) {
-                    Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
-                        .resizable()
-                        .frame(width: 44, height: 44)
-                    VStack(alignment: .leading, spacing: DKSpacing.xs) {
-                        Text(app.name).font(.title2.weight(.semibold))
-                        Text(app.bundleID ?? "—")
+                    Image(systemName: "checkmark.square.fill")
+                        .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(app.name)
+                            .font(.callout.weight(.medium))
+                        Text(NSLocalizedString("Aplikasinya — selalu ikut dihapus", comment: ""))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    Spacer()
-                    Button {
-                        selectedApp = nil
-                        leftovers = []
-                        selectedLeftovers = []
-                    } label: {
-                        Label(NSLocalizedString("Kembali ke daftar", comment: ""), systemImage: "chevron.left")
-                    }
-                }
-
-                HStack {
-                    Text(String(
-                        format: NSLocalizedString("Aplikasi (%@) — selalu ikut dihapus", comment: ""),
-                        ByteFormat.string(from: app.sizeBytes)
-                    ))
-                    .font(.callout.weight(.medium))
-                    Spacer()
-                    Image(systemName: "trash")
-                        .foregroundStyle(DKColor.accent)
-                }
-                .padding(DKSpacing.md)
-                .background(DKColor.surfaceSecondary)
-                .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
-
-                VStack(alignment: .leading, spacing: DKSpacing.md) {
-                    Text(NSLocalizedString("Sisa data yang ditemukan", comment: ""))
-                        .font(.title3.weight(.semibold))
-                    Text(NSLocalizedString("Dicocokkan dari bundle ID aplikasi. Item berlabel Perkiraan dicocokkan dari nama dan perlu diperiksa dulu sebelum ikut dihapus.", comment: ""))
-                        .font(.caption)
+                    Spacer(minLength: DKSpacing.sm)
+                    Text(ByteFormat.string(from: app.sizeBytes))
+                        .font(.dkData(12))
                         .foregroundColor(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.vertical, 2)
 
-                    if isLoadingLeftovers {
-                        HStack(spacing: DKSpacing.sm) {
-                            ProgressView().controlSize(.small)
-                            Text(NSLocalizedString("Memuat sisa data…", comment: ""))
-                                .font(.callout)
-                                .foregroundColor(.secondary)
-                        }
-                    } else if leftovers.isEmpty {
-                        Text(NSLocalizedString("Tidak ada sisa data yang ditemukan.", comment: ""))
-                            .font(.callout)
-                            .foregroundColor(.secondary)
-                    } else {
-                        VStack(spacing: DKSpacing.sm) {
-                            ForEach(leftovers) { item in
-                                HStack {
-                                    ReadoutRow(
-                                        value: ByteFormat.string(from: item.sizeBytes),
-                                        label: item.url.lastPathComponent,
-                                        detail: item.url.deletingLastPathComponent().lastPathComponent,
-                                        badge: item.confidence == .fuzzy
-                                            ? NSLocalizedString("Perkiraan", comment: "")
-                                            : nil
-                                    )
-                                    Spacer(minLength: DKSpacing.sm)
-                                    Toggle("", isOn: Binding(
-                                        get: { selectedLeftovers.contains(item.id) },
-                                        set: { isChecked in
-                                            if isChecked {
-                                                selectedLeftovers.insert(item.id)
-                                            } else {
-                                                selectedLeftovers.remove(item.id)
-                                            }
-                                        }
-                                    ))
-                                    .toggleStyle(.checkbox)
-                                    .labelsHidden()
+                ForEach(leftovers) { item in
+                    ToolResultRow(
+                        title: item.url.lastPathComponent,
+                        subtitle: confidenceLabel(item.confidence),
+                        size: item.sizeBytes,
+                        badge: item.confidence == .fuzzy
+                            ? NSLocalizedString("Periksa dulu", comment: "")
+                            : nil,
+                        isOn: Binding(
+                            get: { selectedLeftovers.contains(item.id) },
+                            set: { isChecked in
+                                if isChecked {
+                                    selectedLeftovers.insert(item.id)
+                                } else {
+                                    selectedLeftovers.remove(item.id)
                                 }
-                                .padding(.vertical, DKSpacing.xs)
                             }
-                        }
-                        .padding(DKSpacing.md)
-                        .background(DKColor.surfaceSecondary)
-                        .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
-                    }
-                }
-
-                if let cleanedMessage {
-                    Label(cleanedMessage, systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(DKColor.accent)
-                    if failureCount > 0 {
-                        Text(String(
-                            format: NSLocalizedString("%d item gagal dibersihkan", comment: ""),
-                            failureCount
-                        ))
-                        .font(.caption)
-                        .foregroundColor(DKColor.attention)
-                    }
-                }
-
-                HStack(spacing: DKSpacing.md) {
-                    // Uninstall selalu lewat konfirmasi eksplisit — tier risiko
-                    // lebih tinggi dari clean cache (guardrails poin 5).
-                    Button {
-                        showConfirm = true
-                    } label: {
-                        Label(
-                            String(format: NSLocalizedString("Uninstall %@", comment: ""), app.name),
-                            systemImage: "trash"
                         )
+                    )
+                    .help(item.url.path)
+                    .contextMenu {
+                        Button {
+                            NSWorkspace.shared.activateFileViewerSelecting([item.url])
+                        } label: {
+                            Label(NSLocalizedString("Tampilkan di Finder", comment: ""), systemImage: "folder")
+                        }
                     }
-                    .controlSize(.large)
-                    .buttonStyle(.borderedProminent)
-                    Spacer()
-                    Text(String(
-                        format: NSLocalizedString("%@ terpilih", comment: ""),
-                        ByteFormat.string(from: selectedTotalBytes)
-                    ))
-                    .font(.dkData(13))
-                    .foregroundStyle(.secondary)
                 }
             }
-            .padding(DKSpacing.xl)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .listStyle(.inset)
+            .frame(height: min(300, CGFloat(leftovers.count + 1) * 48 + 16))
+
+            ToolDetails {
+                Text(String(
+                    format: NSLocalizedString("ID aplikasi (bundle ID): %@", comment: ""),
+                    app.bundleID ?? "—"
+                ))
+                Text(String(format: NSLocalizedString("Lokasi: %@", comment: ""), app.url.path))
+                Text(NSLocalizedString("\"Pasti milik aplikasi ini\" = nama filenya cocok persis dengan ID aplikasi. \"Mungkin milik aplikasi ini\" = hanya cocok dari nama aplikasi, jadi periksa dulu sebelum ikut dihapus.", comment: ""))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+
+        // Uninstall selalu lewat konfirmasi eksplisit — tier risiko lebih
+        // tinggi dari clean cache (guardrails poin 5).
+        ToolActionBar(
+            selectedCount: 1 + selectedLeftoverCount,
+            selectedBytes: selectedTotalBytes,
+            buttonTitle: NSLocalizedString("Hapus Aplikasi", comment: ""),
+            action: { showConfirm = true }
+        )
+    }
+
+    private func confidenceLabel(_ confidence: LeftoverItem.Confidence) -> String {
+        switch confidence {
+        case .exact: return NSLocalizedString("Pasti milik aplikasi ini", comment: "")
+        case .fuzzy: return NSLocalizedString("Mungkin milik aplikasi ini", comment: "")
         }
     }
 
     // MARK: Aksi
 
     private func select(_ app: InstalledApp) {
+        leftoverTask?.cancel()
         selectedApp = app
         leftovers = []
         selectedLeftovers = []
         cleanedMessage = nil
+        failureCount = 0
         isLoadingLeftovers = true
-        Task {
+        leftoverTask = Task {
             let found = await Task.detached(priority: .userInitiated) { [app] in
                 LeftoverScanner.leftovers(for: app)
             }.value
+            // Scan lama yang selesai belakangan JANGAN menimpa daftar app
+            // yang sekarang dipilih — bisa bikin data app A ikut terhapus
+            // saat uninstall app B.
+            guard !Task.isCancelled, selectedApp?.id == app.id else { return }
             leftovers = found
             selectedLeftovers = Set(found.filter(\.isSelectedByDefault).map(\.id))
             isLoadingLeftovers = false
@@ -481,16 +487,59 @@ struct AppUninstallerView: View {
             .map { CleanExecutor.TrashItem(url: $0.url, bytes: $0.sizeBytes, label: $0.url.lastPathComponent) }
 
         let outcome = CleanExecutor.move(items, module: "App Uninstaller")
-        failureCount = outcome.failed.count
+        let movedURLs = Set(outcome.cleaned.map(\.url))
+        failureCount = items.count - outcome.cleaned.count
+        guard movedURLs.contains(app.url) else {
+            // .app gagal dipindah (milik root / terlindungi) — tetap di detail,
+            // jangan klaim berhasil. Sisa yang sudah terpindah dibuang dari list.
+            cleanedMessage = String(
+                format: NSLocalizedString("%@ tidak bisa dihapus", comment: ""),
+                app.name
+            )
+            leftovers.removeAll { movedURLs.contains($0.url) }
+            selectedLeftovers = selectedLeftovers.filter { id in leftovers.contains { $0.id == id } }
+            return
+        }
         cleanedMessage = String(
-            format: NSLocalizedString("%@ berhasil di-uninstall", comment: ""),
+            format: NSLocalizedString("%@ sudah dipindahkan ke Trash", comment: ""),
             app.name
         )
         selectedApp = nil
         leftovers = []
         selectedLeftovers = []
-        // Refresh daftar (app barusan ilang).
-        model.refreshApps()
+        // Buang dari daftar — tanpa rescan penuh (deep size semua app).
+        model.removeApp(app.url)
     }
 
+    /// Banner hasil uninstall. Di daftar = berhasil; di detail = .app gagal
+    /// dipindah (performUninstall hanya tetap di detail saat gagal).
+    private func resultBanner(_ message: String, isFailure: Bool) -> some View {
+        ToolCard {
+            HStack(alignment: .top, spacing: DKSpacing.md) {
+                Image(systemName: isFailure ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(isFailure ? DKColor.attention : Color.respite)
+                VStack(alignment: .leading, spacing: DKSpacing.xs) {
+                    Text(message)
+                        .font(.title3.weight(.semibold))
+                    Text(isFailure
+                         ? NSLocalizedString("Aplikasi ini mungkin dilindungi sistem atau sedang dibuka. Tutup aplikasinya lalu coba lagi.", comment: "")
+                         : NSLocalizedString("File ada di Trash. Berubah pikiran? Buka Trash lalu pilih \"Kembalikan\".", comment: "")
+                    )
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    if failureCount > 0 {
+                        Text(String(
+                            format: NSLocalizedString("%d item gagal dibersihkan", comment: ""),
+                            failureCount
+                        ))
+                        .font(.caption)
+                        .foregroundColor(DKColor.attention)
+                    }
+                }
+                Spacer()
+            }
+        }
+    }
 }

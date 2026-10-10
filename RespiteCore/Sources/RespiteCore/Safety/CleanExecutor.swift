@@ -60,7 +60,10 @@ public enum SafetyLedger {
         let legacyEntries = load(from: legacy)
         let currentEntries = load(from: current)
         let merged = (legacyEntries + currentEntries).sorted { $0.timestamp < $1.timestamp }
-        if let data = try? JSONEncoder().encode(merged) {
+        // Encoder yang SAMA dengan record() — JSONEncoder polos menulis
+        // tanggal sebagai angka, load() (.iso8601) gagal decode → riwayat
+        // dianggap kosong lalu ketimpa entry baru pertama.
+        if let data = try? makeEncoder().encode(merged) {
             try? fm.createDirectory(
                 at: current.deletingLastPathComponent(),
                 withIntermediateDirectories: true
@@ -69,13 +72,30 @@ public enum SafetyLedger {
         }
     }
 
-    public static func record(_ entry: LedgerEntry, to fileURL: URL = defaultURL) {
-        var entries = load(from: fileURL)
-        entries.append(entry)
+    /// Serialisasi read-modify-write antar pemanggil (UI + maintenance
+    /// terjadwal) — tanpa ini dua record bersamaan saling menimpa.
+    private static let lock = NSLock()
+
+    static func makeEncoder() -> JSONEncoder {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
-        guard let data = try? encoder.encode(entries) else { return }
+        return encoder
+    }
+
+    public static func record(_ entry: LedgerEntry, to fileURL: URL = defaultURL) {
+        record([entry], to: fileURL)
+    }
+
+    /// Catat banyak entry dalam SATU tulis — clean 10k file nggak lagi
+    /// baca-decode-encode-tulis seluruh riwayat 10k kali.
+    public static func record(_ newEntries: [LedgerEntry], to fileURL: URL = defaultURL) {
+        guard !newEntries.isEmpty else { return }
+        lock.lock()
+        defer { lock.unlock() }
+        var entries = load(from: fileURL)
+        entries.append(contentsOf: newEntries)
+        guard let data = try? makeEncoder().encode(entries) else { return }
         try? FileManager.default.createDirectory(
             at: fileURL.deletingLastPathComponent(),
             withIntermediateDirectories: true
@@ -144,17 +164,38 @@ public enum CleanExecutor {
         var cleaned: [CleanedItem] = []
         var failed: [FailedItem] = []
 
+        var allowed: [TrashItem] = []
         for item in items {
-            guard !ProtectedList.isProtected(item.url) else { continue }
-            SafetyLedger.record(
+            // Terlindungi: tolak, tapi LAPORKAN — dulu di-skip diam-diam
+            // sehingga UI bilang "berhasil" padahal file masih ada.
+            if ProtectedList.isProtected(item.url) {
+                failed.append(FailedItem(url: item.url, reason: protectedReason))
+                continue
+            }
+            // Sudah di Trash → trashItem cuma no-op/rename, nggak membebaskan
+            // byte apa pun. Laporkan jujur, jangan dihitung "freed".
+            if isInsideTrash(item.url) {
+                failed.append(FailedItem(
+                    url: item.url,
+                    reason: "Sudah ada di Trash — kosongkan lewat Trash Manager"
+                ))
+            } else {
+                allowed.append(item)
+            }
+        }
+        // Ledger dicatat SEBELUM eksekusi — satu tulis buat seluruh batch.
+        SafetyLedger.record(
+            allowed.map { item in
                 LedgerEntry(
                     actionType: "move-to-trash",
                     target: item.url.path,
                     reversible: true,
                     detail: "\(module): \(item.label) · \(ByteFormat.string(from: item.bytes))"
-                ),
-                to: ledgerURL
-            )
+                )
+            },
+            to: ledgerURL
+        )
+        for item in allowed {
             do {
                 try FileManager.default.trashItem(at: item.url, resultingItemURL: nil)
                 cleaned.append(CleanedItem(url: item.url, bytes: item.bytes))
@@ -163,6 +204,12 @@ public enum CleanExecutor {
             }
         }
         return Outcome(cleaned: cleaned, failed: failed)
+    }
+
+    static let protectedReason = "Dilindungi (Protected List) — tidak disentuh"
+
+    static func isInsideTrash(_ url: URL) -> Bool {
+        url.standardizedFileURL.pathComponents.contains { $0 == ".Trash" || $0 == ".Trashes" }
     }
 
     public static func moveToTrash(
@@ -188,17 +235,22 @@ public enum CleanExecutor {
         var cleaned: [CleanedItem] = []
         var failed: [FailedItem] = []
 
-        for item in items {
-            guard !ProtectedList.isProtected(item.url) else { continue }
-            SafetyLedger.record(
+        let allowed = items.filter { !ProtectedList.isProtected($0.url) }
+        failed += items
+            .filter { ProtectedList.isProtected($0.url) }
+            .map { FailedItem(url: $0.url, reason: protectedReason) }
+        SafetyLedger.record(
+            allowed.map { item in
                 LedgerEntry(
                     actionType: "delete-permanent",
                     target: item.url.path,
                     reversible: false,
                     detail: "\(module): \(item.url.lastPathComponent) · \(ByteFormat.string(from: item.sizeBytes))"
-                ),
-                to: ledgerURL
-            )
+                )
+            },
+            to: ledgerURL
+        )
+        for item in allowed {
             do {
                 try FileManager.default.removeItem(at: item.url)
                 cleaned.append(CleanedItem(url: item.url, bytes: item.sizeBytes))

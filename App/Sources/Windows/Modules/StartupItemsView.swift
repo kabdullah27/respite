@@ -3,150 +3,215 @@ import ServiceManagement
 import RespiteCore
 import DesignKit
 
-/// Startup & Login Items (TRD §4.8): LaunchAgents/LaunchDaemons dengan
-/// asal-usul app pemiliknya. Read-only v1 — mematikan item dianter ke
-/// System Settings via deep-link resmi SMAppService.
+/// "Aplikasi Saat Login" (TRD §4.8): LaunchAgents/LaunchDaemons dengan
+/// asal-usul app pemiliknya. Yang tampil di depan hanya agent milik user
+/// (bisa dinyalakan/dimatikan); item sistem disimpan di bagian terlipat.
 struct StartupItemsView: View {
     @State private var items: [StartupItem] = []
     @State private var isLoading = true
     @State private var resultMessage: String?
-    /// Status enabled per label — dihitung SEKALI di background setelah
+    /// Status enabled per path plist — dihitung SEKALI di background setelah
     /// scan (bukan per-render: itu spawn launchctl terus-menerus).
     @State private var enabledState: [String: Bool] = [:]
+    /// Agent dikelola Respite yang menunggu konfirmasi hapus.
+    @State private var pendingRemoval: StartupItem?
+    @State private var showSystemItems = false
 
-    private let sourceOrder: [StartupItem.Source] = [
-        .userLaunchAgent, .systemLaunchAgent, .systemLaunchDaemon,
-    ]
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: DKSpacing.lg) {
-                HStack(spacing: DKSpacing.md) {
-                    Button {
-                        Task { await load() }
-                    } label: {
-                        Label(NSLocalizedString("Pindai Ulang", comment: ""), systemImage: "arrow.clockwise")
-                    }
-                    Spacer()
-                    Text(String(
-                        format: NSLocalizedString("%d item", comment: ""),
-                        items.count
-                    ))
-                    .font(.dkData(12))
-                    .foregroundStyle(.secondary)
-                    Button {
-                        pickApp()
-                    } label: {
-                        Label(NSLocalizedString("Tambah Aplikasi…", comment: ""), systemImage: "plus")
-                    }
-                    .controlSize(.small)
-                    Button {
-                        SMAppService.openSystemSettingsLoginItems()
-                    } label: {
-                        Label(NSLocalizedString("Buka Pengaturan Login Items", comment: ""), systemImage: "gearshape")
-                    }
-                    .controlSize(.small)
-                }
-
-                if let resultMessage {
-                    Label(resultMessage, systemImage: "checkmark.circle")
-                        .font(.callout)
-                        .foregroundColor(DKColor.accent)
-                }
-
-                if isLoading {
-                    HStack(spacing: DKSpacing.sm) {
-                        ProgressView().controlSize(.small)
-                        Text(NSLocalizedString("Memuat…", comment: "")).foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 200)
-                } else if items.isEmpty {
-                    EmptyStateView(
-                        symbol: "person.crop.circle.badge.clock",
-                        title: NSLocalizedString("Tidak ada item launchd", comment: ""),
-                        message: NSLocalizedString("Tidak ditemukan LaunchAgent/LaunchDaemon di lokasi standar.", comment: "")
-                    )
-                } else {
-                    ForEach(sourceOrder, id: \.rawValue) { source in
-                        let rows = items.filter { $0.source == source }
-                        if !rows.isEmpty {
-                            section(source: source, rows: rows)
-                        }
-                    }
-                }
-
-                Text(NSLocalizedString("Agent milik user bisa dinyalakan/dimatikan langsung dari sini — berlaku saat login berikutnya. Tombol Tambah Aplikasi mendaftarkan app pilihanmu lewat LaunchAgent yang dikelola Respite. Agent SISTEM butuh hak admin: kelola lewat tombol Pengaturan Login Items.", comment: ""))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(DKSpacing.xl)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .task { await load() }
+    private var userItems: [StartupItem] {
+        items.filter { $0.source == .userLaunchAgent }
     }
 
-    // MARK: Section per sumber
+    private var systemItems: [StartupItem] {
+        items.filter { $0.source != .userLaunchAgent }
+    }
 
-    private func section(source: StartupItem.Source, rows: [StartupItem]) -> some View {
-        VStack(alignment: .leading, spacing: DKSpacing.md) {
-            Text(sourceName(source)).font(.title3.weight(.semibold))
-            VStack(spacing: DKSpacing.sm) {
-                ForEach(rows) { item in
-                    row(item)
-                    if item.id != rows.last?.id {
-                        Divider()
+    var body: some View {
+        VStack(alignment: .leading, spacing: DKSpacing.lg) {
+            HStack(alignment: .firstTextBaseline, spacing: DKSpacing.md) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(NSLocalizedString("Aplikasi yang otomatis jalan saat kamu masuk", comment: ""))
+                        .font(.headline)
+                    Text(NSLocalizedString("Matikan yang tidak kamu butuhkan supaya Mac lebih cepat siap dipakai. Perubahan berlaku saat kamu masuk lagi.", comment: ""))
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+                Button {
+                    pickApp()
+                } label: {
+                    Label(NSLocalizedString("Tambah Aplikasi…", comment: ""), systemImage: "plus")
+                }
+                Button {
+                    Task { await load() }
+                } label: {
+                    Label(NSLocalizedString("Pindai ulang", comment: ""), systemImage: "arrow.clockwise")
+                }
+                .controlSize(.small)
+            }
+
+            if let resultMessage {
+                Label(resultMessage, systemImage: "checkmark.circle")
+                    .font(.callout)
+                    .foregroundColor(Color.respite)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if isLoading {
+                HStack(spacing: DKSpacing.sm) {
+                    ProgressView().controlSize(.small)
+                    Text(NSLocalizedString("Memuat…", comment: "")).foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, minHeight: 120)
+            } else {
+                if userItems.isEmpty {
+                    ToolEmptyResult(
+                        title: NSLocalizedString("Belum ada aplikasi yang otomatis jalan", comment: ""),
+                        message: NSLocalizedString("Mac kamu langsung siap dipakai saat masuk. Tekan \"Tambah Aplikasi…\" kalau ingin ada aplikasi yang otomatis terbuka.", comment: "")
+                    )
+                } else {
+                    itemList(userItems)
+                }
+
+                if !systemItems.isEmpty {
+                    DisclosureGroup(isExpanded: $showSystemItems) {
+                        VStack(alignment: .leading, spacing: DKSpacing.sm) {
+                            Text(NSLocalizedString("Bagian ini diatur oleh macOS atau aplikasi yang butuh izin admin. Tidak bisa diubah dari sini — kalau perlu, pakai Pengaturan Sistem.", comment: ""))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            itemList(systemItems)
+                            Button {
+                                SMAppService.openSystemSettingsLoginItems()
+                            } label: {
+                                Label(NSLocalizedString("Buka Pengaturan Sistem", comment: ""), systemImage: "gearshape")
+                            }
+                            .controlSize(.small)
+                        }
+                        .padding(.top, DKSpacing.xs)
+                    } label: {
+                        Text(String(
+                            format: NSLocalizedString("Bagian sistem (%d) — dikelola macOS", comment: ""),
+                            systemItems.count
+                        ))
+                        .font(.callout)
+                        .foregroundColor(.secondary)
                     }
                 }
             }
-            .padding(DKSpacing.md)
-            .background(DKColor.surfaceSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
+
+            ToolDetails {
+                Text(NSLocalizedString("Agent milik user bisa dinyalakan/dimatikan langsung dari sini — berlaku saat login berikutnya. Tombol Tambah Aplikasi mendaftarkan app pilihanmu lewat LaunchAgent yang dikelola Respite. Agent SISTEM butuh hak admin: kelola lewat tombol Pengaturan Login Items.", comment: ""))
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(NSLocalizedString("Lokasi yang diperiksa: ~/Library/LaunchAgents (LaunchAgent user), /Library/LaunchAgents (LaunchAgent sistem), dan /Library/LaunchDaemons (LaunchDaemon, jalan sejak boot). \"Asalnya tidak diketahui\" berarti label plist tidak cocok dengan app terinstall mana pun.", comment: ""))
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(String(
+                    format: NSLocalizedString("Ditemukan %d item launchd. Klik kanan sebuah baris untuk melihat file plist-nya di Finder.", comment: ""),
+                    items.count
+                ))
+                Button {
+                    SMAppService.openSystemSettingsLoginItems()
+                } label: {
+                    Label(NSLocalizedString("Buka Pengaturan Login Items", comment: ""), systemImage: "gearshape")
+                }
+                .controlSize(.small)
+            }
         }
+        .task { await load() }
+        .alert(
+            String(
+                format: NSLocalizedString("Hapus %@ dari daftar?", comment: ""),
+                pendingRemoval.map(displayName) ?? ""
+            ),
+            isPresented: Binding(
+                get: { pendingRemoval != nil },
+                set: { if !$0 { pendingRemoval = nil } }
+            )
+        ) {
+            Button(NSLocalizedString("Batal", comment: ""), role: .cancel) {}
+            Button(NSLocalizedString("Hapus", comment: ""), role: .destructive) {
+                if let item = pendingRemoval {
+                    removeManaged(item)
+                }
+                pendingRemoval = nil
+            }
+        } message: {
+            Text(NSLocalizedString("Aplikasinya tidak lagi otomatis jalan saat kamu masuk. Aplikasinya sendiri tidak dihapus, dan kamu bisa menambahkannya lagi kapan saja.", comment: ""))
+        }
+    }
+
+    // MARK: Daftar
+
+    private func itemList(_ rows: [StartupItem]) -> some View {
+        VStack(spacing: DKSpacing.sm) {
+            ForEach(rows) { item in
+                row(item)
+                if item.id != rows.last?.id {
+                    Divider()
+                }
+            }
+        }
+        .padding(DKSpacing.md)
+        .background(DKColor.surfaceSecondary)
+        .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
+    }
+
+    private func isManaged(_ item: StartupItem) -> Bool {
+        item.label.hasPrefix(StartupManager.managedPrefix)
+    }
+
+    /// Nama yang dikenali orang: app pemilik dulu, baru label mentah.
+    private func displayName(_ item: StartupItem) -> String {
+        if let owner = item.owner { return owner.name }
+        if isManaged(item) {
+            let slug = String(item.label.dropFirst(StartupManager.managedPrefix.count))
+            return slug.isEmpty ? item.label : slug
+        }
+        return item.label
     }
 
     private func row(_ item: StartupItem) -> some View {
-        HStack(alignment: .top, spacing: DKSpacing.md) {
-            Image(systemName: item.owner == nil ? "questionmark.square.dashed" : "app.dashed")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(item.owner == nil ? DKColor.attention : DKColor.accent)
-                .padding(.top, 2)
+        HStack(alignment: .center, spacing: DKSpacing.md) {
+            Image(systemName: item.owner == nil && !isManaged(item) ? "questionmark.app.dashed" : "app.badge.checkmark")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(item.owner == nil && !isManaged(item) ? DKColor.attention : Color.respite)
+                .frame(width: 20)
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.owner?.name ?? item.label)
+                Text(displayName(item))
                     .font(.callout.weight(.medium))
-                if let owner = item.owner {
-                    Text(String(
-                        format: NSLocalizedString("dari app %@ (%@)", comment: ""),
-                        owner.name, owner.bundleID
-                    ))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                } else {
-                    Text(NSLocalizedString("Asal tidak diketahui — label tidak cocok dengan app terinstall mana pun", comment: ""))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                if isManaged(item) {
+                    Text(NSLocalizedString("Ditambahkan lewat Respite", comment: ""))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                } else if item.owner == nil {
+                    Text(NSLocalizedString("Asalnya tidak diketahui — matikan kalau kamu tidak mengenalnya", comment: ""))
                         .font(.caption)
                         .foregroundColor(DKColor.attention)
-                }
-                if let program = item.programPath {
-                    Text(program)
-                        .font(.system(size: 10, design: .monospaced))
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if item.source == .systemLaunchDaemon {
+                    Text(NSLocalizedString("Jalan sejak Mac dinyalakan", comment: ""))
+                        .font(.caption)
                         .foregroundColor(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
                 }
             }
             Spacer()
-            if item.source != .systemLaunchDaemon {
+            if isManaged(item) && item.source == .userLaunchAgent {
+                Button(NSLocalizedString("Hapus", comment: "")) {
+                    pendingRemoval = item
+                }
+                .controlSize(.small)
+            }
+            // Plist di /Library milik root — tulis gagal setelah launchctl
+            // disable sukses → state setengah jadi. Toggle cuma buat agent user.
+            if item.source == .userLaunchAgent {
                 Toggle("", isOn: agentToggle(item))
                     .toggleStyle(.switch)
                     .labelsHidden()
             }
-            Text(item.url.lastPathComponent)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .lineLimit(2)
-                .multilineTextAlignment(.trailing)
-                .frame(maxWidth: 160, alignment: .trailing)
         }
+        .contentShape(Rectangle())
         .contextMenu {
             Button {
                 NSWorkspace.shared.activateFileViewerSelecting([item.url])
@@ -156,12 +221,27 @@ struct StartupItemsView: View {
         }
     }
 
-    private func sourceName(_ source: StartupItem.Source) -> String {
-        switch source {
-        case .userLaunchAgent: return NSLocalizedString("Launch Agent — user (jalan saat login)", comment: "")
-        case .systemLaunchAgent: return NSLocalizedString("Launch Agent — sistem", comment: "")
-        case .systemLaunchDaemon: return NSLocalizedString("Launch Daemon — sistem (jalan sejak boot)", comment: "")
+    private func removeManaged(_ item: StartupItem) {
+        let name = displayName(item)
+        do {
+            try StartupManager.removeManagedAgent(plistURL: item.url)
+            SafetyLedger.record(LedgerEntry(
+                actionType: "startup-remove",
+                target: item.label,
+                reversible: true,
+                detail: "hapus LaunchAgent Respite (app tidak dihapus)"
+            ))
+            resultMessage = String(
+                format: NSLocalizedString("%@ tidak lagi otomatis jalan saat login", comment: ""),
+                name
+            )
+        } catch {
+            resultMessage = String(
+                format: NSLocalizedString("Gagal mengubah %@", comment: ""),
+                name
+            )
         }
+        Task { await load() }
     }
 
     private func load() async {
@@ -169,8 +249,11 @@ struct StartupItemsView: View {
         let result = await Task.detached(priority: .userInitiated) {
             let scanned = StartupItems.scan()
             // Satu print-disabled (ter-cache) untuk SEMUA baris.
+            // Key = path, bukan label: vendor sering memasang label yang sama
+            // di LaunchAgents user & sistem — uniqueKeysWithValues → crash.
             let states = Dictionary(
-                uniqueKeysWithValues: scanned.map { ($0.label, StartupManager.isEnabled(plistURL: $0.url)) }
+                scanned.map { ($0.url.path, StartupManager.isEnabled(plistURL: $0.url)) },
+                uniquingKeysWith: { first, _ in first }
             )
             return (scanned, states)
         }.value
@@ -183,11 +266,11 @@ struct StartupItemsView: View {
     /// berikutnya. Agent sistem butuh admin: tombolnya nggak ditampilkan.
     private func agentToggle(_ item: StartupItem) -> Binding<Bool> {
         Binding(
-            get: { enabledState[item.label] ?? true },
+            get: { enabledState[item.url.path] ?? true },
             set: { enabled in
                 // Optimistic: UI langsung berubah; launchctl (2-3 proses,
                 // ~ratusan ms) jalan di background — JANGAN blok main thread.
-                enabledState[item.label] = enabled
+                enabledState[item.url.path] = enabled
                 let url = item.url
                 let label = item.label
                 Task.detached(priority: .userInitiated) {
@@ -205,7 +288,7 @@ struct StartupItemsView: View {
                                 format: NSLocalizedString("Gagal mengubah %@", comment: ""),
                                 label
                             )
-                            enabledState[label] = !enabled
+                            enabledState[url.path] = !enabled
                         }
                     }
                 }

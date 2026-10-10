@@ -135,6 +135,10 @@ public struct SimilarPhotosScanner {
                     }
                 }
 
+                if Task.isCancelled {
+                    continuation.finish()
+                    return
+                }
                 let photos = items.sorted { $0.key < $1.key }.map(\.value)
 
                 var groupCount = 0
@@ -194,24 +198,36 @@ public struct SimilarPhotosScanner {
         }
 
         var pixels = [UInt8](repeating: 0, count: 64)
-        let context = CGContext(
-            data: &pixels,
-            width: 8,
-            height: 8,
-            bitsPerComponent: 8,
-            bytesPerRow: 8,
-            space: CGColorSpaceCreateDeviceGray(),
-            bitmapInfo: CGImageAlphaInfo.none.rawValue
-        )
-        guard let context else { return nil }
-        context.interpolationQuality = .medium
-        context.draw(thumbnail, in: CGRect(x: 0, y: 0, width: 8, height: 8))
+        // Pointer buffer cuma valid di dalam closure — context harus dibuat
+        // DAN digambar di sini (inout `&pixels` ke init = dangling pointer).
+        let drawn = pixels.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context = CGContext(
+                data: buffer.baseAddress,
+                width: 8,
+                height: 8,
+                bitsPerComponent: 8,
+                bytesPerRow: 8,
+                space: CGColorSpaceCreateDeviceGray(),
+                bitmapInfo: CGImageAlphaInfo.none.rawValue
+            ) else { return false }
+            context.interpolationQuality = .medium
+            context.draw(thumbnail, in: CGRect(x: 0, y: 0, width: 8, height: 8))
+            return true
+        }
+        guard drawn else { return nil }
+
+        // Gambar (hampir) polos — layar hitam, halaman putih — hash-nya
+        // ~0 dan semuanya "mirip" satu sama lain. Nggak informatif → skip.
+        guard let minPixel = pixels.min(), let maxPixel = pixels.max(),
+              Int(maxPixel) - Int(minPixel) >= 8 else { return nil }
 
         let mean = Double(pixels.reduce(0) { $0 + Int($1) }) / 64.0
         var hash: UInt64 = 0
         for (index, pixel) in pixels.enumerated() where Double(pixel) > mean {
             hash |= (1 << UInt64(index))
         }
+        let bits = hash.nonzeroBitCount
+        guard bits > 3, bits < 61 else { return nil }
         return hash
     }
 
@@ -221,32 +237,26 @@ public struct SimilarPhotosScanner {
         (a ^ b).nonzeroBitCount
     }
 
-    /// Union-find: dua foto satu klaster kalau jarak Hamming-nya ≤ threshold.
-    /// O(n²) tapi operasinya cuma XOR+popcount 64-bit — murah.
+    /// Complete-linkage: foto masuk klaster cuma kalau jaraknya ≤ threshold
+    /// ke SEMUA anggota. Union-find (single-linkage) bikin rantai A~B~C
+    /// menggabungkan A & C yang jauh beda — lalu C ke-centang buat dihapus.
+    /// O(n²·k) tapi operasinya cuma XOR+popcount 64-bit — murah.
     static func cluster(items: [PhotoItem], hammingThreshold: Int) -> [[PhotoItem]] {
-        var parent = Array(items.indices)
-        func find(_ x: Int) -> Int {
-            if parent[x] == x { return x }
-            parent[x] = find(parent[x])
-            return parent[x]
-        }
+        var assigned = [Bool](repeating: false, count: items.count)
+        var groups: [[PhotoItem]] = []
 
-        for i in items.indices {
-            for j in (i + 1)..<items.count {
-                if hamming(items[i].phash, items[j].phash) <= hammingThreshold {
-                    let rootI = find(i)
-                    let rootJ = find(j)
-                    if rootI != rootJ {
-                        parent[rootI] = rootJ
-                    }
+        for i in items.indices where !assigned[i] {
+            assigned[i] = true
+            var members = [items[i]]
+            for j in (i + 1)..<items.count where !assigned[j] {
+                let candidate = items[j].phash
+                if members.allSatisfy({ hamming($0.phash, candidate) <= hammingThreshold }) {
+                    members.append(items[j])
+                    assigned[j] = true
                 }
             }
+            if members.count > 1 { groups.append(members) }
         }
-
-        var groups: [Int: [PhotoItem]] = [:]
-        for index in items.indices {
-            groups[find(index), default: []].append(items[index])
-        }
-        return groups.values.filter { $0.count > 1 }
+        return groups
     }
 }

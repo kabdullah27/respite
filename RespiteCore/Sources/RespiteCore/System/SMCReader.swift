@@ -75,34 +75,92 @@ public enum SMCReader {
         let dataType: String
     }
 
-    /// SMC_READ_KEY (selector 5): baca nilai + tipe data sebuah kunci.
-    static func readKey(_ key: String, conn: io_connect_t) -> ReadResult? {
-        guard let code = keyCode(key) else { return nil }
+    // Layout SMCKeyData_t (80 byte) yang dipakai AppleSMC lewat selector 2
+    // (kSMCHandleYPCEvent). Perintah ada di field data8, BUKAN selector.
+    private static let structSize = 80
+    private static let offsetKey = 0
+    private static let offsetDataSize = 28   // keyInfo.dataSize (UInt32)
+    private static let offsetDataType = 32   // keyInfo.dataType (fourcc)
+    private static let offsetResult = 40
+    private static let offsetData8 = 42      // perintah
+    private static let offsetBytes = 48      // SMCBytes_t[32]
+    private static let selectorYPCEvent: UInt32 = 2
+    private static let commandReadBytes: UInt8 = 5
+    private static let commandGetKeyInfo: UInt8 = 9
 
-        // Layout input/output SMC yang dipakai osx-cpu-temp/Stats dst.
-        var input = [UInt8](repeating: 0, count: 32)
-        let be = code.bigEndian
-        withUnsafeBytes(of: be) { input.replaceSubrange(0..<4, with: $0) }
-        var output = [UInt8](repeating: 0, count: 32)
-        var outputCount = 32
-
+    /// Satu panggilan IOConnectCallStructMethod; nil kalau IOKit gagal.
+    private static func call(_ input: [UInt8], conn: io_connect_t) -> [UInt8]? {
+        var input = input
+        var output = [UInt8](repeating: 0, count: structSize)
+        var outputCount = structSize
         let kr = input.withUnsafeMutableBytes { inPtr in
             output.withUnsafeMutableBytes { outPtr in
                 IOConnectCallStructMethod(
-                    conn,
-                    5, // kSMCReadKey
-                    inPtr.baseAddress, 32,
+                    conn, selectorYPCEvent,
+                    inPtr.baseAddress, structSize,
                     outPtr.baseAddress, &outputCount
                 )
             }
         }
-        guard kr == KERN_SUCCESS, outputCount >= 6 else { return nil }
+        guard kr == KERN_SUCCESS else {
+            // Koneksi basi (mis. setelah sleep) — buka ulang di panggilan berikut.
+            resetConnection()
+            return nil
+        }
+        return output
+    }
 
-        // Output SMC: bytes 5..8 = data, 30 = status; tipe dari GET_KEY_INFO
-        // tidak kita panggil — kunci suhu praktis selalu sp78, dan kita
-        // validasi lewat rentang nilainya.
-        let data = Array(output[5..<min(9, outputCount)])
-        return ReadResult(bytes: data, dataType: "sp78")
+    private static func loadUInt32(_ bytes: [UInt8], at offset: Int) -> UInt32 {
+        bytes[offset..<offset + 4].withUnsafeBytes { $0.loadUnaligned(as: UInt32.self) }
+    }
+
+    private static func storeUInt32(_ value: UInt32, into bytes: inout [UInt8], at offset: Int) {
+        withUnsafeBytes(of: value) { bytes.replaceSubrange(offset..<offset + 4, with: $0) }
+    }
+
+    static func fourCC(_ value: UInt32) -> String {
+        let chars = [24, 16, 8, 0].map { UInt8((value >> UInt32($0)) & 0xFF) }
+        return String(decoding: chars, as: UTF8.self)
+    }
+
+    /// GET_KEY_INFO (ukuran + tipe) lalu READ_BYTES.
+    static func readKey(_ key: String, conn: io_connect_t) -> ReadResult? {
+        guard let code = keyCode(key) else { return nil }
+
+        var request = [UInt8](repeating: 0, count: structSize)
+        // Kunci disimpan sebagai UInt32 NATIVE (nilai fourcc), bukan byte big-endian.
+        storeUInt32(code, into: &request, at: offsetKey)
+        request[offsetData8] = commandGetKeyInfo
+        guard let info = call(request, conn: conn), info[offsetResult] == 0 else { return nil }
+        let dataSize = Int(loadUInt32(info, at: offsetDataSize))
+        let dataType = loadUInt32(info, at: offsetDataType)
+        guard (1...32).contains(dataSize) else { return nil }
+
+        storeUInt32(UInt32(dataSize), into: &request, at: offsetDataSize)
+        storeUInt32(dataType, into: &request, at: offsetDataType)
+        request[offsetData8] = commandReadBytes
+        guard let value = call(request, conn: conn), value[offsetResult] == 0 else { return nil }
+        return ReadResult(
+            bytes: Array(value[offsetBytes..<offsetBytes + dataSize]),
+            dataType: fourCC(dataType)
+        )
+    }
+
+    /// Decode sesuai tipe: 'sp78' (Intel) atau 'flt ' (Apple Silicon,
+    /// Float32 little-endian). Tipe lain = bukan sensor suhu yang kita kenal.
+    static func decode(_ result: ReadResult) -> Double? {
+        switch result.dataType {
+        case "sp78": return decodeSP78(result.bytes)
+        case "flt ": return decodeFloat(result.bytes)
+        default: return nil
+        }
+    }
+
+    public static func decodeFloat(_ bytes: [UInt8]) -> Double? {
+        guard bytes.count >= 4 else { return nil }
+        let raw = UInt32(bytes[0]) | UInt32(bytes[1]) << 8 | UInt32(bytes[2]) << 16 | UInt32(bytes[3]) << 24
+        let value = Double(Float(bitPattern: raw))
+        return value.isFinite ? value : nil
     }
 
     /// Decode 'sp78': 1 byte signed integer + 1 byte pecahan (1/256).
@@ -124,7 +182,7 @@ public enum SMCReader {
     public static var rawReader: (String) -> Double? = { key in
         guard let conn = sharedConnection() else { return nil }
         guard let result = readKey(key, conn: conn) else { return nil }
-        return decodeSP78(result.bytes)
+        return decode(result)
     }
 
     /// Suhu CPU dalam °C — sensor tertinggi yang terbaca, atau nil kalau
@@ -144,7 +202,7 @@ public enum SMCReader {
         rawReader = { key in
             guard let conn = sharedConnection() else { return nil }
             guard let result = readKey(key, conn: conn) else { return nil }
-            return decodeSP78(result.bytes)
+            return decode(result)
         }
         resetConnection()
     }

@@ -12,87 +12,76 @@ struct ShredderView: View {
     @State private var showConfirm = false
     @State private var resultMessage: String?
     @State private var resultFailed = false
+    @State private var failedItems: [CleanExecutor.FailedItem] = []
 
     private var totalBytes: Int64 {
         items.reduce(0) { $0 + $1.sizeBytes }
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: DKSpacing.lg) {
-                HStack(spacing: DKSpacing.md) {
-                    Button {
-                        pickItems()
-                    } label: {
-                        Label(NSLocalizedString("Pilih file atau folder…", comment: ""), systemImage: "plus")
-                    }
-                    Spacer()
+        VStack(alignment: .leading, spacing: DKSpacing.lg) {
+            if let resultMessage {
+                ToolDoneCard(
+                    title: resultMessage,
+                    message: resultFailed
+                        ? nil
+                        : NSLocalizedString("File sudah dihapus selamanya dan tidak ada di Trash.", comment: ""),
+                    failed: failedItems,
+                    showOpenTrash: false
+                )
+            }
+
+            ToolStartCard(
+                headline: NSLocalizedString("Hapus file rahasia selamanya", comment: ""),
+                points: [
+                    NSLocalizedString("File langsung dihapus — tidak lewat Trash.", comment: ""),
+                    NSLocalizedString("Tidak bisa dibatalkan atau dikembalikan.", comment: ""),
+                    NSLocalizedString("Untuk pembersihan biasa, pakai alat lain — semuanya lewat Trash dan aman.", comment: ""),
+                ],
+                buttonTitle: NSLocalizedString("Pilih file…", comment: ""),
+                buttonSymbol: "plus",
+                action: pickItems
+            )
+
+            if !items.isEmpty {
+                VStack(alignment: .leading, spacing: DKSpacing.sm) {
                     Text(String(
                         format: NSLocalizedString("%d item · %@", comment: ""),
                         items.count,
                         ByteFormat.string(from: totalBytes)
                     ))
-                    .font(.dkData(12))
-                    .foregroundStyle(.secondary)
-                    Button {
-                        showConfirm = true
-                    } label: {
-                        Label(
-                            String(format: NSLocalizedString("Hapus permanen (%d)", comment: ""), items.count),
-                            systemImage: "trash.slash"
-                        )
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(DKColor.irreversible)
-                    .disabled(items.isEmpty)
-                }
-
-                if let resultMessage {
-                    Label(resultMessage, systemImage: resultFailed ? "exclamationmark.triangle" : "checkmark.circle.fill")
-                        .font(.callout)
-                        .foregroundColor(resultFailed ? DKColor.attention : DKColor.accent)
-                }
-
-                if items.isEmpty {
-                    EmptyStateView(
-                        symbol: "trash.slash",
-                        title: NSLocalizedString("Belum ada yang dipilih", comment: ""),
-                        message: NSLocalizedString("Pilih file atau folder yang ingin dihapus permanen. Untuk pembersihan biasa, gunakan modul lain — semuanya lewat Trash dan bisa dibatalkan.", comment: "")
-                    )
-                } else {
-                    VStack(spacing: DKSpacing.sm) {
+                    .font(.headline)
+                    .monospacedDigit()
+                    Text(NSLocalizedString("Hapus centang untuk mengeluarkan file dari daftar.", comment: ""))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    ToolCard {
                         ForEach(items) { item in
-                            HStack {
-                                ReadoutRow(
-                                    value: ByteFormat.string(from: item.sizeBytes),
-                                    label: item.url.lastPathComponent,
-                                    detail: item.url.deletingLastPathComponent().path
-                                )
-                                .lineLimit(1)
-                                Spacer(minLength: DKSpacing.sm)
-                                Button {
-                                    items.removeAll { $0.id == item.id }
-                                } label: {
-                                    Label(NSLocalizedString("Keluarkan", comment: ""), systemImage: "minus")
-                                        .labelStyle(.iconOnly)
-                                }
-                                .controlSize(.small)
-                            }
-                            .padding(.vertical, DKSpacing.xs)
+                            ToolResultRow(
+                                title: item.url.lastPathComponent,
+                                subtitle: item.url.deletingLastPathComponent().path,
+                                size: item.sizeBytes,
+                                isOn: inListBinding(for: item)
+                            )
                         }
                     }
-                    .padding(DKSpacing.md)
-                    .background(DKColor.surfaceSecondary)
-                    .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
                 }
+            }
 
-                Text(NSLocalizedString("Shredder melewati Trash sepenuhnya — data ditimpa dan tidak bisa dipulihkan oleh utilitas pemulihan. Gunakan hanya untuk dokumen yang benar-benar sensitif; selain itu, biarkan pembersihan biasa lewat Trash yang bisa dibatalkan.", comment: ""))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            ToolActionBar(
+                selectedCount: items.count,
+                selectedBytes: totalBytes,
+                buttonTitle: NSLocalizedString("Hapus Permanen", comment: ""),
+                note: NSLocalizedString("Tidak bisa dibatalkan", comment: ""),
+                isIrreversible: true
+            ) {
+                showConfirm = true
+            }
+
+            ToolDetails {
+                Text(NSLocalizedString("Shredder melewati Trash sepenuhnya — file langsung dihapus permanen dan tidak bisa di-Put Back. Di SSD/APFS isi lama tidak ditimpa: FileVault dan snapshot lokal Time Machine yang menentukan apakah sisanya masih bisa dipulihkan. Gunakan hanya untuk dokumen yang benar-benar sensitif; selain itu, biarkan pembersihan biasa lewat Trash yang bisa dibatalkan.", comment: ""))
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(DKSpacing.xl)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(isPresented: $showConfirm) {
             PermanentDeleteConfirmSheet(
@@ -105,6 +94,17 @@ struct ShredderView: View {
                 onCancel: { showConfirm = false }
             )
         }
+    }
+
+    /// Centang = masih di daftar. Hapus centang = keluarkan dari daftar
+    /// (sama seperti tombol "Keluarkan" sebelumnya — tidak menghapus apa pun).
+    private func inListBinding(for item: TrashEntry) -> Binding<Bool> {
+        Binding(
+            get: { true },
+            set: { isOn in
+                if !isOn { items.removeAll { $0.id == item.id } }
+            }
+        )
     }
 
     private func pickItems() {
@@ -132,6 +132,7 @@ struct ShredderView: View {
         let deletedURLs = Set(outcome.cleaned.map(\.url))
         items.removeAll { deletedURLs.contains($0.url) }
         resultFailed = !outcome.failed.isEmpty
+        failedItems = outcome.failed
         resultMessage = String(
             format: NSLocalizedString("%@ dihapus permanen", comment: ""),
             ByteFormat.string(from: outcome.freedBytes)

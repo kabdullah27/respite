@@ -40,6 +40,18 @@ public enum ProcessKiller {
             )
         }
 
+        // Daftar proses di UI bisa basi (tab memori cuma refresh manual) —
+        // PID yang sudah didaur ulang milik proses LAIN. Cek ulang namanya.
+        if !name.hasPrefix("PID "), let current = currentName(of: pid), current != name {
+            return Outcome(
+                pid: pid,
+                name: name,
+                succeeded: false,
+                rawReason: "pid-reused",
+                signalDelivered: false
+            )
+        }
+
         let signal: Int32 = force ? SIGKILL : SIGTERM
         SafetyLedger.record(
             LedgerEntry(
@@ -62,5 +74,12 @@ public enum ProcessKiller {
             rawReason: String(cString: strerror(errno)),
             signalDelivered: false
         )
+    }
+
+    /// Nama executable PID saat ini (sama dengan penamaan TopProcesses).
+    static func currentName(of pid: Int32) -> String? {
+        var buffer = [CChar](repeating: 0, count: 1024)
+        guard proc_pidpath(pid, &buffer, 1024) > 0 else { return nil }
+        return URL(fileURLWithPath: String(cString: buffer)).lastPathComponent
     }
 }

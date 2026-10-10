@@ -84,7 +84,7 @@ public enum BrowserCacheScanner {
             name: "Arc",
             bundleID: "company.thebrowser.Browser",
             appNames: ["Arc.app"],
-            kind: .chromium(appSupportDir: "Arc", cachesName: "Arc")
+            kind: .chromium(appSupportDir: "Arc/User Data", cachesName: "Arc")
         ),
         BrowserTarget(
             name: "Brave",
@@ -190,10 +190,15 @@ public enum BrowserCacheScanner {
                 includingPropertiesForKeys: [.isDirectoryKey],
                 options: []
             ) else { return [] }
-            let fileName = type == .history ? "History" : "Cookies"
+            // Chrome 96+ memindah cookie ke "Network/Cookies"; path lama tetap
+            // dicek buat profil/versi lama. Journal SQLite ikut, biar nggak
+            // tertinggal "hot journal" yang di-replay ke DB baru.
+            let fileNames = type == .history
+                ? ["History", "History-journal"]
+                : ["Network/Cookies", "Network/Cookies-journal", "Cookies", "Cookies-journal"]
             return profiles
                 .filter { $0.lastPathComponent == "Default" || $0.lastPathComponent.hasPrefix("Profile") }
-                .map { $0.appendingPathComponent(fileName) }
+                .flatMap { profile in fileNames.map { profile.appendingPathComponent($0) } }
         case .gecko:
             let profileRoot = appSupport.appendingPathComponent("Firefox/Profiles")
             guard let profiles = try? FileManager.default.contentsOfDirectory(
@@ -201,8 +206,13 @@ public enum BrowserCacheScanner {
                 includingPropertiesForKeys: [.isDirectoryKey],
                 options: []
             ) else { return [] }
-            let fileName = type == .history ? "places.sqlite" : "cookies.sqlite"
-            return profiles.map { $0.appendingPathComponent(fileName) }
+            // places.sqlite = riwayat DAN bookmark — menghapusnya menghilangkan
+            // semua bookmark. Riwayat Firefox sengaja nggak ditawarkan.
+            guard type == .cookies else { return [] }
+            return profiles.flatMap { profile in
+                ["cookies.sqlite", "cookies.sqlite-wal", "cookies.sqlite-shm"]
+                    .map { profile.appendingPathComponent($0) }
+            }
         case .safari:
             // Data riwayat/cookie Safari dilindungi TCC — cache-only di v1.
             return []
@@ -227,6 +237,10 @@ public enum BrowserCacheScanner {
                     let name = profile.lastPathComponent
                     guard name == "Default" || name.hasPrefix("Profile") else { continue }
                     urls.append(profile.appendingPathComponent("Cache"))
+                    // Disk cache utama Chromium ada di ~/Library/Caches/<dir>/<profil>.
+                    let cachesProfile = library.appendingPathComponent("Caches/\(appSupportDir)/\(name)")
+                    urls.append(cachesProfile.appendingPathComponent("Cache"))
+                    urls.append(cachesProfile.appendingPathComponent("Code Cache"))
                 }
             }
             urls.append(library.appendingPathComponent("Caches/\(cachesName)"))

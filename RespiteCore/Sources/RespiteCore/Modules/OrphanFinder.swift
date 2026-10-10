@@ -212,7 +212,7 @@ public struct OrphanFinder {
         let name = url.lastPathComponent
 
         // Item Apple selalu "punya pemilik" — bukan urusan kita.
-        if name.lowercased().hasPrefix("com.apple.") || name == "Apple" { return nil }
+        if isAppleOwned(name) { return nil }
         if name.hasPrefix(".") { return nil } // hidden/scratch system
         if finder.whitelist.isExcluded(url) { return nil }
         if ProtectedList.isProtected(url, homeDirectory: finder.config.homeDirectory) { return nil }
@@ -227,11 +227,53 @@ public struct OrphanFinder {
             locationName: job.locationName,
             sizeBytes: measured.sizeBytes,
             lastModified: measured.lastModified,
-            isSelectedByDefault: RecencyGuard.shouldSelectByDefault(
-                lastModified: measured.lastModified,
-                days: finder.config.recencyDays
-            )
+            // Centang default cuma buat nama reverse-DNS (com.vendor.app) di
+            // luar Group Containers — itu yang bisa dicocokkan dengan yakin.
+            // Nama polos ("Office", "AddressBook") ditampilkan, tapi user yang
+            // memutuskan.
+            isSelectedByDefault: isConfidentlyMatchable(name: name, locationName: job.locationName)
+                && RecencyGuard.shouldSelectByDefault(
+                    lastModified: measured.lastModified,
+                    days: finder.config.recencyDays
+                )
         )
+    }
+
+    /// Folder data milik macOS yang namanya nggak berawalan "com.apple." —
+    /// tanpa ini, iPhone backup (MobileSync) / Contacts ikut dianggap yatim.
+    static let appleDataFolders: Set<String> = [
+        "apple", "addressbook", "mobilesync", "callhistorydb", "callhistorytransactions",
+        "clouddocs", "knowledge", "fileprovider", "dock", "icloud", "crashreporter",
+        "syncservices", "animoji", "accounts", "contacts", "calendars", "mail", "messages",
+        "safari", "notes", "photos", "music", "tv", "podcasts", "news", "stocks", "maps",
+        "siri", "spotlight", "quicklook", "colorsync", "geoservices", "familycircle",
+        "cloudkit", "identityservices", "metadata", "keychains", "homekit", "facetime",
+        "shortcuts", "reminders", "voicememos", "weather", "freeform",
+    ]
+
+    static func isAppleOwned(_ name: String) -> Bool {
+        let lower = name.lowercased()
+        if lower.contains("com.apple.") || lower.hasPrefix("apple") { return true }
+        return appleDataFolders.contains(normalize(app: name))
+    }
+
+    static func isConfidentlyMatchable(name: String, locationName: String) -> Bool {
+        guard locationName != "Group Containers" else { return false }
+        let base = name.hasSuffix(".plist") ? String(name.dropLast(".plist".count)) : name
+        return base.split(separator: ".").count >= 3
+    }
+
+    /// Buang prefix "group." dan Team ID ("UBF8T346G9.") dari nama container.
+    static func strippedContainerName(_ name: String) -> String {
+        var result = Substring(name)
+        if result.hasPrefix("group.") { result = result.dropFirst("group.".count) }
+        let parts = result.split(separator: ".", maxSplits: 1)
+        if parts.count == 2, parts[0].count == 10,
+           parts[0].allSatisfy({ $0.isUppercase || $0.isNumber }) {
+            result = parts[1]
+        }
+        if result.hasPrefix("group.") { result = result.dropFirst("group.".count) }
+        return String(result)
     }
 
     /// Matching pemilik — strict (lihat catatan doc di atas). Pure & teruji.
@@ -241,9 +283,11 @@ public struct OrphanFinder {
             ? String(name.dropLast(".plist".count))
             : name
 
+        let stripped = strippedContainerName(bundleCandidate)
         for app in apps {
-            if bundleCandidate == app.bundleID { return true }
+            if bundleCandidate == app.bundleID || stripped == app.bundleID { return true }
             if bundleCandidate.hasPrefix(app.bundleID + ".") { return true }
+            if stripped.hasPrefix(app.bundleID + ".") { return true }
             // Containers varian: "group.<teamid>.x" — cek komponen setelah group.
             if bundleCandidate.hasPrefix("group."),
                bundleCandidate.contains("." + app.bundleID) { return true }

@@ -134,7 +134,9 @@ public struct SmartScanner: ScannableModule {
             ownerName: child.lastPathComponent,
             sizeBytes: size,
             lastModified: latest,
-            isSelectedByDefault: true
+            // Isi Trash nggak bisa "dipindah ke Trash" — membebaskannya butuh
+            // hapus permanen lewat Trash Manager (konfirmasi berlapis).
+            isSelectedByDefault: category != .trash
         )
     }
 

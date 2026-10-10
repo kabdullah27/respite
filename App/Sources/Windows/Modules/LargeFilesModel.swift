@@ -118,7 +118,9 @@ final class LargeFilesModel: ObservableObject {
         failedItems = outcome.failed
         let cleanedURLs = Set(outcome.cleaned.map(\.url))
         hits.removeAll { cleanedURLs.contains($0.url) }
-        selected = Set(hits.filter(\.isSelectedByDefault).map(\.id))
+        // Pertahankan pilihan user (minus yang sudah bersih) — reset ke
+        // default bakal mencentang lagi item yang sengaja di-uncheck.
+        selected.formIntersection(hits.map(\.id))
         UserDefaults.standard.set(true, forKey: dryRunKey)
         phase = .cleaned(outcome.freedBytes)
     }

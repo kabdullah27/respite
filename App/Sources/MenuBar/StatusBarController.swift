@@ -41,7 +41,7 @@ final class StatusBarController: NSObject {
         model.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
-                RunLoop.main.perform { self?.updateButton() }
+                RunLoop.main.perform { MainActor.assumeIsolated { self?.updateButton() } }
             }
             .store(in: &cancellables)
     }

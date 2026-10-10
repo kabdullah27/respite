@@ -33,12 +33,20 @@ public struct MailAttachmentsOutcome: Sendable, Equatable {
 /// PENGECUALIAN TER-SCOPED dari Protected List (~/Library/Mail dilindungi
 /// dari AUTO-scan): modul ini user-initiated, hanya menyentuh file di bawah
 /// folder `Attachments/`, hanya memindah ke Trash, dan lampiran <90 hari
-/// tidak tercentang default. File asli tetap di server mail.
+/// tidak tercentang default. Akun IMAP: file asli tetap di server mail;
+/// akun POP / "On My Mac": file lokal = satu-satunya salinan (lewat Trash,
+/// jadi masih bisa dipulihkan).
 public enum MailAttachments {
     /// True kalau path punya komponen folder "Attachments" — satu-satunya
     /// wilayah yang boleh disentuh modul ini di dalam ~/Library/Mail.
+    /// Harus di bawah ".../Library/Mail/" DAN ada komponen "Attachments"
+    /// sesudahnya — "~/Documents/Attachments/x" bukan wilayah modul ini.
     public static func isAttachmentPath(_ url: URL) -> Bool {
-        url.pathComponents.contains("Attachments")
+        let components = url.standardizedFileURL.pathComponents
+        guard let mailIndex = components.indices.dropLast().first(where: {
+            components[$0] == "Library" && components[$0 + 1] == "Mail"
+        }) else { return false }
+        return components[(mailIndex + 2)...].dropLast().contains("Attachments")
     }
 
     /// Butuh Full Disk Access untuk membaca ~/Library/Mail.

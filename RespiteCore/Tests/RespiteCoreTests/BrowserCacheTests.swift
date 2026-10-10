@@ -83,7 +83,7 @@ extension BrowserCacheTests {
         XCTAssertEqual(chrome.totalCookiesBytes, 100)
 
         let firefox = results.first { $0.name == "Firefox" }!
-        XCTAssertEqual(firefox.totalHistoryBytes, 200)
+        XCTAssertEqual(firefox.totalHistoryBytes, 0, "places.sqlite berisi bookmark — riwayat Firefox nggak ditawarkan")
         XCTAssertEqual(firefox.totalCookiesBytes, 40)
 
         // Safari tidak menawarkan history/cookies.
