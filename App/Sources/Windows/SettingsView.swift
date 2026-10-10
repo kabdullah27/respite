@@ -3,23 +3,80 @@ import RespiteCore
 import DesignKit
 import AppKit
 
-/// Settings (⌘,) — tiga tab: Umum (bahasa + Recency Guard), Whitelist,
-/// dan Riwayat (log viewer Safety Ledger).
+/// Settings (⌘,) — tab: Umum (bahasa, login, pemeriksaan berkala +
+/// Keamanan file / Recency Guard), Pengecualian (whitelist), Riwayat (log
+/// Safety Ledger), Pintasan (URL scheme), dan Pembaruan.
 struct SettingsView: View {
-    var body: some View {
-        TabView {
-            GeneralSettingsView()
-                .tabItem { Label(NSLocalizedString("Umum", comment: ""), systemImage: "gearshape") }
-            WhitelistSettingsView()
-                .tabItem { Label(NSLocalizedString("Whitelist", comment: ""), systemImage: "line.3.horizontal.decrease.circle") }
-            HistorySettingsView()
-                .tabItem { Label(NSLocalizedString("Riwayat", comment: ""), systemImage: "clock.arrow.circlepath") }
-            IntegrationsSettingsView()
-                .tabItem { Label(NSLocalizedString("Integrasi", comment: ""), systemImage: "bolt.horizontal") }
-            UpdateSettingsView()
-                .tabItem { Label(NSLocalizedString("Pembaruan", comment: ""), systemImage: "arrow.triangle.2.circlepath") }
+    enum Tab: String, CaseIterable, Identifiable {
+        case general, exclusions, history, shortcuts, updates
+
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .general: return NSLocalizedString("Umum", comment: "")
+            case .exclusions: return NSLocalizedString("Pengecualian", comment: "")
+            case .history: return NSLocalizedString("Riwayat", comment: "")
+            case .shortcuts: return NSLocalizedString("Pintasan", comment: "")
+            case .updates: return NSLocalizedString("Pembaruan", comment: "")
+            }
         }
-        .frame(width: 520, height: 400)
+
+        var symbol: String {
+            switch self {
+            case .general: return "gearshape"
+            case .exclusions: return "line.3.horizontal.decrease.circle"
+            case .history: return "clock.arrow.circlepath"
+            case .shortcuts: return "bolt.horizontal"
+            case .updates: return "arrow.triangle.2.circlepath"
+            }
+        }
+
+        @MainActor @ViewBuilder
+        var content: some View {
+            switch self {
+            case .general: GeneralSettingsView()
+            case .exclusions: WhitelistSettingsView()
+            case .history: HistorySettingsView()
+            case .shortcuts: IntegrationsSettingsView()
+            case .updates: UpdateSettingsView()
+            }
+        }
+    }
+
+    /// true = tampil di dalam window utama (halaman "Pengaturan" di sidebar),
+    /// false = window Settings standar macOS (⌘,).
+    var embedded = false
+    @State private var selectedTab: Tab = .general
+
+    var body: some View {
+        if embedded {
+            // Di dalam halaman ScrollView standar (sama seperti alat lain);
+            // Form/List butuh tinggi eksplisit supaya nggak kolaps.
+            VStack(alignment: .leading, spacing: DKSpacing.md) {
+                Picker("", selection: $selectedTab) {
+                    ForEach(Tab.allCases) { tab in
+                        Label(tab.title, systemImage: tab.symbol).tag(tab)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(maxWidth: 560)
+                selectedTab.content
+                    .frame(maxWidth: 720)
+                    .frame(height: 540, alignment: .top)
+                    .background(DKColor.surfaceSecondary.opacity(0.4))
+                    .clipShape(RoundedRectangle(cornerRadius: DKRadius.card + 2))
+            }
+        } else {
+            TabView {
+                ForEach(Tab.allCases) { tab in
+                    tab.content
+                        .tabItem { Label(tab.title, systemImage: tab.symbol) }
+                }
+            }
+            .frame(width: 560, height: 440)
+        }
     }
 }
 
@@ -58,7 +115,7 @@ struct UpdateSettingsView: View {
                 if isChecking {
                     HStack(spacing: DKSpacing.sm) {
                         ProgressView().controlSize(.small)
-                        Text(NSLocalizedString("Menghubungi server rilis…", comment: ""))
+                        Text(NSLocalizedString("Sedang memeriksa…", comment: ""))
                             .foregroundColor(.secondary)
                     }
                 }
@@ -77,7 +134,7 @@ struct UpdateSettingsView: View {
                             Button {
                                 NSWorkspace.shared.open(page)
                             } label: {
-                                Label(NSLocalizedString("Buka Halaman Rilis", comment: ""), systemImage: "safari")
+                                Label(NSLocalizedString("Lihat & Unduh Versi Baru", comment: ""), systemImage: "safari")
                             }
                         }
                     } else {
@@ -105,11 +162,16 @@ struct UpdateSettingsView: View {
                     .foregroundColor(.secondary)
                 }
             } footer: {
-                Text(NSLocalizedString("Pemeriksaan hanya berjalan saat kamu menekan tombol — tidak ada pemeriksaan otomatis di latar belakang, tidak ada data yang dikirim selain permintaan halaman rilis. Pemasangan otomatis (Sparkle) akan tersedia setelah aplikasi ditandatangani.", comment: ""))
-                    .font(.caption2)
+                Text(NSLocalizedString("Respite hanya memeriksa saat kamu menekan tombol ini. Tidak ada pemeriksaan otomatis dan tidak ada data pribadi yang dikirim.", comment: ""))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Tanpa .grouped, Form macOS jadi dua kolom rata tepi (konten
+        // menempel ke pinggir window & versi terpotong).
+        .formStyle(.grouped)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private static var installedVersion: String {
@@ -151,8 +213,9 @@ private struct GeneralSettingsView: View {
         }
 
         static func current() -> LanguageSetting {
-            let langs = UserDefaults.standard.stringArray(forKey: "AppleLanguages") ?? []
-            guard let first = langs.first else { return .system }
+            // Baca domain app saja — AppleLanguages global (bahasa sistem)
+            // bukan pilihan user di Respite.
+            guard let first = AppLanguage.appDomainLanguages()?.first else { return .system }
             return LanguageSetting(rawValue: first) ?? .system
         }
 
@@ -169,61 +232,52 @@ private struct GeneralSettingsView: View {
     @State private var language: LanguageSetting = .system
     @State private var recencyDays: Int = RecencyGuard.thresholdDays()
     @State private var launchAtLogin = false
-    /// Binding langsung ke model bersama — perubahan langsung efektif.
+    /// Cermin @State dari model bersama — Binding polos ke singleton nggak
+    /// memicu re-render, toggle bisa kelihatan nggak berubah. (Observe model
+    /// langsung = re-render Settings tiap 2 detik.)
+    @State private var scheduledMaintenance = SystemStatsModel.shared.scheduledMaintenanceEnabled
     private var scheduledBinding: Binding<Bool> {
         Binding(
-            get: { SystemStatsModel.shared.scheduledMaintenanceEnabled },
-            set: { SystemStatsModel.shared.scheduledMaintenanceEnabled = $0 }
+            get: { scheduledMaintenance },
+            set: {
+                scheduledMaintenance = $0
+                SystemStatsModel.shared.scheduledMaintenanceEnabled = $0
+            }
         )
     }
 
     var body: some View {
         Form {
-            Picker(NSLocalizedString("Bahasa", comment: ""), selection: $language) {
-                ForEach(LanguageSetting.allCases) { setting in
-                    Text(setting.label).tag(setting)
+            Section {
+                Picker(NSLocalizedString("Bahasa", comment: ""), selection: $language) {
+                    ForEach(LanguageSetting.allCases) { setting in
+                        Text(setting.label).tag(setting)
+                    }
                 }
+                helper(NSLocalizedString("Berlaku setelah Respite dibuka ulang.", comment: ""))
+
+                Toggle(NSLocalizedString("Buka Respite otomatis saat kamu masuk ke Mac", comment: ""), isOn: $launchAtLogin)
+                helper(NSLocalizedString("Bisa juga diatur di alat Aplikasi Saat Login.", comment: ""))
+
+                Toggle(NSLocalizedString("Ingatkan saya kalau Mac perlu dibersihkan", comment: ""), isOn: scheduledBinding)
+                helper(NSLocalizedString("Selama Respite berjalan, kondisi Mac dicek sesekali. Kamu dapat notifikasi kalau ada yang bisa dibersihkan — tidak ada yang dihapus otomatis.", comment: ""))
+            } header: {
+                Text(NSLocalizedString("Umum", comment: ""))
             }
-            Text(NSLocalizedString("Efektif setelah aplikasi dibuka ulang.", comment: ""))
-                .font(.caption)
-                .foregroundColor(.secondary)
 
-            Divider()
-
-            Toggle(NSLocalizedString("Pemeliharaan terjadwal", comment: ""), isOn: scheduledBinding)
-            Text(NSLocalizedString("Selama Respite berjalan, kondisi sistem diperiksa berkala — kalau Maintenance Sweep disarankan, kamu mendapat notifikasi. (Versi jadwal penuh via launchd menyusul bersama infra signing.)", comment: ""))
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Divider()
-
-            Toggle(NSLocalizedString("Jalankan Respite saat login", comment: ""), isOn: $launchAtLogin)
-            Text(NSLocalizedString("Daftarkan LaunchAgent kecil yang membuka Respite setiap Mac dinyalakan. Kelola juga dari modul Aplikasi Saat Login.", comment: ""))
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Divider()
-
-            Stepper(value: $recencyDays, in: 1...30) {
-                HStack {
-                    Text(NSLocalizedString("Masa Recency Guard", comment: ""))
-                    Spacer()
+            Section {
+                Stepper(value: $recencyDays, in: 1...30) {
                     Text(String(
-                        format: NSLocalizedString("%d hari", comment: ""),
+                        format: NSLocalizedString("Jangan centang otomatis file yang dipakai dalam %d hari terakhir", comment: ""),
                         recencyDays
                     ))
-                    .font(.dkData(13))
-                    .foregroundColor(.secondary)
+                    .monospacedDigit()
+                    .fixedSize(horizontal: false, vertical: true)
                 }
+                helper(NSLocalizedString("File yang baru saja kamu pakai tidak dicentang dulu, jadi tidak ikut terbuang tanpa sengaja. Kamu tetap bisa mencentangnya sendiri.", comment: ""))
+            } header: {
+                Text(NSLocalizedString("Keamanan file", comment: ""))
             }
-            Text(String(
-                format: NSLocalizedString("Item yang disentuh dalam %d hari terakhir tidak tercentang secara bawaan.", comment: ""),
-                recencyDays
-            ))
-            .font(.caption)
-            .foregroundColor(.secondary)
         }
         .formStyle(.grouped)
         .padding()
@@ -239,12 +293,23 @@ private struct GeneralSettingsView: View {
             UserDefaults.standard.set(newValue, forKey: RecencyGuard.defaultsKey)
         }
         .onChange(of: launchAtLogin) { enabled in
+            // onAppear menyetel nilai dari sistem → onChange ikut terpicu.
+            // Jangan daftar ulang (atau, kalau gagal, malah mematikan)
+            // auto-start cuma karena Settings dibuka.
+            guard enabled != StartupManager.isRespiteAutoStartEnabled() else { return }
             do {
                 try StartupManager.setRespiteAutoStart(enabled)
             } catch {
                 launchAtLogin.toggle() // rollback
             }
         }
+    }
+
+    private func helper(_ text: String) -> some View {
+        Text(text)
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -256,9 +321,9 @@ private struct WhitelistSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: DKSpacing.xs) {
-                Text(NSLocalizedString("Folder yang dikecualikan dari hasil scan.", comment: ""))
+                Text(NSLocalizedString("Folder di sini tidak akan pernah diperiksa atau disarankan untuk dibersihkan.", comment: ""))
                     .font(.callout)
-                Text(NSLocalizedString("Whitelist tidak dapat mengubah Protected List — folder sistem dan dokumen pribadi tetap terlindungi.", comment: ""))
+                Text(NSLocalizedString("Folder sistem dan dokumen pribadi selalu dilindungi, apa pun isi daftar ini.", comment: ""))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -270,7 +335,7 @@ private struct WhitelistSettingsView: View {
                 EmptyStateView(
                     symbol: "line.3.horizontal.decrease.circle",
                     title: NSLocalizedString("Belum ada pengecualian", comment: ""),
-                    message: NSLocalizedString("Tambahkan folder yang tidak ingin discan, misalnya disk image yang selalu ter-mount.", comment: "")
+                    message: NSLocalizedString("Tambahkan folder yang tidak ingin disentuh Respite.", comment: "")
                 )
             } else {
                 List {
@@ -283,7 +348,7 @@ private struct WhitelistSettingsView: View {
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                             Spacer()
-                            Button(NSLocalizedString("Hapus", comment: "")) {
+                            Button(NSLocalizedString("Keluarkan", comment: "")) {
                                 var whitelist = UserWhitelist.load()
                                 whitelist.remove(pattern)
                                 whitelist.save()
@@ -317,7 +382,7 @@ private struct WhitelistSettingsView: View {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        panel.message = NSLocalizedString("Pilih folder yang tidak ingin dimasukkan ke hasil scan Respite.", comment: "")
+        panel.message = NSLocalizedString("Pilih folder yang tidak ingin diperiksa Respite.", comment: "")
         panel.begin { response in
             guard response == .OK, let url = panel.url else { return }
             var whitelist = UserWhitelist.load()
@@ -347,9 +412,9 @@ private struct HistorySettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: DKSpacing.xs) {
-                Text(NSLocalizedString("Setiap aksi pembersihan tercatat sebelum dieksekusi — untuk audit dan pemulihan.", comment: ""))
+                Text(NSLocalizedString("Semua yang pernah dibersihkan Respite tercatat di sini.", comment: ""))
                     .font(.callout)
-                Text(NSLocalizedString("Menghapus riwayat tidak memengaruhi file yang sudah ada di Trash.", comment: ""))
+                Text(NSLocalizedString("Menghapus catatan ini tidak mengubah file yang ada di Trash.", comment: ""))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -361,7 +426,7 @@ private struct HistorySettingsView: View {
                 EmptyStateView(
                     symbol: "clock.arrow.circlepath",
                     title: NSLocalizedString("Belum ada riwayat.", comment: ""),
-                    message: NSLocalizedString("Aksi pembersihan, penghentian proses, dan Maintenance Sweep akan tercatat di sini.", comment: "")
+                    message: NSLocalizedString("Setiap kali kamu membersihkan atau menutup aplikasi, catatannya muncul di sini.", comment: "")
                 )
             } else {
                 List(entries.reversed()) { entry in
@@ -379,7 +444,7 @@ private struct HistorySettingsView: View {
 
             HStack(spacing: DKSpacing.md) {
                 Text(String(
-                    format: NSLocalizedString("%d entri", comment: ""),
+                    format: NSLocalizedString("%d catatan", comment: ""),
                     entries.count
                 ))
                 .font(.caption)
@@ -414,7 +479,7 @@ private struct HistorySettingsView: View {
                 reload()
             }
         } message: {
-            Text(NSLocalizedString("Riwayat adalah jejak audit aksi yang sudah dilakukan. File di Trash tidak terpengaruh.", comment: ""))
+            Text(NSLocalizedString("Catatan riwayat akan dihapus. File di Trash tidak terpengaruh.", comment: ""))
         }
     }
 
@@ -440,8 +505,13 @@ private struct HistorySettingsView: View {
     private func actionName(_ actionType: String) -> String {
         switch actionType {
         case "move-to-trash": return NSLocalizedString("Pindah ke Trash", comment: "")
-        case "kill-process": return NSLocalizedString("Hentikan proses", comment: "")
-        case "restart-process": return NSLocalizedString("Restart proses", comment: "")
+        case "kill-process": return NSLocalizedString("Tutup aplikasi", comment: "")
+        case "restart-process": return NSLocalizedString("Mulai ulang aplikasi", comment: "")
+        case "delete-permanent": return NSLocalizedString("Dihapus permanen", comment: "")
+        case "archive": return NSLocalizedString("Dirapikan ke arsip", comment: "")
+        case "startup-add": return NSLocalizedString("Ditambahkan ke Aplikasi Saat Login", comment: "")
+        case "startup-remove": return NSLocalizedString("Dihapus dari Aplikasi Saat Login", comment: "")
+        case "startup-toggle": return NSLocalizedString("Aplikasi Saat Login diubah", comment: "")
         default: return actionType
         }
     }
@@ -454,14 +524,14 @@ private struct HistorySettingsView: View {
 /// tidak ada auto-execute (TRD §4.13.2).
 private struct IntegrationsSettingsView: View {
     private let actions: [(name: String, url: String, symbol: String)] = [
-        ("Monitor Memori", "respite://action/free-memory", "memorychip"),
-        ("Diagnosis Performa", "respite://action/run-diagnostic", "waveform.path.ecg"),
-        ("Maintenance Sweep", "respite://action/maintenance-sweep", "gauge.with.dots.needle.67percent"),
+        (Module.memoryMonitor.title, "respite://action/free-memory", "memorychip"),
+        (Module.diagnostic.title, "respite://action/run-diagnostic", "waveform.path.ecg"),
+        (NSLocalizedString("Pembersihan rutin", comment: ""), "respite://action/maintenance-sweep", "gauge.with.dots.needle.67percent"),
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: DKSpacing.md) {
-            Text(NSLocalizedString("Pemicu cepat dari Raycast atau Alfred lewat skema URL respite:// — Respite harus sedang berjalan. Semua aksi hanya membuka modul terkait, tidak ada yang dieksekusi otomatis.", comment: ""))
+            Text(NSLocalizedString("Untuk pengguna Raycast atau Alfred: buka alat Respite lewat pintasan. Pintasan hanya membuka alatnya — tidak ada yang dijalankan atau dihapus otomatis. Respite harus sedang berjalan.", comment: ""))
                 .font(.callout)
                 .fixedSize(horizontal: false, vertical: true)
 

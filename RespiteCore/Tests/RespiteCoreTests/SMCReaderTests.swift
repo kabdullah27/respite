@@ -16,6 +16,13 @@ final class SMCReaderTests: XCTestCase {
         XCTAssertNil(SMCReader.decodeSP78([62]), "kurang dari 2 byte = tidak valid")
     }
 
+    /// 'flt ' Apple Silicon: Float32 little-endian (sampel nyata M-series).
+    func testDecodeFloat() {
+        XCTAssertEqual(SMCReader.decodeFloat([210, 240, 126, 66]) ?? 0, 63.735, accuracy: 0.01)
+        XCTAssertEqual(SMCReader.fourCC(SMCReader.keyCode("flt ")!), "flt ")
+        XCTAssertNil(SMCReader.decodeFloat([1, 2]))
+    }
+
     /// Kunci jadi 4-char code big-endian.
     func testKeyCode() {
         XCTAssertEqual(SMCReader.keyCode("TC0P"), 0x54433050)

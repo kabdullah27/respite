@@ -5,6 +5,8 @@ public enum ByteFormat {
         let f = ByteCountFormatter()
         f.countStyle = .file
         f.isAdaptive = true
+        // "0 KB", bukan "Zero KB" / "Nol KB".
+        f.allowsNonnumericFormatting = false
         return f
     }()
 

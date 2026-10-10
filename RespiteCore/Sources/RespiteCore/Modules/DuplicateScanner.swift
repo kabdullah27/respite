@@ -150,7 +150,18 @@ public struct DuplicateScanner {
 
                 // Grup terbesar (potensi hemat terbesar) dulu — user lihat
                 // hasil yang paling ngaruh di awal, bukan alphabet acak dict.
+                // Hard link (inode sama) = satu file fisik → simpan satu path
+                // per inode sebelum hashing. Hapus hard link nggak membebaskan
+                // apa pun, dan grup campuran {A, hardlink-A, C} nggak boleh
+                // ngitung reclaimable 2×. resourceID nil dianggap unik.
                 let orderedBuckets = bySize
+                    .mapValues { candidates -> [Candidate] in
+                        var seen = Set<Data>()
+                        return candidates.filter { candidate in
+                            guard let id = candidate.resourceID else { return true }
+                            return seen.insert(id).inserted
+                        }
+                    }
                     .filter { $0.value.count > 1 }
                     .sorted { lhs, rhs in
                         let lhsGain = Int64(lhs.value.count - 1) * lhs.key
@@ -187,13 +198,6 @@ public struct DuplicateScanner {
                         }
 
                         for (_, identical) in byFull where identical.count > 1 {
-                            // Hard link: seluruh path menunjuk file fisik yang sama
-                            // → bukan duplikat beneran, hapusnya nggak membebaskan
-                            // apa pun. Saring (inode sama persis satu-atu pun tidak).
-                            let distinctInodes = Set(identical.compactMap(\.resourceID))
-                            if distinctInodes.count == 1, distinctInodes.first != nil {
-                                continue
-                            }
                             // Terlama duluan — itu yang disarankan disimpan.
                             let sorted = identical.sorted { $0.modified < $1.modified }
                             let files = sorted.enumerated().map { index, candidate in
@@ -242,6 +246,10 @@ public struct DuplicateScanner {
             }
             while let (index, result) = await group.next() {
                 if let result { results[index] = result }
+                if Task.isCancelled {
+                    group.cancelAll()
+                    continue
+                }
                 if nextIndex < candidates.count {
                     let index2 = nextIndex
                     group.addTask { (index2, hashOne(candidates[index2])) }
@@ -273,6 +281,7 @@ public struct DuplicateScanner {
         defer { try? handle.close() }
         var hasher = SHA256()
         while let chunk = try? handle.read(upToCount: 1 << 20), !chunk.isEmpty {
+            if Task.isCancelled { return nil }
             hasher.update(data: chunk)
         }
         return hasher.finalize().description

@@ -3,94 +3,106 @@ import RespiteCore
 import DesignKit
 import AppKit
 
-/// Developer Cache Cleanup (TRD §4.6): deteksi tool dulu (Xcode/Homebrew/
-/// Docker/Node) → scan target yang relevan aja. node_modules cuma di folder
-/// yang user pilih. Docker cleanup via CLI menyusul (butuh gate eksekusi
-/// command), sekarang cuma informasi kalau terdeteksi.
+/// Sisa Pengembang: deteksi tool dulu (Xcode/Homebrew/Node/…) → scan target
+/// yang relevan saja. node_modules hanya dicari di folder proyek yang user
+/// pilih. Docker belum dibersihkan (butuh perintah CLI) — hanya informasi.
+/// Pola halaman mengikuti ToolPage (mulai → mencari → hasil → selesai).
 struct DevCacheView: View {
 
     @ObservedObject private var model = DevCacheModel.shared
-    @State private var showFailedItems = false
-    @State private var showDryRunPreview = false
+    @State private var showConfirm = false
 
     private var selectedBytes: Int64 {
         model.targets.filter { model.selected.contains($0.id) }.reduce(0) { $0 + $1.sizeBytes }
     }
 
+    private var totalBytes: Int64 {
+        model.targets.reduce(0) { $0 + $1.sizeBytes }
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: DKSpacing.lg) {
-                toolChips
-                nodeModulesPicker
-                controls
-
-                if case .cleaned(let bytes) = model.phase {
-                    cleanBanner(bytes)
-                }
-
-                if !model.targets.isEmpty {
-                    resultList
-                } else if model.phase == .scanning {
-                    HStack(spacing: DKSpacing.sm) {
-                        ProgressView().controlSize(.small)
-                        Text("Memindai…").foregroundColor(.secondary)
-                    }
-                }
-
-                Text(NSLocalizedString("Docker terdeteksi tapi pembersihannya lewat CLI docker menyusul bersama gate eksekusi command — target di atas semuanya berbasis file, aman dipindah ke Trash dan akan dibuat ulang otomatis saat dibutuhkan.", comment: ""))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: DKSpacing.lg) {
+            switch model.phase {
+            case .idle:
+                startCard
+            case .scanning:
+                ToolProgressCard(
+                    detail: String(
+                        format: NSLocalizedString("%d item ditemukan · %@", comment: ""),
+                        model.targets.count,
+                        ByteFormat.string(from: totalBytes)
+                    ),
+                    onStop: { model.cancelScan() }
+                )
+            case .results:
+                results
+            case .cleaned(let bytes):
+                ToolDoneCard(
+                    title: String(
+                        format: NSLocalizedString("%@ dipindahkan ke Trash", comment: ""),
+                        ByteFormat.string(from: bytes)
+                    ),
+                    failed: model.failedItems,
+                    onRescan: { model.startScan() }
+                )
+                if !model.targets.isEmpty { results }
             }
-            .padding(DKSpacing.xl)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onAppear {
             model.detectToolsIfNeeded()
         }
         .alert(
-            NSLocalizedString("Pratinjau sebelum membersihkan", comment: ""),
-            isPresented: $showDryRunPreview
+            ToolConfirm.title(
+                count: model.targets.filter { model.selected.contains($0.id) }.count,
+                bytes: selectedBytes
+            ),
+            isPresented: $showConfirm
         ) {
             Button(NSLocalizedString("Batal", comment: ""), role: .cancel) {}
-            Button(NSLocalizedString("Lanjutkan", comment: "")) {
+            Button(NSLocalizedString("Pindahkan", comment: "")) {
                 UserDefaults.standard.set(true, forKey: DevCacheModel.dryRunKey)
                 model.performClean()
             }
         } message: {
-            Text(String(
-                format: NSLocalizedString(
-                    "Dry-run: %d item (%@) akan dipindah ke Trash — DerivedData, cache, dan node_modules akan dibuat ulang otomatis saat dibutuhkan.",
-                    comment: ""
-                ),
-                model.targets.filter { model.selected.contains($0.id) }.count,
-                ByteFormat.string(from: selectedBytes)
-            ))
+            Text(NSLocalizedString("Semua ini akan dibuat ulang otomatis saat dibutuhkan (mis. saat build atau install berikutnya).", comment: "")
+                 + " " + ToolConfirm.message)
         }
     }
 
-    // MARK: Deteksi tool
+    // MARK: 1. Mulai
 
-    private var toolChips: some View {
-        VStack(alignment: .leading, spacing: DKSpacing.sm) {
-            Text(NSLocalizedString("Tool terdeteksi", comment: ""))
-                .font(.title3.weight(.semibold))
-            Text(NSLocalizedString("Sub-modul hanya ditawarkan untuk tool yang benar-benar terpasang.", comment: ""))
-                .font(.caption)
-                .foregroundColor(.secondary)
+    private var startCard: some View {
+        ToolStartCard(
+            headline: NSLocalizedString("Bersihkan sisa build dan cache alat developer", comment: ""),
+            points: [
+                NSLocalizedString("Hanya cache yang bisa dibuat ulang otomatis — kode proyekmu tidak disentuh.", comment: ""),
+                NSLocalizedString("node_modules hanya dicari di folder proyek yang kamu pilih.", comment: ""),
+                NSLocalizedString("Semua dipindah ke Trash, jadi masih bisa dikembalikan.", comment: ""),
+            ],
+            action: { model.startScan() }
+        ) {
+            VStack(alignment: .leading, spacing: DKSpacing.md) {
+                detectedTools
+                projectFolders
+            }
+        }
+    }
+
+    // MARK: Alat terdeteksi
+
+    @ViewBuilder
+    private var detectedTools: some View {
+        let installed = model.tools.filter(\.isInstalled)
+        if !installed.isEmpty {
             HStack(spacing: DKSpacing.sm) {
-                ForEach(model.tools) { tool in
-                    StatusPill(
-                        toolName(tool.kind) + (tool.isInstalled ? " ✓" : " —"),
-                        color: tool.isInstalled ? DKColor.accent : DKColor.neutral
-                    )
+                Text(NSLocalizedString("Ditemukan di Mac kamu:", comment: ""))
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                ForEach(installed) { tool in
+                    StatusPill(toolName(tool.kind), color: DKColor.accent)
                 }
             }
         }
-        .padding(DKSpacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DKColor.surfaceSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
     }
 
     private func toolName(_ kind: DevTools.Tool.Kind) -> String {
@@ -105,31 +117,34 @@ struct DevCacheView: View {
         }
     }
 
-    // MARK: node_modules picker
+    // MARK: Folder proyek (node_modules)
 
-    private var nodeModulesPicker: some View {
+    private var projectFolders: some View {
         HStack(spacing: DKSpacing.md) {
+            Text(NSLocalizedString("Folder proyek", comment: ""))
+                .font(.callout.weight(.medium))
             Button {
                 pickNodeRoot()
             } label: {
-                Label(NSLocalizedString("Tambah folder project untuk node_modules…", comment: ""), systemImage: "plus")
+                Label(NSLocalizedString("Tambah folder…", comment: ""), systemImage: "plus")
             }
             .controlSize(.small)
-            if !model.nodeRoots.isEmpty {
-                Text(String(
-                    format: NSLocalizedString("%d folder dipilih", comment: ""),
-                    model.nodeRoots.count
-                ))
-                .font(.caption)
-                .foregroundColor(.secondary)
-            }
+            Text(model.nodeRoots.isEmpty
+                 ? NSLocalizedString("Belum ada — node_modules tidak dicari", comment: "")
+                 : model.nodeRoots.map(\.lastPathComponent).joined(separator: ", ")
+            )
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .help(model.nodeRoots.map(\.path).joined(separator: "\n"))
         }
     }
 
-    /// Gate dry-run: pertama kali → pratinjau dulu; setelah itu langsung.
+    /// Pertama kali → konfirmasi dulu; setelah itu langsung.
     private func handleCleanRequest() {
         if !model.requestClean() {
-            showDryRunPreview = true
+            showConfirm = true
         }
     }
 
@@ -145,107 +160,108 @@ struct DevCacheView: View {
         }
     }
 
-    // MARK: Kontrol
+    // MARK: 3. Hasil — dikelompokkan per jenis
 
     @ViewBuilder
-    private var controls: some View {
-        switch model.phase {
-        case .idle, .results, .cleaned:
-            HStack(spacing: DKSpacing.md) {
-                Button {
-                    model.startScan()
-                } label: {
-                    Label(
-                        model.phase == .idle ? "Mulai Pindai" : "Pindai Ulang",
-                        systemImage: model.phase == .idle ? "magnifyingglass" : "arrow.clockwise"
-                    )
-                }
-                .controlSize(.large)
-                .buttonStyle(.borderedProminent)
-                if model.phase != .idle {
-                    Spacer()
-                    Text(String(
-                        format: NSLocalizedString("%@ terpilih", comment: ""),
-                        ByteFormat.string(from: selectedBytes)
-                    ))
-                    .font(.dkData(13))
-                    .foregroundStyle(.secondary)
-                    Button("Bersihkan yang dipilih") { handleCleanRequest() }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(model.selected.isEmpty)
+    private var results: some View {
+        if model.targets.isEmpty {
+            ToolEmptyResult(
+                message: NSLocalizedString("Tidak ada cache developer yang perlu dibersihkan saat ini.", comment: ""),
+                onRescan: { model.startScan() }
+            )
+            projectFolders
+        } else {
+            ToolResultHeader(
+                title: String(
+                    format: NSLocalizedString("%d item · %@", comment: ""),
+                    model.targets.count,
+                    ByteFormat.string(from: totalBytes)
+                ),
+                subtitle: NSLocalizedString("Semua di bawah ini dibuat ulang otomatis saat dibutuhkan. Yang baru dipakai tidak dicentang otomatis.", comment: ""),
+                onRescan: { model.startScan() }
+            ) {
+                projectFolders
+            }
+
+            let grouped = Dictionary(grouping: model.targets, by: \.kind)
+            List {
+                ForEach(DevCacheTarget.Kind.allCases, id: \.rawValue) { kind in
+                    if let items = grouped[kind], !items.isEmpty {
+                        kindSection(kind: kind, items: items.sorted { $0.sizeBytes > $1.sizeBytes })
+                    }
                 }
             }
-        case .scanning:
-            HStack(spacing: DKSpacing.md) {
-                ProgressView()
-                Text("Memindai…").foregroundColor(.secondary)
-                Spacer()
-                Button("Batalkan") { model.cancelScan() }
-            }
-        }
-    }
+            .listStyle(.inset)
+            .frame(height: 400)
 
-    // MARK: Hasil — dikelompokkan per jenis (jangan satu list datar campur aduk)
+            ToolActionBar(
+                selectedCount: model.selected.count,
+                selectedBytes: selectedBytes,
+                action: handleCleanRequest
+            )
 
-    private var resultList: some View {
-        let grouped = Dictionary(grouping: model.targets, by: \.kind)
-        return VStack(alignment: .leading, spacing: DKSpacing.lg) {
-            ForEach(DevCacheTarget.Kind.allCases, id: \.rawValue) { kind in
-                if let items = grouped[kind], !items.isEmpty {
-                    kindSection(kind: kind, items: items.sorted { $0.sizeBytes > $1.sizeBytes })
-                }
+            ToolDetails {
+                Text(NSLocalizedString("Docker belum bisa dibersihkan dari sini — pembersihannya butuh perintah docker dan akan menyusul.", comment: ""))
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(NSLocalizedString("Model AI (Ollama, LM Studio) dan toolchain di ~/.cargo/bin tidak pernah disentuh.", comment: ""))
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 
     private func kindSection(kind: DevCacheTarget.Kind, items: [DevCacheTarget]) -> some View {
-        VStack(alignment: .leading, spacing: DKSpacing.md) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(kindName(kind)).font(.title3.weight(.semibold))
-                Spacer()
-                Text(String(
-                    format: NSLocalizedString("%d item · %@", comment: ""),
-                    items.count,
-                    ByteFormat.string(from: items.reduce(0) { $0 + $1.sizeBytes })
-                ))
-                .font(.caption)
-                .foregroundColor(.secondary)
-            }
-            Text(reason(kind))
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            VStack(spacing: DKSpacing.sm) {
-                ForEach(items) { target in
-                    HStack {
-                        ReadoutRow(
-                            value: ByteFormat.string(from: target.sizeBytes),
-                            label: target.title,
-                            detail: nil,
-                            badge: target.isSelectedByDefault ? nil : NSLocalizedString("Baru", comment: "")
-                        )
-                        Spacer(minLength: DKSpacing.sm)
-                        Toggle("", isOn: Binding(
-                            get: { model.selected.contains(target.id) },
-                            set: { isChecked in
-                                if isChecked { model.selected.insert(target.id) } else { model.selected.remove(target.id) }
-                            }
-                        ))
-                        .toggleStyle(.checkbox)
-                        .labelsHidden()
-                    }
-                    .padding(.vertical, DKSpacing.xs)
-                    .contextMenu {
-                        Button(NSLocalizedString("Selalu kecualikan folder ini", comment: "")) {
-                            excludeTarget(target)
+        Section {
+            ForEach(items) { target in
+                ToolResultRow(
+                    title: target.title,
+                    subtitle: String(
+                        format: NSLocalizedString("terakhir diubah %@", comment: ""),
+                        FriendlyDate.string(target.lastModified)
+                    ),
+                    size: target.sizeBytes,
+                    badge: target.isSelectedByDefault ? nil : NSLocalizedString("Baru dipakai", comment: ""),
+                    isOn: Binding(
+                        get: { model.selected.contains(target.id) },
+                        set: { isChecked in
+                            if isChecked { model.selected.insert(target.id) } else { model.selected.remove(target.id) }
                         }
+                    )
+                )
+                .help(target.url.path)
+                .contextMenu {
+                    Button {
+                        NSWorkspace.shared.activateFileViewerSelecting([target.url])
+                    } label: {
+                        Label(NSLocalizedString("Tampilkan di Finder", comment: ""), systemImage: "folder")
+                    }
+                    Divider()
+                    Button {
+                        excludeTarget(target)
+                    } label: {
+                        Label(NSLocalizedString("Jangan tampilkan folder ini lagi", comment: ""), systemImage: "hand.raised")
                     }
                 }
             }
-            .padding(DKSpacing.md)
-            .background(DKColor.surfaceSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
+        } header: {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(kindName(kind)).font(.headline)
+                    Spacer()
+                    Text(String(
+                        format: NSLocalizedString("%d item · %@", comment: ""),
+                        items.count,
+                        ByteFormat.string(from: items.reduce(0) { $0 + $1.sizeBytes })
+                    ))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .monospacedDigit()
+                }
+                Text(reason(kind))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.vertical, DKSpacing.xs)
         }
     }
 
@@ -258,7 +274,7 @@ struct DevCacheView: View {
 
     private func kindName(_ kind: DevCacheTarget.Kind) -> String {
         switch kind {
-        case .xcodeDerivedData: return NSLocalizedString("Xcode DerivedData", comment: "")
+        case .xcodeDerivedData: return NSLocalizedString("Hasil build Xcode", comment: "")
         case .xcodeArchives: return NSLocalizedString("Arsip Xcode", comment: "")
         case .cocoapodsCache: return NSLocalizedString("Cache CocoaPods", comment: "")
         case .spmCache: return NSLocalizedString("Cache Swift Package Manager", comment: "")
@@ -301,53 +317,4 @@ struct DevCacheView: View {
             return NSLocalizedString("Log Ollama & LM Studio — aman dihapus. Model AI (GB-an, mahal diunduh ulang) tidak pernah disentuh.", comment: "")
         }
     }
-
-    @ViewBuilder
-    private func cleanBanner(_ bytes: Int64) -> some View {
-        HStack {
-            Label {
-                Text(String(
-                    format: NSLocalizedString("%@ berhasil dibersihkan", comment: ""),
-                    ByteFormat.string(from: bytes)
-                ))
-            } icon: {
-                Image(systemName: "checkmark.circle.fill")
-            }
-            .foregroundStyle(DKColor.accent)
-            Spacer()
-            Button("Buka Trash") {
-                NSWorkspace.shared.open(URL(fileURLWithPath: NSString(string: "~/.Trash").expandingTildeInPath))
-            }
-            .controlSize(.small)
-        }
-        .padding(DKSpacing.md)
-        .background(DKColor.accent.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
-
-        if !model.failedItems.isEmpty {
-            DisclosureGroup(
-                isExpanded: $showFailedItems,
-                content: {
-                    ForEach(Array(model.failedItems.enumerated()), id: \.offset) { _, failed in
-                        HStack(alignment: .top) {
-                            Text(failed.url.lastPathComponent).font(.caption.weight(.medium))
-                            Spacer()
-                            Text(failed.reason).font(.caption2).foregroundColor(.secondary)
-                        }
-                    }
-                },
-                label: {
-                    Text(String(
-                        format: NSLocalizedString("%d item gagal dibersihkan — lihat alasannya", comment: ""),
-                        model.failedItems.count
-                    ))
-                    .font(.caption)
-                    .foregroundColor(DKColor.attention)
-                }
-            )
-        }
-    }
-
-    // MARK: Aksi
-
 }

@@ -2,10 +2,9 @@ import SwiftUI
 import RespiteCore
 import DesignKit
 
-/// Daftar proses pemakai memori & CPU terbesar — dipakai Uptime Guardian &
-/// Memory Monitor. Tab Memori (footprint, refresh manual) + tab CPU (beban
-/// delta per tick, live). Tiap baris ada tombol Hentikan (konfirmasi dulu,
-/// SIGTERM graceful, proses kritis nggak pernah bisa).
+/// Daftar aplikasi paling berat (memori & tenaga prosesor) — dipakai halaman
+/// "Aplikasi Berat". Tiap baris ada tombol Tutup (konfirmasi dulu; tutup
+/// sopan = SIGTERM, Tutup Paksa = SIGKILL; proses kritis nggak pernah bisa).
 struct TopProcessesSection: View {
     @ObservedObject var model: SystemStatsModel
     @State private var mode = 0
@@ -20,15 +19,16 @@ struct TopProcessesSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DKSpacing.md) {
             HStack {
-                Text(NSLocalizedString("Pemakai memori terbesar", comment: ""))
-                    .font(.title3.weight(.semibold))
+                Text(NSLocalizedString("Aplikasi yang paling berat", comment: ""))
+                    .font(.headline)
                 Spacer()
                 Picker("", selection: $mode) {
                     Text(NSLocalizedString("Memori", comment: "")).tag(0)
-                    Text(NSLocalizedString("CPU", comment: "")).tag(1)
+                    Text(NSLocalizedString("Prosesor", comment: "")).tag(1)
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 130)
+                .labelsHidden()
+                .frame(width: 170)
                 Button {
                     if mode == 0 {
                         Task { await load() }
@@ -41,21 +41,22 @@ struct TopProcessesSection: View {
                 .controlSize(.small)
             }
 
+            Text(mode == 0
+                 ? NSLocalizedString("Aplikasi yang paling banyak memakai memori. Tutup yang tidak sedang kamu pakai supaya Mac lebih lega.", comment: "")
+                 : NSLocalizedString("Aplikasi yang sedang paling sibuk bekerja. Angkanya diperbarui sendiri setiap 2 detik.", comment: ""))
+                .font(.callout)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
             if !model.runaway.isEmpty {
                 runawayBanner
             }
 
-            Text(mode == 0
-                 ? NSLocalizedString("Proses-proses ini penyumbang tekanan memori terbesar — penyebab utama swap bertambah. Proses dengan nama sama digabung jadi satu baris. Atribusi swap per-proses tidak tersedia di API publik macOS.", comment: "")
-                 : NSLocalizedString("Beban CPU per proses, dihitung dari delta waktu CPU antar pembaruan (metrik yang sama dengan Activity Monitor), diperbarui otomatis tiap 2 detik. Status \"Not Responding\" hanya bisa dibaca lewat API privat — app yang macet justru turun ke 0%.", comment: ""))
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
             if let killMessage {
                 Label(killMessage, systemImage: killFailed ? "exclamationmark.triangle" : "checkmark.circle")
                     .font(.callout)
-                    .foregroundColor(killFailed ? DKColor.attention : DKColor.accent)
+                    .foregroundColor(killFailed ? DKColor.attention : Color.respite)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             if mode == 0 {
@@ -63,43 +64,53 @@ struct TopProcessesSection: View {
             } else {
                 cpuList
             }
+
+            ToolDetails(title: NSLocalizedString("Lihat detail daftar ini", comment: "")) {
+                Text(NSLocalizedString("Proses-proses ini penyumbang tekanan memori terbesar — penyebab utama swap bertambah. Proses dengan nama sama digabung jadi satu baris. Atribusi swap per-proses tidak tersedia di API publik macOS.", comment: ""))
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(NSLocalizedString("Beban CPU per proses, dihitung dari delta waktu CPU antar pembaruan (metrik yang sama dengan Activity Monitor), diperbarui otomatis tiap 2 detik. Status \"Not Responding\" hanya bisa dibaca lewat API privat — app yang macet justru turun ke 0%.", comment: ""))
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(NSLocalizedString("100% berarti satu inti prosesor penuh; aplikasi yang memakai beberapa inti bisa lebih dari 100%.", comment: ""))
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(NSLocalizedString("\"Tutup\" mengirim SIGTERM (aplikasi sempat menyimpan pekerjaan). \"Tutup Paksa\" mengirim SIGKILL — langsung mati tanpa menyimpan. Proses milik sistem/root tidak bisa dihentikan tanpa privilege; proses yang dijaga launchd bisa hidup lagi — matikan agent-nya di Aplikasi Saat Login.", comment: ""))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .task {
             if groups.isEmpty { await load() }
         }
         .alert(
-            NSLocalizedString("Hentikan proses", comment: ""),
+            String(
+                format: NSLocalizedString("Tutup %@?", comment: ""),
+                pendingKillName ?? ""
+            ),
             isPresented: Binding(
                 get: { pendingKillName != nil },
                 set: { if !$0 { pendingKillName = nil } }
             )
         ) {
             Button(NSLocalizedString("Batal", comment: ""), role: .cancel) {}
-            Button(NSLocalizedString("Hentikan Paksa", comment: ""), role: .destructive) {
+            Button(NSLocalizedString("Tutup Paksa", comment: ""), role: .destructive) {
                 if let name = pendingKillName {
                     performKill(name: name, pids: pendingKillPids, force: true)
                 }
                 pendingKillName = nil
             }
-            Button(NSLocalizedString("Hentikan", comment: ""), role: .destructive) {
+            Button(NSLocalizedString("Tutup", comment: ""), role: .destructive) {
                 if let name = pendingKillName {
                     performKill(name: name, pids: pendingKillPids, force: false)
                 }
                 pendingKillName = nil
             }
         } message: {
-            Text(String(
-                format: NSLocalizedString(
-                    "%1$@ (%2$d proses). \"Hentikan\" mengirim sinyal sopan (SIGTERM) — aplikasi sempat menyimpan pekerjaan; \"Hentikan Paksa\" (SIGKILL) langsung mematikan tanpa kesempatan menyimpan, untuk proses yang macet atau mengabaikan sinyal sopan. Pekerjaan belum tersimpan bisa hilang. Proses milik sistem/root tetap tidak bisa tanpa privilege; proses yang dijaga launchd bisa hidup lagi — matikan agent-nya di Aplikasi Saat Login.",
-                    comment: ""
-                ),
-                pendingKillName ?? "",
-                pendingKillPids.count
+            Text(NSLocalizedString(
+                "\"Tutup\" meminta aplikasi menutup dengan sopan, jadi pekerjaanmu sempat disimpan. Pakai \"Tutup Paksa\" hanya kalau aplikasinya macet — pekerjaan yang belum disimpan bisa hilang.",
+                comment: ""
             ))
         }
     }
 
-    // MARK: Banner proses liar (watchdog)
+    // MARK: Banner aplikasi yang terus sibuk (watchdog)
 
     private var runawayBanner: some View {
         VStack(alignment: .leading, spacing: DKSpacing.sm) {
@@ -110,20 +121,20 @@ struct TopProcessesSection: View {
                         .padding(.top, 2)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(String(
-                            format: NSLocalizedString("%1$@ — CPU tinggi berkelanjutan (rata-rata %2$d%% selama ±%3$d menit)", comment: ""),
+                            format: NSLocalizedString("%1$@ terus bekerja keras selama ±%3$d menit (rata-rata %2$d%% tenaga prosesor)", comment: ""),
                             verdict.name,
                             Int(verdict.averageFraction * 100),
                             Int(verdict.sustainedMinutes)
                         ))
                         .font(.callout.weight(.medium))
                         .fixedSize(horizontal: false, vertical: true)
-                        Text(NSLocalizedString("Proses berat yang berjalan terus-menerus — bukan spike sesaat. Periksa apakah masih diperlukan.", comment: ""))
+                        Text(NSLocalizedString("Bukan lonjakan sesaat. Kalau kamu tidak sedang memakainya, sebaiknya ditutup.", comment: ""))
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer()
-                    Button(NSLocalizedString("Hentikan", comment: "")) {
+                    Button(NSLocalizedString("Tutup", comment: "")) {
                         if let current = model.topCPUGroups.first(where: { $0.name == verdict.name }) {
                             pendingKillName = verdict.name
                             pendingKillPids = current.pids
@@ -148,71 +159,82 @@ struct TopProcessesSection: View {
                 Text(NSLocalizedString("Memuat…", comment: "")).font(.callout).foregroundColor(.secondary)
             }
         } else if groups.isEmpty {
-            Text(NSLocalizedString("Tidak ada proses dengan memori cukup besar untuk ditampilkan.", comment: ""))
+            Text(NSLocalizedString("Tidak ada aplikasi yang memakai banyak memori.", comment: ""))
                 .font(.callout)
                 .foregroundColor(.secondary)
         } else {
-            VStack(spacing: DKSpacing.sm) {
-                ForEach(groups) { group in
-                    processRow(
-                        value: ByteFormat.string(from: group.totalFootprintBytes),
-                        name: group.name,
-                        pids: group.pids
-                    )
-                }
-            }
-            .padding(DKSpacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(DKColor.surfaceSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
+            processList(groups.map { group in
+                (
+                    name: group.name,
+                    usage: String(
+                        format: NSLocalizedString("memakai %@", comment: ""),
+                        ByteFormat.string(from: group.totalFootprintBytes)
+                    ),
+                    pids: group.pids
+                )
+            })
         }
     }
 
-    // MARK: Tab CPU (live dari model)
+    // MARK: Tab prosesor (live dari model)
 
     @ViewBuilder
     private var cpuList: some View {
         if model.topCPUGroups.isEmpty {
-            Text(NSLocalizedString("Beban CPU seimbang — tidak ada proses dominan.", comment: ""))
+            Text(NSLocalizedString("Tidak ada aplikasi yang membebani prosesor.", comment: ""))
                 .font(.callout)
                 .foregroundColor(.secondary)
         } else {
-            VStack(spacing: DKSpacing.sm) {
-                ForEach(model.topCPUGroups) { group in
-                    processRow(
-                        value: String(
-                            format: NSLocalizedString("%d%%", comment: ""),
-                            Int(group.fraction * 100)
-                        ),
-                        name: group.name,
-                        pids: group.pids
-                    )
-                }
-            }
-            .padding(DKSpacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(DKColor.surfaceSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
+            processList(model.topCPUGroups.map { group in
+                (
+                    name: group.name,
+                    usage: String(
+                        format: NSLocalizedString("memakai %d%% tenaga prosesor", comment: ""),
+                        Int(group.fraction * 100)
+                    ),
+                    pids: group.pids
+                )
+            })
         }
     }
 
-    private func processRow(value: String, name: String, pids: [Int32]) -> some View {
-        HStack {
-            ReadoutRow(value: value, label: name, detail: nil)
-                .lineLimit(1)
+    private func processList(_ rows: [(name: String, usage: String, pids: [Int32])]) -> some View {
+        VStack(spacing: DKSpacing.sm) {
+            ForEach(Array(rows.enumerated()), id: \.element.name) { index, row in
+                processRow(name: row.name, usage: row.usage, pids: row.pids)
+                if index < rows.count - 1 {
+                    Divider()
+                }
+            }
+        }
+        .padding(DKSpacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(DKColor.surfaceSecondary)
+        .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
+    }
+
+    private func processRow(name: String, usage: String, pids: [Int32]) -> some View {
+        HStack(spacing: DKSpacing.md) {
+            HStack(spacing: 0) {
+                Text(name)
+                    .font(.callout.weight(.medium))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Text(" · " + usage)
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .layoutPriority(1)
+            }
             Spacer(minLength: DKSpacing.sm)
-            Text(pids.count > 1
-                 ? String(format: NSLocalizedString("%d proses", comment: ""), pids.count)
-                 : "PID \(pids.first ?? 0)"
-            )
-            .font(.caption2)
-            .foregroundColor(.secondary)
-            Button(NSLocalizedString("Hentikan", comment: "")) {
+            Button(NSLocalizedString("Tutup", comment: "")) {
                 pendingKillName = name
                 pendingKillPids = pids
             }
             .controlSize(.small)
         }
+        .accessibilityElement(children: .combine)
     }
 
     private func load() async {
@@ -254,6 +276,8 @@ struct TopProcessesSection: View {
                 alasan = NSLocalizedString("proses ini dilindungi sistem dan tidak pernah bisa dihentikan", comment: "")
             case "Operation not permitted":
                 alasan = NSLocalizedString("prosesnya milik root/sistem — butuh privilege yang Respite sengaja tidak minta", comment: "")
+            case "pid-reused":
+                alasan = NSLocalizedString("prosesnya sudah berhenti dan PID-nya kini dipakai proses lain — tidak dihentikan", comment: "")
             case "No such process":
                 alasan = NSLocalizedString("prosesnya sudah berhenti sendiri", comment: "")
             default:

@@ -18,10 +18,10 @@ struct PermanentDeleteConfirmSheet: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 30, weight: .medium))
                 .foregroundStyle(DKColor.irreversible)
-            Text(NSLocalizedString("Hapus permanen dari Trash?", comment: ""))
+            Text(NSLocalizedString("Hapus selamanya?", comment: ""))
                 .font(.title3.weight(.semibold))
             Text(String(
-                format: NSLocalizedString("%d item (%@) akan dihapus selamanya — melewati Trash, TIDAK BISA DIBATALKAN dengan cara apa pun. Kalau masih ragu, batalkan dan kelola lewat Finder.", comment: ""),
+                format: NSLocalizedString("%d item (%@) akan dihapus selamanya. File ini tidak masuk Trash dan tidak bisa dikembalikan. Kalau masih ragu, pilih Batal.", comment: ""),
                 itemCount,
                 ByteFormat.string(from: totalBytes)
             ))
@@ -37,6 +37,10 @@ struct PermanentDeleteConfirmSheet: View {
             .textFieldStyle(.roundedBorder)
             .frame(maxWidth: 260)
 
+            Text(NSLocalizedString("Ketik kata hapus di kotak di atas supaya tombolnya aktif.", comment: ""))
+                .font(.caption)
+                .foregroundColor(.secondary)
+
             HStack(spacing: DKSpacing.md) {
                 Button(NSLocalizedString("Batal", comment: ""), action: onCancel)
                 Button(NSLocalizedString("Hapus Permanen", comment: ""), role: .destructive) {
@@ -44,11 +48,19 @@ struct PermanentDeleteConfirmSheet: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(DKColor.irreversible)
-                .disabled(confirmText.trimmedLower != "hapus")
+                // Kata konfirmasi ikut bahasa UI ("delete" / "hapus"); "hapus"
+                // tetap diterima di bahasa mana pun.
+                .disabled(!Self.confirmWords.contains(confirmText.trimmedLower))
             }
         }
         .padding(DKSpacing.xl)
-        .frame(width: 440, height: 360)
+        .frame(width: 440, height: 380)
+    }
+}
+
+extension PermanentDeleteConfirmSheet {
+    static var confirmWords: Set<String> {
+        [NSLocalizedString("hapus", comment: "Kata yang harus diketik untuk konfirmasi hapus permanen").lowercased(), "hapus"]
     }
 }
 

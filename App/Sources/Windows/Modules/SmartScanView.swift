@@ -2,260 +2,220 @@ import SwiftUI
 import RespiteCore
 import DesignKit
 
-/// Smart Scan end-to-end: pindai → hasil tumbuh live per owner + strip status
-/// per kategori → dry-run preview (sekali per jenis aksi) → pindah ke Trash +
-/// tercatat di Safety Ledger.
+/// Bersihkan Cepat: cari cache & log lama → centang → Trash.
+/// Pola halaman mengikuti ToolPage (mulai → mencari → hasil → selesai).
+/// State di `SmartScanModel.shared` — pindah alat tidak menghentikan scan.
 struct SmartScanView: View {
-
+    /// Filter kategori di atas daftar hasil (nil = semua).
+    private enum Filter: Hashable {
+        case all
+        case category(ScanCategory)
+    }
 
     @ObservedObject private var model = SmartScanModel.shared
-    @State private var showFailedItems = false
-    @State private var showDryRunPreview = false
+    @State private var filter: Filter = .all
+    @State private var search = ""
+    @State private var showConfirm = false
+
+    private var selectedResults: [ScanResult] {
+        model.results.filter { model.selected.contains($0.id) }
+    }
 
     private var selectedBytes: Int64 {
-        model.results.filter { model.selected.contains($0.id) }.reduce(0) { $0 + $1.sizeBytes }
+        selectedResults.reduce(0) { $0 + $1.sizeBytes }
+    }
+
+    private var totalBytes: Int64 {
+        model.results.reduce(0) { $0 + $1.sizeBytes }
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: DKSpacing.xl) {
-                controls
-
-                if case .cleaned(let bytes) = model.phase {
-                    cleanBanner(bytes)
-                }
-
-                if model.phase != .idle {
-                    progressStrip
-                }
-
-                ForEach(ScanCategory.allCases, id: \.rawValue) { category in
-                    categorySection(category)
-                }
+        VStack(alignment: .leading, spacing: DKSpacing.lg) {
+            switch model.phase {
+            case .idle:
+                startCard
+            case .scanning:
+                ToolProgressCard(
+                    detail: String(
+                        format: NSLocalizedString("%d item ditemukan · %@", comment: ""),
+                        model.results.count,
+                        ByteFormat.string(from: totalBytes)
+                    ),
+                    onStop: { model.cancelScan() }
+                )
+            case .results:
+                results
+            case .cleaned(let bytes):
+                ToolDoneCard(
+                    title: String(
+                        format: NSLocalizedString("%@ dipindahkan ke Trash", comment: ""),
+                        ByteFormat.string(from: bytes)
+                    ),
+                    failed: model.failedItems,
+                    onRescan: { model.startScan() }
+                )
+                if !model.results.isEmpty { results }
             }
-            .padding(DKSpacing.xl)
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+            details
         }
         .alert(
-            NSLocalizedString("Pratinjau sebelum membersihkan", comment: ""),
-            isPresented: $showDryRunPreview
+            ToolConfirm.title(count: selectedResults.count, bytes: selectedBytes),
+            isPresented: $showConfirm
         ) {
             Button(NSLocalizedString("Batal", comment: ""), role: .cancel) {}
-            Button(NSLocalizedString("Lanjutkan", comment: "")) {
+            Button(NSLocalizedString("Pindahkan", comment: "")) {
                 UserDefaults.standard.set(true, forKey: SmartScanModel.dryRunKey)
                 model.performClean()
             }
         } message: {
-            Text(String(
-                format: NSLocalizedString(
-                    "Dry-run: %d item (%@) akan dipindah ke Trash dan bisa dikembalikan dari sana.",
-                    comment: ""
-                ),
-                model.results.filter { model.selected.contains($0.id) }.count,
-                ByteFormat.string(from: selectedBytes)
-            ))
-            + Text(" ")
-            + Text(NSLocalizedString("Folder sistem dan dokumen pribadi tidak pernah disentuh oleh aksi ini.", comment: ""))
+            Text(ToolConfirm.message)
         }
     }
 
-    /// Gate dry-run: pertama kali → pratinjau dulu; setelah itu langsung.
-    private func handleCleanRequest() {
-        if !model.requestClean() {
-            showDryRunPreview = true
-        }
-    }
+    // MARK: 1. Mulai
 
-    // MARK: Kontrol atas
-
-    @ViewBuilder
-    private var controls: some View {
-        switch model.phase {
-        case .idle:
-            Button {
-                model.startScan()
-            } label: {
-                Label("Mulai Pindai", systemImage: "magnifyingglass")
-            }
-            .controlSize(.large)
-            .buttonStyle(.borderedProminent)
-
-        case .scanning:
-            HStack(spacing: DKSpacing.md) {
-                ProgressView()
-                Text("Memindai…").foregroundStyle(.secondary)
-                Spacer()
-                Text(runningTotalText)
-                    .font(.dkData(12))
-                    .foregroundStyle(.secondary)
-                Button("Batalkan") {
-                    model.cancelScan()
-                }
-            }
-
-        case .results:
-            toolbar
-
-        case .cleaned:
-            toolbar
-        }
-    }
-
-    private var toolbar: some View {
-        VStack(alignment: .leading, spacing: DKSpacing.xs) {
-            HStack(spacing: DKSpacing.md) {
-                Button {
-                    model.startScan()
-                } label: {
-                    Label("Pindai Ulang", systemImage: "arrow.clockwise")
-                }
-                Spacer()
-                Text(String(
-                    format: NSLocalizedString("%@ terpilih", comment: ""),
-                    ByteFormat.string(from: selectedBytes)
-                ))
-                .font(.dkData(13))
-                .foregroundStyle(.secondary)
-                Button("Bersihkan yang dipilih") {
-                    handleCleanRequest()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(model.selected.isEmpty)
-            }
-            if !model.selected.isEmpty {
-                Label(
-                    NSLocalizedString("Dipindah ke Trash — bisa dipulihkan dari Finder kapan saja.", comment: ""),
-                    systemImage: "arrow.uturn.left.circle"
-                )
-                .font(.caption)
-                .foregroundColor(.secondary)
-            }
-        }
-    }
-
-    private var runningTotalText: String {
-        let bytes = model.results.reduce(Int64(0)) { $0 + $1.sizeBytes }
-        return String(
-            format: NSLocalizedString("%d item · %@", comment: "total sementara saat scan"),
-            model.results.count,
-            ByteFormat.string(from: bytes)
+    private var startCard: some View {
+        ToolStartCard(
+            headline: NSLocalizedString("Buang file sementara yang menumpuk", comment: ""),
+            points: [
+                NSLocalizedString("Memeriksa cache dan catatan lama dari aplikasi.", comment: ""),
+                NSLocalizedString("Dokumen, foto, dan file pribadimu tidak disentuh.", comment: ""),
+                NSLocalizedString("Semua dipindah ke Trash, jadi masih bisa dikembalikan.", comment: ""),
+            ],
+            action: { model.startScan() }
         )
     }
 
-    // MARK: Strip model.progress per kategori
-
-    private var progressStrip: some View {
-        VStack(spacing: DKSpacing.sm) {
-            ForEach(ScanCategory.allCases, id: \.rawValue) { category in
-                let state = model.progress[category] ?? SmartScanModel.CategoryProgress()
-                HStack(spacing: DKSpacing.sm) {
-                    Group {
-                        switch state.status {
-                        case .pending:
-                            Image(systemName: "clock")
-                                .foregroundStyle(.tertiary)
-                        case .running:
-                            ProgressView()
-                                .controlSize(.small)
-                        case .done:
-                            Image(systemName: "checkmark.circle")
-                                .foregroundStyle(state.count > 0 ? AnyShapeStyle(DKColor.accent) : AnyShapeStyle(.tertiary))
-                        }
-                    }
-                    .frame(width: 16)
-                    Text(categoryName(category))
-                        .font(.callout)
-                    Spacer()
-                    Text(statusText(state))
-                        .font(.dkData(12))
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-        .padding(DKSpacing.md)
-        .background(DKColor.surfaceSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
-    }
-
-    private func statusText(_ state: SmartScanModel.CategoryProgress) -> String {
-        switch state.status {
-        case .pending:
-            return NSLocalizedString("Menunggu", comment: "")
-        case .running:
-            return state.count > 0
-                ? String(
-                    format: NSLocalizedString("%d item · %@", comment: ""),
-                    state.count,
-                    ByteFormat.string(from: state.bytes)
-                )
-                : NSLocalizedString("Memindai…", comment: "")
-        case .done:
-            return state.count > 0
-                ? String(
-                    format: NSLocalizedString("%d item · %@", comment: ""),
-                    state.count,
-                    ByteFormat.string(from: state.bytes)
-                )
-                : NSLocalizedString("Tidak ada", comment: "")
-        }
-    }
-
-    // MARK: Hasil per kategori
+    // MARK: 3. Hasil
 
     @ViewBuilder
-    private func categorySection(_ category: ScanCategory) -> some View {
-        let rows = model.results.filter { $0.category == category }
-        if !rows.isEmpty {
-            VStack(alignment: .leading, spacing: DKSpacing.md) {
-                Text(categoryName(category))
-                    .font(.title3.weight(.semibold))
-                VStack(spacing: DKSpacing.sm) {
-                    ForEach(rows.sorted { $0.sizeBytes > $1.sizeBytes }) { result in
-                        resultRow(result)
-                        if result.id != rows.last?.id {
-                            Divider()
+    private var results: some View {
+        if model.results.isEmpty {
+            ToolEmptyResult(
+                message: NSLocalizedString("Cache dan catatan lama di Mac kamu sudah bersih.", comment: ""),
+                onRescan: { model.startScan() }
+            )
+        } else {
+            ToolResultHeader(
+                title: String(
+                    format: NSLocalizedString("%d item · %@", comment: ""),
+                    model.results.count,
+                    ByteFormat.string(from: totalBytes)
+                ),
+                subtitle: NSLocalizedString("Yang dicentang aman dihapus. Aplikasi akan membuatnya lagi saat dibutuhkan.", comment: ""),
+                onRescan: { model.startScan() }
+            ) {
+                HStack(spacing: DKSpacing.md) {
+                    Picker("", selection: $filter) {
+                        Text(NSLocalizedString("Semua", comment: "")).tag(Filter.all)
+                        ForEach(presentCategories, id: \.rawValue) { category in
+                            Text(categoryName(category)).tag(Filter.category(category))
                         }
                     }
+                    .labelsHidden()
+                    .fixedSize()
+                    TextField(NSLocalizedString("Cari nama aplikasi…", comment: ""), text: $search)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: 240)
+                    Spacer()
                 }
-                .padding(DKSpacing.md)
-                .background(DKColor.surfaceSecondary)
-                .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
             }
+
+            List {
+                ForEach(visibleCategories, id: \.rawValue) { category in
+                    Section {
+                        ForEach(visibleResults(in: category)) { result in
+                            ToolResultRow(
+                                title: result.ownerName,
+                                subtitle: reason(result.category),
+                                size: result.sizeBytes,
+                                badge: badge(for: result),
+                                isOn: Binding(
+                                    get: { model.selected.contains(result.id) },
+                                    set: { isChecked in
+                                        if isChecked {
+                                            model.selected.insert(result.id)
+                                        } else {
+                                            model.selected.remove(result.id)
+                                        }
+                                    }
+                                )
+                            )
+                            .accessibilityLabel(result.ownerName)
+                            .contextMenu { rowMenu(result) }
+                        }
+                    } header: {
+                        Text(categoryName(category))
+                    }
+                }
+            }
+            .listStyle(.inset)
+            .frame(height: 360)
+
+            ToolActionBar(
+                selectedCount: selectedResults.count,
+                selectedBytes: selectedBytes,
+                action: requestClean
+            )
         }
     }
 
-    private func resultRow(_ result: ScanResult) -> some View {
-        HStack(alignment: .center) {
-            ReadoutRow(
-                value: ByteFormat.string(from: result.sizeBytes),
-                label: result.ownerName,
-                detail: reason(result.category),
-                badge: result.isSelectedByDefault
-                    ? nil
-                    : NSLocalizedString("Baru", comment: "")
-            )
-            Spacer(minLength: DKSpacing.sm)
-            Toggle("", isOn: Binding(
-                get: { model.selected.contains(result.id) },
-                set: { isChecked in
-                    if isChecked {
-                        model.selected.insert(result.id)
-                    } else {
-                        model.selected.remove(result.id)
-                    }
-                }
-            ))
-            .toggleStyle(.checkbox)
-            .labelsHidden()
-            .accessibilityLabel(result.ownerName)
+    @ViewBuilder
+    private func rowMenu(_ result: ScanResult) -> some View {
+        Button {
+            NSWorkspace.shared.activateFileViewerSelecting([result.url])
+        } label: {
+            Label(NSLocalizedString("Tampilkan di Finder", comment: ""), systemImage: "folder")
         }
-        .padding(.vertical, DKSpacing.xs)
-        .contextMenu {
-            Button(NSLocalizedString("Selalu kecualikan folder ini", comment: "")) {
-                excludeResult(result)
-            }
+        Divider()
+        Button {
+            excludeResult(result)
+        } label: {
+            Label(NSLocalizedString("Jangan tampilkan folder ini lagi", comment: ""), systemImage: "hand.raised")
         }
     }
+
+    private var details: some View {
+        ToolDetails {
+            Text(NSLocalizedString("Cache adalah file sementara yang dibuat aplikasi supaya lebih cepat. Kalau dihapus, aplikasi membuatnya lagi.", comment: ""))
+            Text(NSLocalizedString("Catatan lama (log) hanya berguna untuk melacak masalah yang sudah lewat.", comment: ""))
+            Text(NSLocalizedString("Isi Trash hanya ditampilkan. Untuk mengosongkannya, pakai alat Trash.", comment: ""))
+        }
+    }
+
+    // MARK: Data
+
+    private var presentCategories: [ScanCategory] {
+        ScanCategory.allCases.filter { category in
+            model.results.contains { $0.category == category }
+        }
+    }
+
+    private var visibleCategories: [ScanCategory] {
+        let candidates: [ScanCategory]
+        if case .category(let category) = filter, presentCategories.contains(category) {
+            candidates = [category]
+        } else {
+            candidates = presentCategories
+        }
+        return candidates.filter { !visibleResults(in: $0).isEmpty }
+    }
+
+    private func visibleResults(in category: ScanCategory) -> [ScanResult] {
+        let query = search.trimmingCharacters(in: .whitespaces)
+        return model.results
+            .filter { $0.category == category }
+            .filter { query.isEmpty || $0.ownerName.localizedCaseInsensitiveContains(query) }
+            .sorted { $0.sizeBytes > $1.sizeBytes }
+    }
+
+    private func badge(for result: ScanResult) -> String? {
+        if result.category == .trash || result.isSelectedByDefault { return nil }
+        return NSLocalizedString("Baru dipakai", comment: "")
+    }
+
+    // MARK: Aksi
 
     /// Klik kanan → whitelist permanen + keluar dari hasil sekarang.
     private func excludeResult(_ result: ScanResult) {
@@ -265,78 +225,31 @@ struct SmartScanView: View {
         model.exclude(result)
     }
 
-    private func cleanBanner(_ bytes: Int64) -> some View {
-        VStack(alignment: .leading, spacing: DKSpacing.sm) {
-            HStack {
-                Label {
-                    Text(String(
-                        format: NSLocalizedString("%@ berhasil dibersihkan", comment: ""),
-                        ByteFormat.string(from: bytes)
-                    ))
-                } icon: {
-                    Image(systemName: "checkmark.circle.fill")
-                }
-                .foregroundStyle(DKColor.accent)
-                Spacer()
-                Button("Buka Trash") {
-                    let trash = (NSString(string: "~/.Trash").expandingTildeInPath) as String
-                    NSWorkspace.shared.open(URL(fileURLWithPath: trash))
-                }
-                .controlSize(.small)
-            }
-            Text(NSLocalizedString("Semua item masih bisa dipulihkan dari Trash.", comment: ""))
-                .font(.caption)
-                .foregroundColor(.secondary)
-            if !model.failedItems.isEmpty {
-                DisclosureGroup(
-                    isExpanded: $showFailedItems,
-                    content: {
-                        ForEach(Array(model.failedItems.enumerated()), id: \.offset) { _, failed in
-                            HStack(alignment: .top) {
-                                Text(failed.url.lastPathComponent).font(.caption.weight(.medium))
-                                Spacer()
-                                Text(failed.reason).font(.caption2).foregroundColor(.secondary)
-                            }
-                        }
-                    },
-                    label: {
-                        Text(String(
-                            format: NSLocalizedString("%d item gagal dibersihkan — lihat alasannya", comment: ""),
-                            model.failedItems.count
-                        ))
-                        .font(.caption)
-                        .foregroundColor(DKColor.attention)
-                    }
-                )
-            }
+    /// Pertama kali → konfirmasi dulu; setelah disetujui, langsung.
+    private func requestClean() {
+        if !model.requestClean() {
+            showConfirm = true
         }
-        .padding(DKSpacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DKColor.accent.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
     }
-
-    // MARK: Aksi
-
 
     // MARK: Teks kategori
 
     private func categoryName(_ category: ScanCategory) -> String {
         switch category {
-        case .userCaches: return NSLocalizedString("Cache", comment: "")
-        case .userLogs: return NSLocalizedString("Log", comment: "")
-        case .trash: return NSLocalizedString("Trash", comment: "")
+        case .userCaches: return NSLocalizedString("Cache aplikasi", comment: "")
+        case .userLogs: return NSLocalizedString("Catatan lama", comment: "")
+        case .trash: return NSLocalizedString("Isi Trash", comment: "")
         }
     }
 
     private func reason(_ category: ScanCategory) -> String {
         switch category {
         case .userCaches:
-            return NSLocalizedString("Cache aman dibuat ulang oleh aplikasi pemiliknya.", comment: "")
+            return NSLocalizedString("Dibuat ulang otomatis oleh aplikasinya.", comment: "")
         case .userLogs:
-            return NSLocalizedString("Log lama hanya berguna untuk investigasi masalah yang sudah lewat.", comment: "")
+            return NSLocalizedString("Tidak dibutuhkan untuk pemakaian sehari-hari.", comment: "")
         case .trash:
-            return NSLocalizedString("Sudah berada di Trash — menunggu dikosongkan.", comment: "")
+            return NSLocalizedString("Sudah di Trash — kosongkan lewat alat Trash.", comment: "")
         }
     }
 }

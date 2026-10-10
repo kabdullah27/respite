@@ -3,16 +3,17 @@ import RespiteCore
 import DesignKit
 import AppKit
 
-/// Similar Photos (TRD §4.15): foto MIRIP secara visual (beda byte) — hasil
-/// edit/resize/rekaman ulang. aHash 8×8 + jarak Hamming; duplikat persis
-/// otomatis ikut kegrup. Suggested keep = file terbesar (kualitas tertinggi).
+/// Foto Mirip: cari foto yang tampilannya hampir sama (hasil edit, ubah
+/// ukuran, foto beruntun) → tiap kelompok menyisakan satu ("Disimpan") →
+/// sisanya ke Trash. Pola halaman mengikuti ToolPage.
+/// State di `SimilarPhotosModel.shared` — pindah alat tidak menghentikan scan.
 struct SimilarPhotosView: View {
 
     @ObservedObject private var model = SimilarPhotosModel.shared
-    @State private var showDryRunPreview = false
+    @State private var showConfirm = false
     @State private var search = ""
 
-    /// Grup yang lolos filter pencarian (nama file anggotanya).
+    /// Kelompok yang lolos pencarian (nama file / folder anggotanya).
     private var visibleGroups: [SimilarPhotoGroup] {
         let query = search.trimmingCharacters(in: .whitespaces)
         guard !query.isEmpty else { return model.groups }
@@ -27,243 +28,197 @@ struct SimilarPhotosView: View {
             .reduce(0) { $0 + $1.sizeBytes }
     }
 
+    /// Perkiraan hemat kalau tiap kelompok hanya menyisakan yang "Disimpan".
+    private var reclaimableBytes: Int64 {
+        model.groups.reduce(0) { total, group in
+            let keepID = (group.files.first(where: \.isSuggestedKeep) ?? group.files.first)?.id
+            return total + group.files.filter { $0.id != keepID }.reduce(0) { $0 + $1.sizeBytes }
+        }
+    }
+
+    private var extraPhotos: Int {
+        model.groups.reduce(0) { $0 + max(0, $1.files.count - 1) }
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: DKSpacing.lg) {
-                controls
-
-                if case .cleaned(let bytes) = model.phase {
-                    HStack {
-                        Label {
-                            Text(String(
-                                format: NSLocalizedString("%@ berhasil dibersihkan", comment: ""),
-                                ByteFormat.string(from: bytes)
-                            ))
-                        } icon: {
-                            Image(systemName: "checkmark.circle.fill")
-                        }
-                        .foregroundStyle(DKColor.accent)
-                        Spacer()
-                        Button("Buka Trash") {
-                            NSWorkspace.shared.open(URL(fileURLWithPath: NSString(string: "~/.Trash").expandingTildeInPath))
-                        }
-                        .controlSize(.small)
-                    }
-                    .padding(DKSpacing.md)
-                    .background(DKColor.accent.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
-                }
-
-                if !model.groups.isEmpty {
-                    searchField
-                }
-
-                ForEach(visibleGroups) { group in
-                    groupCard(group)
-                }
-
-                Text(NSLocalizedString("Perbandingan visual dengan sidik jari ringan (aHash 8×8, tanpa model ML): foto dengan komposisi serupa dikelompokkan — hasil edit, resize, atau rekaman ulang. Kecocokan bukan kepastian: periksa thumbnail sebelum menghapus.", comment: ""))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: DKSpacing.lg) {
+            switch model.phase {
+            case .idle:
+                startCard
+            case .scanning:
+                ToolProgressCard(
+                    detail: String(
+                        format: NSLocalizedString("%d foto diperiksa · %d kelompok ditemukan", comment: ""),
+                        model.scannedCount, model.groups.count
+                    ),
+                    onStop: { model.cancelScan() }
+                )
+            case .results:
+                results
+            case .cleaned(let bytes):
+                ToolDoneCard(
+                    title: String(
+                        format: NSLocalizedString("%@ dipindahkan ke Trash", comment: ""),
+                        ByteFormat.string(from: bytes)
+                    ),
+                    onRescan: { model.startScan() }
+                )
+                if !model.groups.isEmpty { results }
             }
-            .padding(DKSpacing.xl)
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+            details
         }
         .alert(
-            NSLocalizedString("Pratinjau sebelum membersihkan", comment: ""),
-            isPresented: $showDryRunPreview
+            ToolConfirm.title(count: model.selected.count, bytes: selectedBytes),
+            isPresented: $showConfirm
         ) {
             Button(NSLocalizedString("Batal", comment: ""), role: .cancel) {}
-            Button(NSLocalizedString("Lanjutkan", comment: "")) {
+            Button(NSLocalizedString("Pindahkan", comment: "")) {
                 UserDefaults.standard.set(true, forKey: SimilarPhotosModel.dryRunKey)
                 model.performClean()
             }
         } message: {
-            Text(String(
-                format: NSLocalizedString(
-                    "Dry-run: %d foto (%@) akan dipindah ke Trash dan bisa dikembalikan dari sana.",
-                    comment: ""
-                ),
-                model.selected.count,
-                ByteFormat.string(from: selectedBytes)
-            ))
+            Text(ToolConfirm.message)
         }
     }
 
-    /// Gate dry-run: pertama kali → pratinjau dulu; setelah itu langsung.
-    private func handleCleanRequest() {
-        if !model.requestClean() {
-            showDryRunPreview = true
-        }
-    }
+    // MARK: 1. Mulai
 
-    // MARK: Kontrol
-
-    private var searchField: some View {
-        HStack(spacing: DKSpacing.xs) {
-            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-            TextField(
-                NSLocalizedString("Cari nama atau folder…", comment: ""),
-                text: $search
-            )
-            .textFieldStyle(.roundedBorder)
-            if !search.isEmpty {
-                Button {
-                    search = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(NSLocalizedString("Bersihkan pencarian", comment: ""))
-            }
-        }
-        .frame(maxWidth: 260, alignment: .trailing)
-        .frame(maxWidth: .infinity, alignment: .trailing)
-    }
-
-    @ViewBuilder
-    private var controls: some View {
-        switch model.phase {
-        case .idle:
-            HStack(spacing: DKSpacing.md) {
+    private var startCard: some View {
+        ToolStartCard(
+            headline: NSLocalizedString("Cari foto yang hampir sama", comment: ""),
+            points: [
+                NSLocalizedString("Menemukan foto beruntun, hasil edit, atau foto yang diubah ukurannya.", comment: ""),
+                NSLocalizedString("Satu foto dari setiap kelompok selalu disimpan.", comment: ""),
+                NSLocalizedString("Semua dipindah ke Trash, jadi masih bisa dikembalikan.", comment: ""),
+            ],
+            buttonSymbol: "photo.on.rectangle",
+            isDisabled: model.root == nil,
+            action: { model.startScan() }
+        ) {
+            VStack(alignment: .leading, spacing: DKSpacing.sm) {
                 Button {
                     pickFolder()
                 } label: {
                     Label(
                         model.root.map { $0.lastPathComponent } ?? NSLocalizedString("Pilih folder foto…", comment: ""),
-                        systemImage: "folder.badge.plus"
+                        systemImage: "folder"
                     )
                 }
-                Spacer()
-                Button {
-                    model.startScan()
-                } label: {
-                    Label("Mulai Pindai", systemImage: "photo.on.rectangle")
+                if model.root == nil {
+                    Text(NSLocalizedString("Pilih folder berisi foto dulu, misalnya Pictures atau Downloads.", comment: ""))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
-                .controlSize(.large)
-                .buttonStyle(.borderedProminent)
-                .disabled(model.root == nil)
-            }
-
-        case .scanning:
-            HStack(spacing: DKSpacing.md) {
-                ProgressView()
-                Text(String(
-                    format: NSLocalizedString("%d foto dipindai · %d grup", comment: ""),
-                    model.scannedCount, model.groups.count
-                ))
-                .foregroundColor(.secondary)
-                Spacer()
-                Button("Batalkan") { model.cancelScan() }
-            }
-
-        case .results, .cleaned:
-            HStack(spacing: DKSpacing.md) {
-                Button {
-                    model.startScan()
-                } label: {
-                    Label("Pindai Ulang", systemImage: "arrow.clockwise")
-                }
-                Text(String(
-                    format: NSLocalizedString("%d grup mirip", comment: ""),
-                    model.groups.count
-                ))
-                .font(.dkData(12))
-                .foregroundStyle(.secondary)
-                Spacer()
-                Text(String(
-                    format: NSLocalizedString("%@ terpilih", comment: ""),
-                    ByteFormat.string(from: selectedBytes)
-                ))
-                .font(.dkData(13))
-                .foregroundStyle(.secondary)
-                Button("Bersihkan yang dipilih") { handleCleanRequest() }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(model.selected.isEmpty)
             }
         }
     }
 
-    // MARK: Kartu grup (dengan thumbnail)
+    // MARK: 3. Hasil
 
-    private func groupCard(_ group: SimilarPhotoGroup) -> some View {
-        VStack(alignment: .leading, spacing: DKSpacing.md) {
-            Text(String(
-                format: NSLocalizedString("%d foto mirip", comment: ""),
-                group.files.count
-            ))
-            .font(.title3.weight(.semibold))
-
-            HStack(alignment: .top, spacing: DKSpacing.md) {
-                ForEach(group.files) { file in
-                    photoTile(file)
-                }
-            }
-            .padding(DKSpacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(DKColor.surfaceSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
-        }
-    }
-
-    private func photoTile(_ file: DuplicateFile) -> some View {
-        VStack(spacing: DKSpacing.xs) {
-            ZStack(alignment: .topTrailing) {
-                Group {
-                    if let thumb = PhotoThumbnail.image(for: file.url) {
-                        Image(nsImage: thumb)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } else {
-                        Rectangle()
-                            .fill(Color.primary.opacity(0.05))
-                            .overlay {
-                                Image(systemName: "photo")
-                                    .foregroundStyle(.tertiary)
-                            }
+    @ViewBuilder
+    private var results: some View {
+        if model.groups.isEmpty {
+            ToolEmptyResult(
+                title: NSLocalizedString("Tidak ada foto mirip", comment: ""),
+                message: String(
+                    format: NSLocalizedString("Semua foto di folder %@ berbeda satu sama lain.", comment: ""),
+                    model.root?.lastPathComponent ?? ""
+                ),
+                onRescan: { model.startScan() }
+            )
+        } else {
+            ToolResultHeader(
+                title: String(
+                    format: NSLocalizedString("%d foto mirip · %@", comment: ""),
+                    extraPhotos,
+                    ByteFormat.string(from: reclaimableBytes)
+                ),
+                subtitle: NSLocalizedString("Mirip belum tentu sama. Lihat dulu fotonya — klik dua kali untuk memperbesar.", comment: ""),
+                onRescan: { model.startScan() }
+            ) {
+                HStack(spacing: DKSpacing.md) {
+                    TextField(NSLocalizedString("Cari nama atau folder…", comment: ""), text: $search)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: 240)
+                    Button {
+                        pickFolder(thenScan: true)
+                    } label: {
+                        Label(NSLocalizedString("Ganti folder…", comment: ""), systemImage: "folder")
                     }
+                    .controlSize(.small)
+                    Spacer()
                 }
-                .frame(width: 72, height: 72)
-                .clipShape(RoundedRectangle(cornerRadius: DKRadius.control))
+            }
 
-                Image(systemName: model.selected.contains(file.id) ? "checkmark.circle.fill" : "circle")
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(.white, model.selected.contains(file.id) ? DKColor.accent : Color.secondary.opacity(0.6))
-                    .padding(DKSpacing.xs)
-                    .onTapGesture {
-                        if model.selected.contains(file.id) {
-                            model.selected.remove(file.id)
-                        } else {
-                            model.selected.insert(file.id)
+            List {
+                ForEach(visibleGroups) { group in
+                    Section {
+                        ForEach(group.files) { file in
+                            photoRow(file)
                         }
+                    } header: {
+                        Text(String(
+                            format: NSLocalizedString("%d foto mirip", comment: ""),
+                            group.files.count
+                        ))
                     }
-            }
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(ByteFormat.string(from: file.sizeBytes))
-                    .font(.dkData(10))
-                    .foregroundColor(.primary)
-                Text(file.url.lastPathComponent)
-                    .font(.system(size: 9))
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                    .frame(width: 72, alignment: .leading)
-                if file.isSuggestedKeep {
-                    Text(NSLocalizedString("Simpan", comment: ""))
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundColor(DKColor.accent)
                 }
             }
+            .listStyle(.inset)
+            .frame(height: 420)
+
+            ToolActionBar(
+                selectedCount: model.selected.count,
+                selectedBytes: selectedBytes,
+                action: requestClean
+            )
         }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if model.selected.contains(file.id) {
-                model.selected.remove(file.id)
-            } else {
-                model.selected.insert(file.id)
+    }
+
+    /// Baris gaya ToolResultRow + thumbnail supaya bisa dicek sekilas.
+    private func photoRow(_ file: DuplicateFile) -> some View {
+        let isOn = model.selected.contains(file.id)
+        return HStack(spacing: DKSpacing.md) {
+            Toggle("", isOn: Binding(
+                get: { model.selected.contains(file.id) },
+                set: { isChecked in
+                    if isChecked { model.selected.insert(file.id) } else { model.selected.remove(file.id) }
+                }
+            ))
+            .toggleStyle(.checkbox)
+            .labelsHidden()
+            .accessibilityLabel(file.url.lastPathComponent)
+
+            thumbnail(file)
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: DKSpacing.sm) {
+                    Text(file.url.lastPathComponent)
+                        .font(.callout.weight(.medium))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    if let badge = badgeText(file, isOn: isOn) {
+                        StatusPill(badge, color: file.isSuggestedKeep ? Color.respite : DKColor.attention)
+                    }
+                }
+                Text(String(
+                    format: NSLocalizedString("%@ · terakhir diubah %@", comment: ""),
+                    file.url.deletingLastPathComponent().lastPathComponent,
+                    FriendlyDate.string(file.lastModified)
+                ))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
             }
+            Spacer(minLength: DKSpacing.sm)
+            Text(ByteFormat.string(from: file.sizeBytes))
+                .font(.dkData(12))
+                .foregroundColor(.secondary)
         }
+        .padding(.vertical, 2)
+        .contentShape(Rectangle())
         .onTapGesture(count: 2) {
             QuickLookCoordinator.shared.show(file.url)
         }
@@ -271,28 +226,77 @@ struct SimilarPhotosView: View {
             Button {
                 QuickLookCoordinator.shared.show(file.url)
             } label: {
-                Label(NSLocalizedString("Pratinjau", comment: ""), systemImage: "eye")
+                Label(NSLocalizedString("Lihat isi", comment: ""), systemImage: "eye")
             }
             Button {
                 NSWorkspace.shared.activateFileViewerSelecting([file.url])
             } label: {
-                Label(NSLocalizedString("Tampilkan di Finder", comment: ""), systemImage: "magnifyingglass")
+                Label(NSLocalizedString("Tampilkan di Finder", comment: ""), systemImage: "folder")
             }
+        }
+    }
+
+    private func thumbnail(_ file: DuplicateFile) -> some View {
+        Group {
+            if let thumb = PhotoThumbnail.image(for: file.url) {
+                Image(nsImage: thumb)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                Rectangle()
+                    .fill(Color.primary.opacity(0.05))
+                    .overlay {
+                        Image(systemName: "photo")
+                            .foregroundStyle(.tertiary)
+                    }
+            }
+        }
+        .frame(width: 48, height: 48)
+        .clipShape(RoundedRectangle(cornerRadius: DKRadius.control))
+    }
+
+    private func badgeText(_ file: DuplicateFile, isOn: Bool) -> String? {
+        if file.isSuggestedKeep {
+            return isOn
+                ? NSLocalizedString("Disarankan disimpan", comment: "")
+                : NSLocalizedString("Disimpan", comment: "")
+        }
+        if !file.isSelectedByDefault {
+            return NSLocalizedString("Baru dipakai", comment: "")
+        }
+        return nil
+    }
+
+    private var details: some View {
+        ToolDetails {
+            Text(NSLocalizedString("Foto dibandingkan dari tampilannya, bukan dari namanya. Foto yang sama persis ikut terdeteksi.", comment: ""))
+            Text(NSLocalizedString("Foto yang ditandai \"Disimpan\" biasanya versi dengan kualitas terbaik. Kalau semua dicentang, satu tetap disisakan.", comment: ""))
+            Text(String(
+                format: NSLocalizedString("Foto yang diubah %d hari terakhir tidak dicentang otomatis.", comment: ""),
+                RecencyGuard.defaultDays
+            ))
         }
     }
 
     // MARK: Aksi
 
-    private func pickFolder() {
+    /// Pertama kali → konfirmasi dulu; setelah disetujui, langsung.
+    private func requestClean() {
+        if !model.requestClean() {
+            showConfirm = true
+        }
+    }
+
+    private func pickFolder(thenScan: Bool = false) {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        panel.message = NSLocalizedString("Pilih folder berisi foto yang ingin diperiksa kemiripannya.", comment: "")
+        panel.message = NSLocalizedString("Pilih folder berisi foto yang ingin diperiksa.", comment: "")
         panel.begin { response in
             guard response == .OK, let url = panel.url else { return }
             model.root = url
+            if thenScan { model.startScan() }
         }
     }
-
 }

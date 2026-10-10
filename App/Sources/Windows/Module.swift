@@ -1,12 +1,12 @@
 import Foundation
 import SwiftUI
 
-/// Pengelompokan modul di sidebar — biar nggak jadi list datar.
+/// Pengelompokan modul di sidebar — per TUJUAN user, bukan per teknologi.
 enum ModuleSection: String, CaseIterable, Identifiable {
-    case cleaning = "Pembersihan"
-    case monitoring = "Pemantauan"
-    case misc = "Lainnya"
-    case support = "Dukungan"
+    case cleaning = "Kosongkan Ruang"
+    case monitoring = "Cek Kondisi Mac"
+    case misc = "Alat Lain"
+    case support = "Pengaturan & Dukungan"
 
     var id: String { rawValue }
 
@@ -14,63 +14,70 @@ enum ModuleSection: String, CaseIterable, Identifiable {
     var title: String {
         NSLocalizedString(rawValue, comment: "Section sidebar")
     }
+
+    /// Alat lanjutan dilipat default — pemula nggak perlu melihatnya.
+    var isExpandedByDefault: Bool { self != .misc }
 }
 
-/// Modul v0.1 sesuai PRD §4 (P0). Icon mapping dari Design Spec §4.
+/// Urutan case = urutan di sidebar & Beranda.
 enum Module: String, CaseIterable, Identifiable {
     case home
-    case keyboardLock
-    case powerLid
+    // Kosongkan Ruang
     case smartScan
-    case appUninstaller
     case largeOldFiles
-    case memoryMonitor
-    case diagnostic
-    case thermalDetector
-    case devCacheCleanup
-    case shredder
     case duplicateFinder
     case similarPhotos
-    case batteryHealth
-    case startupItems
+    case appUninstaller
     case browserCleaner
+    // Cek Kondisi Mac
+    case diagnostic
+    case memoryMonitor
+    case thermalDetector
+    case batteryHealth
+    // Alat Lain (lanjutan)
+    case devCacheCleanup
+    case startupItems
+    case shredder
+    case keyboardLock
+    case powerLid
+    case settings
     case donation
 
     var id: String { rawValue }
 
     var section: ModuleSection {
         switch self {
-        case .home:
+        case .home, .diagnostic, .memoryMonitor, .thermalDetector, .batteryHealth:
             return .monitoring
-        case .smartScan, .appUninstaller, .largeOldFiles, .devCacheCleanup, .shredder, .duplicateFinder, .similarPhotos, .browserCleaner:
+        case .smartScan, .largeOldFiles, .duplicateFinder, .similarPhotos, .appUninstaller, .browserCleaner:
             return .cleaning
-        case .memoryMonitor, .diagnostic, .thermalDetector, .batteryHealth, .startupItems:
-            return .monitoring
-        case .keyboardLock, .powerLid:
+        case .devCacheCleanup, .startupItems, .shredder, .keyboardLock, .powerLid:
             return .misc
-        case .donation:
+        case .settings, .donation:
             return .support
         }
     }
 
+    /// Nama alat — kata sehari-hari, tanpa istilah teknis.
     var title: String {
         switch self {
         case .home: return NSLocalizedString("Beranda", comment: "")
-        case .keyboardLock: return NSLocalizedString("Kunci Keyboard", comment: "")
-        case .powerLid: return NSLocalizedString("Nyala saat dibuka", comment: "")
-        case .smartScan: return NSLocalizedString("Pindai Cerdas", comment: "")
-        case .appUninstaller: return NSLocalizedString("Copot Aplikasi", comment: "")
-        case .largeOldFiles: return NSLocalizedString("File Besar & Lama", comment: "")
-        case .memoryMonitor: return NSLocalizedString("Pemantau Memori", comment: "")
-        case .diagnostic: return NSLocalizedString("Diagnosis Performa", comment: "")
-        case .thermalDetector: return NSLocalizedString("Deteksi Suhu", comment: "")
-        case .devCacheCleanup: return NSLocalizedString("Sisa Pengembang", comment: "")
-        case .shredder: return NSLocalizedString("Penghancur File", comment: "")
-        case .duplicateFinder: return NSLocalizedString("Pencari Duplikat", comment: "")
+        case .smartScan: return NSLocalizedString("Bersihkan Cepat", comment: "")
+        case .largeOldFiles: return NSLocalizedString("File Besar", comment: "")
+        case .duplicateFinder: return NSLocalizedString("File Ganda", comment: "")
         case .similarPhotos: return NSLocalizedString("Foto Mirip", comment: "")
-        case .batteryHealth: return NSLocalizedString("Kesehatan Baterai", comment: "")
+        case .appUninstaller: return NSLocalizedString("Hapus Aplikasi", comment: "")
+        case .browserCleaner: return NSLocalizedString("Data Browser", comment: "")
+        case .diagnostic: return NSLocalizedString("Kenapa Mac Lambat?", comment: "")
+        case .memoryMonitor: return NSLocalizedString("Aplikasi Berat", comment: "")
+        case .thermalDetector: return NSLocalizedString("Suhu Mac", comment: "")
+        case .batteryHealth: return NSLocalizedString("Baterai", comment: "")
+        case .devCacheCleanup: return NSLocalizedString("Cache Developer", comment: "")
         case .startupItems: return NSLocalizedString("Aplikasi Saat Login", comment: "")
-        case .browserCleaner: return NSLocalizedString("Pembersih Peramban", comment: "")
+        case .shredder: return NSLocalizedString("Hapus Permanen", comment: "")
+        case .keyboardLock: return NSLocalizedString("Kunci Keyboard", comment: "")
+        case .powerLid: return NSLocalizedString("Nyala Saat Dibuka", comment: "")
+        case .settings: return NSLocalizedString("Pengaturan", comment: "")
         case .donation: return NSLocalizedString("Dukung Respite", comment: "")
         }
     }
@@ -80,59 +87,63 @@ enum Module: String, CaseIterable, Identifiable {
         case .home: return "house"
         case .keyboardLock: return "keyboard"
         case .powerLid: return "laptopcomputer"
-        case .smartScan: return "tray.full"
+        case .smartScan: return "sparkles"
         case .appUninstaller: return "trash"
-        case .largeOldFiles: return "doc.badge.gearshape"
-        case .memoryMonitor: return "memorychip"
-        case .diagnostic: return "waveform.path.ecg"
+        case .largeOldFiles: return "doc.zipper"
+        case .memoryMonitor: return "speedometer"
+        case .diagnostic: return "questionmark.circle"
         case .thermalDetector: return "thermometer.medium"
         case .devCacheCleanup: return "hammer"
-        case .shredder: return "trash.slash"
+        case .shredder: return "flame"
         case .duplicateFinder: return "square.on.square"
         case .similarPhotos: return "photo.on.rectangle"
         case .batteryHealth: return "battery.100"
         case .startupItems: return "person.crop.circle.badge.clock"
         case .browserCleaner: return "globe"
+        case .settings: return "gearshape"
         case .donation: return "heart"
         }
     }
 
+    /// Satu kalimat di bawah judul halaman: alat ini buat apa.
     var summary: String {
         switch self {
         case .home:
-            return NSLocalizedString("Tinjauan kondisi Mac dan pintasan ke semua alat.", comment: "")
-        case .keyboardLock:
-            return NSLocalizedString("Tahan semua ketukan keyboard selama layar kunci aktif.", comment: "")
-        case .powerLid:
-            return NSLocalizedString("Atur apakah Mac menyala sendiri saat lid dibuka.", comment: "")
+            return NSLocalizedString("Kondisi Mac kamu dan cara cepat membersihkannya.", comment: "")
         case .smartScan:
-            return NSLocalizedString("Pindai cache, log, dan Trash — hasilnya dikelompokkan dan dijelaskan kenapa aman dihapus.", comment: "")
-        case .appUninstaller:
-            return NSLocalizedString("Hapus aplikasi beserta sisa datanya di Application Support, Caches, Preferences, dan LaunchAgents.", comment: "")
+            return NSLocalizedString("Hapus file sementara (cache dan log) yang aman dibuang. Aplikasi akan membuatnya lagi saat perlu.", comment: "")
         case .largeOldFiles:
-            return NSLocalizedString("Temukan file besar atau lama yang jarang dipakai — urutkan sesuai ukuran, tanggal, atau tipe.", comment: "")
-        case .memoryMonitor:
-            return NSLocalizedString("Pusat pantauan RAM, CPU, swap, dan uptime — plus Maintenance Sweep dan daftar proses yang bisa dihentikan.", comment: "")
-        case .diagnostic:
-            return NSLocalizedString("Analisis baca-saja untuk mencari akar masalah Mac lambat sekarang — dirangkum singkat plus Health Score 0–100.", comment: "")
-        case .thermalDetector:
-            return NSLocalizedString("Cek apakah kelambanan berasal dari panas berlebih (throttling) — bukan dari file sampah.", comment: "")
-        case .devCacheCleanup:
-            return NSLocalizedString("Bersihkan cache developer: Xcode DerivedData, simulator, CocoaPods/SPM, Docker, Homebrew, node_modules, sampai Cargo.", comment: "")
-        case .shredder:
-            return NSLocalizedString("Hapus permanen untuk file yang benar-benar sensitif — lewat konfirmasi berlapis. Semua modul lain tetap bisa dibatalkan lewat Trash.", comment: "")
+            return NSLocalizedString("Cari file besar yang sudah lama tidak kamu buka.", comment: "")
         case .duplicateFinder:
-            return NSLocalizedString("Temukan file duplikat persis (byte identik) — foto maupun non-foto — dengan perbandingan tiga fase yang cepat. Salinan terlama disarankan disimpan.", comment: "")
+            return NSLocalizedString("Cari file yang sama persis tapi tersimpan lebih dari sekali.", comment: "")
         case .similarPhotos:
-            return NSLocalizedString("Temukan foto yang mirip secara visual — hasil edit, resize, atau rekaman ulang — dengan sidik jari ringan tanpa model ML.", comment: "")
-        case .batteryHealth:
-            return NSLocalizedString("Cycle count dan kapasitas baterai langsung dari IOKit — sepenuhnya baca-saja, disembunyikan otomatis di Mac desktop.", comment: "")
-        case .startupItems:
-            return NSLocalizedString("Daftar LaunchAgent/LaunchDaemon dengan asal-usul aplikasi pemiliknya — bukan sekadar nama file.", comment: "")
+            return NSLocalizedString("Cari foto yang hampir sama, misalnya hasil jepret beruntun atau hasil edit.", comment: "")
+        case .appUninstaller:
+            return NSLocalizedString("Hapus aplikasi sampai bersih, termasuk file sisa yang biasanya tertinggal.", comment: "")
         case .browserCleaner:
-            return NSLocalizedString("Bersihkan cache browser (Chrome, Arc, Brave, Edge, Firefox, Safari) — dibuat ulang otomatis, tanpa mengeluarkan kamu dari akun.", comment: "")
+            return NSLocalizedString("Hapus cache, riwayat, atau cookie browser kamu.", comment: "")
+        case .diagnostic:
+            return NSLocalizedString("Lihat apa yang membuat Mac lambat sekarang, dijelaskan dengan bahasa sederhana.", comment: "")
+        case .memoryMonitor:
+            return NSLocalizedString("Lihat aplikasi yang paling banyak memakai memori dan tenaga prosesor, lalu tutup bila perlu.", comment: "")
+        case .thermalDetector:
+            return NSLocalizedString("Cek apakah Mac terlalu panas sehingga sengaja diperlambat.", comment: "")
+        case .batteryHealth:
+            return NSLocalizedString("Cek kondisi baterai: sisa kapasitas dan berapa kali sudah diisi ulang.", comment: "")
+        case .devCacheCleanup:
+            return NSLocalizedString("Untuk programmer: hapus file build dan unduhan dari Xcode, Homebrew, node_modules, dan sejenisnya.", comment: "")
+        case .startupItems:
+            return NSLocalizedString("Atur aplikasi yang otomatis berjalan saat kamu masuk ke Mac.", comment: "")
+        case .shredder:
+            return NSLocalizedString("Hapus file rahasia tanpa lewat Trash. Hati-hati: tidak bisa dibatalkan.", comment: "")
+        case .keyboardLock:
+            return NSLocalizedString("Matikan keyboard sebentar supaya aman saat dilap atau dibersihkan.", comment: "")
+        case .powerLid:
+            return NSLocalizedString("Atur apakah Mac langsung menyala saat layarnya dibuka.", comment: "")
+        case .settings:
+            return NSLocalizedString("Atur bahasa, pengecualian, riwayat, dan pembaruan Respite.", comment: "")
         case .donation:
-            return NSLocalizedString("Respite gratis penuh tanpa fitur terkunci. Donasi menjaga pengembangannya berlanjut.", comment: "")
+            return NSLocalizedString("Respite gratis tanpa fitur terkunci. Donasi membantu pengembangannya.", comment: "")
         }
     }
 
@@ -156,29 +167,31 @@ enum Module: String, CaseIterable, Identifiable {
         case .batteryHealth: return .green
         case .startupItems: return .teal
         case .browserCleaner: return .blue
+        case .settings: return .gray
         case .donation: return .pink
         }
     }
 
-    /// Deskripsi satu-kalimat untuk kartu alat di Beranda — lebih pendek dari summary.
+    /// Versi pendek untuk daftar di Beranda.
     var shortDescription: String {
         switch self {
         case .home: return ""
-        case .keyboardLock: return NSLocalizedString("Kunci keyboard saat membersihkan layar.", comment: "")
-        case .powerLid: return NSLocalizedString("Atur Mac menyala sendiri saat lid dibuka.", comment: "")
-        case .smartScan: return NSLocalizedString("Pindai cache, log, dan Trash sekaligus.", comment: "")
-        case .appUninstaller: return NSLocalizedString("Hapus aplikasi beserta sisa datanya.", comment: "")
-        case .largeOldFiles: return NSLocalizedString("Temukan file besar atau lama yang jarang dipakai.", comment: "")
-        case .memoryMonitor: return NSLocalizedString("Pantau RAM, CPU, swap, dan proses berat.", comment: "")
-        case .diagnostic: return NSLocalizedString("Cari akar masalah Mac lambat sekarang.", comment: "")
-        case .thermalDetector: return NSLocalizedString("Cek apakah panas membuat Mac melambat.", comment: "")
-        case .devCacheCleanup: return NSLocalizedString("Bersihkan cache Xcode, Homebrew, Docker, dll.", comment: "")
-        case .shredder: return NSLocalizedString("Hapus permanen untuk file sensitif.", comment: "")
-        case .duplicateFinder: return NSLocalizedString("Temukan file duplikat yang identik byte.", comment: "")
-        case .similarPhotos: return NSLocalizedString("Temukan foto mirip dari hasil edit.", comment: "")
-        case .batteryHealth: return NSLocalizedString("Cycle count dan kesehatan baterai.", comment: "")
-        case .startupItems: return NSLocalizedString("Kelola aplikasi yang jalan saat login.", comment: "")
-        case .browserCleaner: return NSLocalizedString("Bersihkan cache semua browser.", comment: "")
+        case .smartScan: return NSLocalizedString("Buang file sementara yang aman dihapus.", comment: "")
+        case .largeOldFiles: return NSLocalizedString("Temukan file besar yang jarang dibuka.", comment: "")
+        case .duplicateFinder: return NSLocalizedString("Temukan file yang tersimpan dua kali.", comment: "")
+        case .similarPhotos: return NSLocalizedString("Temukan foto yang hampir sama.", comment: "")
+        case .appUninstaller: return NSLocalizedString("Hapus aplikasi sampai ke sisa-sisanya.", comment: "")
+        case .browserCleaner: return NSLocalizedString("Bersihkan cache dan riwayat browser.", comment: "")
+        case .diagnostic: return NSLocalizedString("Cari tahu penyebab Mac lambat.", comment: "")
+        case .memoryMonitor: return NSLocalizedString("Lihat dan tutup aplikasi yang berat.", comment: "")
+        case .thermalDetector: return NSLocalizedString("Cek apakah Mac kepanasan.", comment: "")
+        case .batteryHealth: return NSLocalizedString("Cek kesehatan baterai.", comment: "")
+        case .devCacheCleanup: return NSLocalizedString("Bersihkan file build untuk programmer.", comment: "")
+        case .startupItems: return NSLocalizedString("Atur aplikasi yang jalan saat login.", comment: "")
+        case .shredder: return NSLocalizedString("Hapus file rahasia selamanya.", comment: "")
+        case .keyboardLock: return NSLocalizedString("Kunci keyboard saat dibersihkan.", comment: "")
+        case .powerLid: return NSLocalizedString("Atur Mac menyala saat dibuka.", comment: "")
+        case .settings: return NSLocalizedString("Atur Respite sesuai keinginanmu.", comment: "")
         case .donation: return NSLocalizedString("Dukung pengembangan Respite.", comment: "")
         }
     }

@@ -13,71 +13,66 @@ struct PowerLidView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DKSpacing.lg) {
-            HStack(spacing: DKSpacing.md) {
-                Image(systemName: "laptopcomputer")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(.indigo)
-                    .frame(width: 44, height: 44)
-                    .background(Color.indigo.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(NSLocalizedString("Nyala saat dibuka", comment: ""))
-                        .font(.title3.weight(.semibold))
-                    Text(NSLocalizedString("Setting firmware (NVRAM) — berlaku untuk semua akun", comment: ""))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+            ToolCard {
+                Text(NSLocalizedString("Biasanya Mac langsung menyala begitu layarnya dibuka atau charger dicolok — kadang malah menyala sendiri di dalam tas. Kamu bisa mengaturnya supaya Mac hanya menyala setelah tombol power ditekan.", comment: ""))
+                    .font(.callout)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Label(statusLabel, systemImage: statusSymbol)
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(bootState == .unknown ? DKColor.attention : Color.indigo)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // Satu tombol kontekstual — labelnya mengikuti aksi yang tersedia.
+                Button {
+                    change(to: bootState == .disabled)
+                } label: {
+                    Label(
+                        bootState == .disabled
+                            ? NSLocalizedString("Nyalakan sendiri saat dibuka", comment: "")
+                            : NSLocalizedString("Hanya nyala saat tombol power ditekan", comment: ""),
+                        systemImage: bootState == .disabled ? "power" : "power.dotted"
+                    )
+                    .frame(minWidth: 180)
                 }
-                Spacer()
-                Text(statusLabel)
-                    .font(.dkData(12))
-                    .foregroundColor(.secondary)
-            }
+                .controlSize(.large)
+                .buttonStyle(.borderedProminent)
+                .tint(Color.indigo)
+                .disabled(isChanging || bootState == .unknown)
 
-            Text(NSLocalizedString("Secara pabrik, Mac menyala sendiri begitu lid dibuka (atau charger dicolok) — kadang nyala sendiri di dalam tas. Matikan ini kalau kamu ingin Mac hanya menyala setelah tombol power ditekan.", comment: ""))
-                .font(.callout)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            // Satu tombol kontekstual — labelnya mengikuti aksi yang tersedia.
-            Button {
-                change(to: bootState == .disabled)
-            } label: {
-                Label(
-                    bootState == .disabled
-                        ? NSLocalizedString("Aktifkan Nyala-otomatis", comment: "")
-                        : NSLocalizedString("Nonaktifkan — butuh tekan power", comment: ""),
-                    systemImage: bootState == .disabled ? "power" : "power.dotted"
-                )
-            }
-            .controlSize(.regular)
-            .buttonStyle(.bordered)
-            .disabled(isChanging || bootState == .unknown)
-
-            if isChanging {
-                HStack(spacing: DKSpacing.sm) {
-                    ProgressView().controlSize(.small)
-                    Text(NSLocalizedString("Menunggu dialog admin…", comment: ""))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-
-            if let errorText {
-                Label(errorText, systemImage: "exclamationmark.triangle")
+                Text(NSLocalizedString("macOS akan meminta password Mac kamu untuk menyimpan perubahan ini.", comment: ""))
                     .font(.caption)
-                    .foregroundColor(DKColor.attention)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if isChanging {
+                    HStack(spacing: DKSpacing.sm) {
+                        ProgressView().controlSize(.small)
+                        Text(NSLocalizedString("Menunggu password kamu…", comment: ""))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                if let errorText {
+                    Label(errorText, systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundColor(DKColor.attention)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if let successText {
+                    Label(successText, systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundColor(Color.respite)
+                }
+            }
+
+            ToolDetails {
+                Text(NSLocalizedString("Setting firmware (NVRAM) — berlaku untuk semua akun", comment: ""))
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(NSLocalizedString("Setiap perubahan memunculkan dialog admin macOS — password tidak pernah disimpan aplikasi. Menguji: matikan Mac penuh → tutup lid → buka lid — kalau tidak menyala, setting berhasil.", comment: ""))
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if let successText {
-                Label(successText, systemImage: "checkmark.circle.fill")
-                    .font(.caption)
-                    .foregroundColor(Color.respite)
-            }
-
-            Text(NSLocalizedString("Setiap perubahan memunculkan dialog admin macOS — password tidak pernah disimpan aplikasi. Menguji: matikan Mac penuh → tutup lid → buka lid — kalau tidak menyala, setting berhasil.", comment: ""))
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
         .task { bootState = AutoBootSetting.read() }
     }
@@ -93,11 +88,19 @@ struct PowerLidView: View {
     private var statusLabel: String {
         switch bootState {
         case .enabled, .enabledDefault:
-            return NSLocalizedString("Aktif (default pabrik)", comment: "")
+            return NSLocalizedString("Saat ini: Mac menyala sendiri saat dibuka", comment: "")
         case .disabled:
-            return NSLocalizedString("Nonaktif — harus tekan power", comment: "")
+            return NSLocalizedString("Saat ini: Mac hanya menyala setelah tombol power ditekan", comment: "")
         case .unknown:
-            return NSLocalizedString("tidak dapat dibaca", comment: "")
+            return NSLocalizedString("Saat ini: pengaturan ini tidak bisa dibaca di Mac kamu", comment: "")
+        }
+    }
+
+    private var statusSymbol: String {
+        switch bootState {
+        case .enabled, .enabledDefault: return "power"
+        case .disabled: return "power.dotted"
+        case .unknown: return "questionmark.circle"
         }
     }
 
@@ -111,7 +114,7 @@ struct PowerLidView: View {
                 let fresh = AutoBootSetting.read()
                 await MainActor.run {
                     bootState = fresh
-                    successText = NSLocalizedString("Diterapkan — status di atas dibaca ulang dari firmware.", comment: "")
+                    successText = NSLocalizedString("Tersimpan. Status di atas sudah diperbarui.", comment: "")
                     isChanging = false
                 }
             } catch {

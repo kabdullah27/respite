@@ -2,10 +2,10 @@ import SwiftUI
 import RespiteCore
 import DesignKit
 
-/// Uptime Guardian versi in-app: status uptime/swap/memori, verdict apakah
-/// Maintenance Sweep disarankan, dan sweep tanpa privilege (restart Finder &
-/// Dock — kembali sendiri dalam hitungan detik). Langkah sistem-level
-/// menyusul bareng privileged helper.
+/// "Aplikasi Berat": status memori dalam bahasa sehari-hari, daftar aplikasi
+/// paling berat (bisa ditutup), lalu perawatan ringan (uptime + "Segarkan
+/// tanpa restart" = restart Finder & Dock, kembali sendiri dalam hitungan
+/// detik). Istilah teknis (swap, footprint) hanya di "Lihat detail".
 struct MemoryMonitorView: View {
     @ObservedObject var model: SystemStatsModel
     @State private var showConfirm = false
@@ -27,43 +27,14 @@ struct MemoryMonitorView: View {
     }
 
     var body: some View {
-        ScrollView {
         VStack(alignment: .leading, spacing: DKSpacing.lg) {
-            metricsSection
             statusCard
-            swapExplanationCard
-            verdictCard
-
-            Button {
-                showConfirm = true
-            } label: {
-                Label("Jalankan Maintenance Sweep", systemImage: "sparkles")
-            }
-            .controlSize(.large)
-            .buttonStyle(.borderedProminent)
-            .disabled(isSweeping)
-
-            if isSweeping {
-                HStack(spacing: DKSpacing.sm) {
-                    ProgressView().controlSize(.small)
-                    Text("Sedang menjalankan…").font(.callout).foregroundColor(.secondary)
-                }
-            }
-
-            if let sweepMessage {
-                Label(sweepMessage, systemImage: sweepFailed ? "exclamationmark.triangle" : "checkmark.circle.fill")
-                    .font(.callout)
-                    .foregroundColor(sweepFailed ? DKColor.attention : DKColor.accent)
-            }
-
-            Text(NSLocalizedString("Versi ini hanya menjalankan langkah tanpa privilege. Langkah sistem-level (purge memori, periodic scripts) akan menyusul bersama privileged helper.", comment: ""))
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
+            TopProcessesSection(model: model)
+            maintenanceSection
+            technicalDetails
         }
         .alert(
-            NSLocalizedString("Konfirmasi Maintenance Sweep", comment: ""),
+            NSLocalizedString("Segarkan Mac tanpa restart?", comment: ""),
             isPresented: $showConfirm
         ) {
             Button(NSLocalizedString("Batal", comment: ""), role: .cancel) {}
@@ -75,209 +46,226 @@ struct MemoryMonitorView: View {
         }
     }
 
-    // MARK: Metrik
+    // MARK: Status memori
 
-    private var metricsSection: some View {
-        VStack(alignment: .leading, spacing: DKSpacing.lg) {
-            Text(NSLocalizedString("Sekarang", comment: "")).font(.title3.weight(.semibold))
-            HStack(spacing: DKSpacing.lg) {
-                MetricCard(
-                    title: NSLocalizedString("Memori terpakai", comment: ""),
-                    value: ByteFormat.string(from: model.snapshot.memory.usedBytes),
-                    unit: String(
-                        format: NSLocalizedString("dari %@", comment: "kartu: dari total X GB"),
-                        ByteFormat.string(from: model.snapshot.memory.totalBytes)
-                    )
-                )
-                MetricCard(
-                    title: NSLocalizedString("Tersedia", comment: ""),
-                    value: ByteFormat.string(from: model.snapshot.memory.availableBytes),
-                    unit: "free + inactive"
-                )
-                MetricCard(
-                    title: NSLocalizedString("Disk tersedia", comment: ""),
-                    value: ByteFormat.string(from: model.snapshot.disk.availableBytes),
-                    unit: String(
-                        format: NSLocalizedString("dari %@", comment: "kartu: dari total X GB"),
-                        ByteFormat.string(from: model.snapshot.disk.totalBytes)
-                    )
-                )
-            }
-            factorRow(
-                label: NSLocalizedString("CPU", comment: ""),
-                fraction: model.cpuUsageFraction ?? 0,
-                value: model.cpuUsageFraction
-                    .map { String(format: NSLocalizedString("%d%% dipakai", comment: ""), Int($0 * 100)) }
-                    ?? NSLocalizedString("mengukur…", comment: "")
-            )
-            factorRow(
-                label: NSLocalizedString("Memori", comment: ""),
-                fraction: model.snapshot.memory.usedFraction,
-                value: String(
-                    format: NSLocalizedString("%d%% dipakai", comment: ""),
-                    Int(model.snapshot.memory.usedFraction * 100)
-                )
-            )
-            factorRow(
-                label: NSLocalizedString("Disk", comment: ""),
-                fraction: 1 - model.snapshot.disk.availableFraction,
-                value: String(
-                    format: NSLocalizedString("%@ tersedia", comment: ""),
-                    ByteFormat.string(from: model.snapshot.disk.availableBytes)
-                )
-            )
-            TopProcessesSection(model: model)
-
-            // PRD G2: hemat RAM itu janji produk — jejaknya ditampilkan terbuka.
-            HStack {
-                Text(NSLocalizedString("Jejak memori Respite sendiri", comment: ""))
-                    .font(.callout)
-                Spacer()
-                Text(ByteFormat.string(from: model.ownFootprintBytes))
-                    .font(.dkData(13))
-            }
-            Text(NSLocalizedString("Angka yang sama dengan kolom Memory di Activity Monitor. Target kami: tetap jauh lebih ringan dari aplikasi yang dibersihkannya.", comment: ""))
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
+    private enum MemoryLevel {
+        case relaxed, filling, almostFull
     }
 
-    private func factorRow(label: String, fraction: Double, value: String, note: String? = nil) -> some View {
-        VStack(spacing: DKSpacing.xs) {
-            HStack {
-                Text(label).font(.callout)
-                Spacer()
-                Text(value).font(.dkData(12))
-                if let note {
-                    Text("· \(note)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
-            UsageBar(fraction: fraction, color: fraction >= 0.85 ? DKColor.attention : DKColor.accent)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(label), \(value)")
+    private var memoryLevel: MemoryLevel {
+        let used = model.snapshot.memory.usedFraction
+        if used >= 0.85 { return .almostFull }
+        if used >= 0.7 { return .filling }
+        return .relaxed
     }
-
-    // MARK: Status
 
     private var statusCard: some View {
-        VStack(alignment: .leading, spacing: DKSpacing.md) {
-            Text(NSLocalizedString("Sekarang", comment: "")).font(.title3.weight(.semibold))
-            VStack(alignment: .leading, spacing: DKSpacing.sm) {
-                ReadoutRow(
-                    value: UptimeFormat.string(from: model.snapshot.uptime),
-                    unit: nil,
-                    label: NSLocalizedString("Uptime", comment: ""),
-                    detail: NSLocalizedString("sejak terakhir restart, termasuk waktu sleep", comment: "")
-                )
-                ReadoutRow(
-                    value: ByteFormat.string(from: model.snapshot.swap?.usedBytes ?? 0),
-                    unit: nil,
-                    label: NSLocalizedString("Swap", comment: ""),
-                    detail: swapDetail
-                )
-                ReadoutRow(
-                    value: "\(Int(model.snapshot.memory.availableFraction * 100))%",
-                    unit: nil,
-                    label: NSLocalizedString("Memori tersedia", comment: ""),
-                    detail: NSLocalizedString("free + inactive dari total RAM", comment: "")
-                )
-            }
-            .padding(DKSpacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(DKColor.surfaceSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
+        let memory = model.snapshot.memory
+        let level = memoryLevel
+        let color: Color
+        let symbol: String
+        let headline: String
+        let advice: String
+        switch level {
+        case .relaxed:
+            color = Color.respite
+            symbol = "checkmark.seal.fill"
+            headline = NSLocalizedString("Memori: cukup lega", comment: "")
+            advice = NSLocalizedString("Masih banyak ruang untuk aplikasi lain. Tidak perlu menutup apa pun.", comment: "")
+        case .filling:
+            color = DKColor.attention
+            symbol = "exclamationmark.triangle.fill"
+            headline = NSLocalizedString("Memori: mulai penuh", comment: "")
+            advice = NSLocalizedString("Masih aman, tapi menutup aplikasi yang tidak dipakai bisa membuat Mac lebih ringan.", comment: "")
+        case .almostFull:
+            color = DKColor.irreversible
+            symbol = "exclamationmark.octagon.fill"
+            headline = NSLocalizedString("Memori: hampir penuh", comment: "")
+            advice = NSLocalizedString("Mac bisa terasa lambat. Tutup aplikasi berat di bawah yang sedang tidak kamu pakai.", comment: "")
         }
-    }
-
-    private var swapDetail: String {
-        guard let swap = model.snapshot.swap else { return "—" }
-        return String(
-            format: NSLocalizedString("dari kapasitas swap %@", comment: ""),
-            ByteFormat.string(from: swap.totalBytes)
-        )
-    }
-
-    // MARK: Penjelasan swap
-
-    /// Jawaban jujur buat "kenapa swap gede & bisa dihapus?" — tanpa tombol
-    /// hapus: itu step high-risk tier yang digate privileged helper (PRD §5.1).
-    private var swapExplanationCard: some View {
-        VStack(alignment: .leading, spacing: DKSpacing.sm) {
-            Label {
-                Text(NSLocalizedString("Kenapa swap bisa besar?", comment: ""))
-                    .font(.title3.weight(.semibold))
-            } icon: {
-                Image(systemName: "questionmark.circle")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(DKColor.accent)
+        return ToolCard {
+            HStack(spacing: DKSpacing.md) {
+                Image(systemName: symbol)
+                    .font(.system(size: 30))
+                    .foregroundStyle(color)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(headline)
+                        .font(.title2.weight(.semibold))
+                    Text(String(
+                        format: NSLocalizedString("%1$@ dari %2$@ terpakai", comment: ""),
+                        ByteFormat.string(from: Int64(memory.usedBytes)),
+                        ByteFormat.string(from: Int64(memory.totalBytes))
+                    ))
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                    .monospacedDigit()
+                }
+                Spacer()
             }
-            VStack(alignment: .leading, spacing: DKSpacing.xs) {
-                Text("• " + NSLocalizedString("Saat RAM mulai sempit, macOS memindahkan halaman memori yang jarang dipakai ke disk — itulah swap.", comment: ""))
-                Text("• " + NSLocalizedString("Swap tidak otomatis turun setelah memorinya lega — ruangnya tetap terpakai sampai halaman benar-benar tidak dibutuhkan lagi.", comment: ""))
-                Text("• " + NSLocalizedString("Cara paling aman mengosongkannya: tutup aplikasi pemakan memori di bawah, atau restart Mac. Penghapusan swapfile manual adalah langkah berisiko yang sengaja tidak disediakan di sini.", comment: ""))
-            }
-            .font(.callout)
-            .foregroundColor(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
+            UsageBar(
+                fraction: memory.usedFraction,
+                color: level == .relaxed ? Color.respite : color
+            )
+            Text(advice)
+                .font(.callout)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(DKSpacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DKColor.surfaceSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
+        .accessibilityElement(children: .combine)
     }
 
-    // MARK: Verdict
+    // MARK: Perawatan (uptime + sweep)
 
-    private var verdictCard: some View {
+    private var maintenanceSection: some View {
         let recommended = verdict.kind == .sweepRecommended
-        return VStack(alignment: .leading, spacing: DKSpacing.sm) {
-            Label {
-                Text(recommended
-                     ? NSLocalizedString("Maintenance Sweep disarankan", comment: "")
-                     : NSLocalizedString("Kondisi belum memerlukan Maintenance Sweep.", comment: ""))
-                    .font(.title3.weight(.medium))
-            } icon: {
-                Image(systemName: recommended ? "exclamationmark.triangle.fill" : "checkmark.circle")
-                    .font(.system(size: 16, weight: .medium))
-            }
-            .foregroundColor(recommended ? DKColor.attention : DKColor.accent)
+        return VStack(alignment: .leading, spacing: DKSpacing.md) {
+            Text(NSLocalizedString("Perawatan ringan", comment: ""))
+                .font(.headline)
 
-            if recommended {
-                VStack(alignment: .leading, spacing: DKSpacing.xs) {
-                    ForEach(verdict.reasons, id: \.rawValue) { reason in
-                        Text("• " + reasonText(reason))
+            ToolCard {
+                HStack(alignment: .top, spacing: DKSpacing.md) {
+                    Image(systemName: "clock")
+                        .font(.system(size: 18))
+                        .foregroundStyle(recommended ? DKColor.attention : Color.respite)
+                        .padding(.top, 2)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(String(
+                            format: NSLocalizedString("Sudah menyala selama %@", comment: ""),
+                            UptimeFormat.string(from: model.snapshot.uptime)
+                        ))
+                        .font(.callout.weight(.semibold))
+                        .monospacedDigit()
+                        Text(NSLocalizedString("Sejak terakhir restart. Mac yang lama tidak direstart kadang terasa makin berat.", comment: ""))
+                            .font(.callout)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                }
+
+                if recommended {
+                    VStack(alignment: .leading, spacing: DKSpacing.xs) {
+                        Label {
+                            Text(NSLocalizedString("Disarankan menyegarkan Mac sekarang", comment: ""))
+                                .font(.callout.weight(.semibold))
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                        }
+                        .foregroundColor(DKColor.attention)
+                        ForEach(verdict.reasons, id: \.rawValue) { reason in
+                            Text("• " + reasonText(reason))
+                                .font(.callout)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+
+                Divider()
+
+                HStack(alignment: .center, spacing: DKSpacing.md) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(NSLocalizedString("Segarkan tanpa restart", comment: ""))
+                            .font(.callout.weight(.semibold))
+                        Text(NSLocalizedString("Finder dan Dock dimulai ulang — hilang sebentar lalu kembali sendiri. Tidak ada data yang hilang.", comment: ""))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                    Button {
+                        showConfirm = true
+                    } label: {
+                        Label(NSLocalizedString("Segarkan", comment: ""), systemImage: "sparkles")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(recommended ? DKColor.attention : Color.respite)
+                    .disabled(isSweeping)
+                }
+
+                if isSweeping {
+                    HStack(spacing: DKSpacing.sm) {
+                        ProgressView().controlSize(.small)
+                        Text(NSLocalizedString("Sedang menjalankan…", comment: ""))
                             .font(.callout)
                             .foregroundColor(.secondary)
                     }
                 }
+
+                if let sweepMessage {
+                    Label(sweepMessage, systemImage: sweepFailed ? "exclamationmark.triangle" : "checkmark.circle.fill")
+                        .font(.callout)
+                        .foregroundColor(sweepFailed ? DKColor.attention : Color.respite)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
-        .padding(DKSpacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background((verdict.kind == .sweepRecommended ? DKColor.attention : DKColor.accent).opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
     }
 
     private func reasonText(_ reason: UptimeVerdict.Reason) -> String {
         switch reason {
         case .longUptime:
             return String(
-                format: NSLocalizedString("Uptime sudah mencapai %d hari", comment: ""),
+                format: NSLocalizedString("Mac sudah menyala lebih dari %d hari tanpa restart", comment: ""),
                 UptimeGuardian.uptimeDaysThreshold()
             )
         case .highSwap:
             return String(
-                format: NSLocalizedString("Pemakaian swap tinggi (%@)", comment: ""),
+                format: NSLocalizedString("Mac mulai meminjam ruang penyimpanan sebagai memori cadangan (%@)", comment: ""),
                 ByteFormat.string(from: model.snapshot.swap?.usedBytes ?? 0)
             )
         case .lowMemory:
             return String(
-                format: NSLocalizedString("Memori tersedia tinggal %d%%", comment: ""),
+                format: NSLocalizedString("Memori yang masih bebas tinggal %d%%", comment: ""),
                 Int(model.snapshot.memory.availableFraction * 100)
             )
+        }
+    }
+
+    // MARK: Detail teknis
+
+    private var technicalDetails: some View {
+        ToolDetails {
+            detailRow(
+                NSLocalizedString("Swap terpakai", comment: ""),
+                value: swapValue
+            )
+            detailRow(
+                NSLocalizedString("Memori tersedia (free + inactive)", comment: ""),
+                value: String(
+                    format: NSLocalizedString("%1$@ (%2$d%%)", comment: ""),
+                    ByteFormat.string(from: model.snapshot.memory.availableBytes),
+                    Int(model.snapshot.memory.availableFraction * 100)
+                )
+            )
+            // PRD G2: hemat RAM itu janji produk — jejaknya ditampilkan terbuka.
+            detailRow(
+                NSLocalizedString("Jejak memori Respite sendiri (footprint)", comment: ""),
+                value: ByteFormat.string(from: model.ownFootprintBytes)
+            )
+            Text(NSLocalizedString("Swap: saat RAM mulai sempit, macOS memindahkan isi memori yang jarang dipakai ke disk. Swap tidak otomatis turun setelah memori lega — cara paling aman mengosongkannya adalah menutup aplikasi berat atau restart Mac. Penghapusan swapfile manual sengaja tidak disediakan karena berisiko.", comment: ""))
+                .fixedSize(horizontal: false, vertical: true)
+            Text(NSLocalizedString("\"Segarkan tanpa restart\" (Maintenance Sweep) versi ini hanya menjalankan langkah tanpa privilege: restart Finder dan Dock. Langkah sistem-level (purge memori, periodic scripts, memori compressed) akan menyusul bersama privileged helper.", comment: ""))
+                .fixedSize(horizontal: false, vertical: true)
+            Text(NSLocalizedString("Jejak memori Respite memakai angka yang sama dengan kolom Memory di Activity Monitor. Target kami: tetap jauh lebih ringan dari aplikasi yang dibersihkannya.", comment: ""))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var swapValue: String {
+        guard let swap = model.snapshot.swap else { return "—" }
+        return String(
+            format: NSLocalizedString("%1$@ dari %2$@", comment: ""),
+            ByteFormat.string(from: swap.usedBytes),
+            ByteFormat.string(from: swap.totalBytes)
+        )
+    }
+
+    private func detailRow(_ label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            Text(value).monospacedDigit()
         }
     }
 
@@ -286,18 +274,19 @@ struct MemoryMonitorView: View {
     private func runSweep() {
         isSweeping = true
         sweepMessage = nil
+        let steps = sweepSteps
         Task {
             let outcome = await Task.detached(priority: .userInitiated) {
-                MaintenanceSweep.restartProcesses(["Finder", "Dock"])
+                MaintenanceSweep.restartProcesses(steps)
             }.value
             isSweeping = false
             if outcome.failed.isEmpty {
                 sweepFailed = false
-                sweepMessage = NSLocalizedString("Maintenance Sweep selesai — Finder & Dock sudah direstart.", comment: "")
+                sweepMessage = NSLocalizedString("Selesai — Finder dan Dock sudah dimulai ulang.", comment: "")
             } else {
                 sweepFailed = true
                 sweepMessage = String(
-                    format: NSLocalizedString("Step gagal: %@", comment: ""),
+                    format: NSLocalizedString("Ada yang gagal: %@", comment: ""),
                     outcome.failed.map(\.name).joined(separator: ", ")
                 )
             }

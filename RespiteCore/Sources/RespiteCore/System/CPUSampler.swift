@@ -14,13 +14,16 @@ public struct CPULoad: Sendable, Equatable {
 }
 
 public enum CPUSampler {
+    /// Sekali saja — tiap mach_host_self() menambah ref send-right.
+    private static let hostPort = mach_host_self()
+
     /// Baca tick counter kernel via `host_processor_info` (API resmi, sama
     /// kayak yang dipakai Activity Monitor). Return nil kalau gagal baca.
     public static func sample() -> CPULoad? {
         var numCPUs: natural_t = 0
         var info: processor_info_array_t?
         var infoCount: mach_msg_type_number_t = 0
-        let result = host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &numCPUs, &info, &infoCount)
+        let result = host_processor_info(hostPort, PROCESSOR_CPU_LOAD_INFO, &numCPUs, &info, &infoCount)
         guard result == KERN_SUCCESS, let ticks = info, numCPUs > 0 else { return nil }
         defer {
             let size = vm_size_t(infoCount) * vm_size_t(MemoryLayout<integer_t>.stride)
@@ -28,12 +31,16 @@ public enum CPUSampler {
         }
         var busy: UInt64 = 0
         var idle: UInt64 = 0
+        // Counter kernel = 32-bit UNSIGNED dalam integer_t (Int32). Setelah
+        // ±248 hari tick idle per core lewat 2^31 → nilai negatif, dan
+        // UInt64(negatif) = trap. Baca sebagai bit pattern.
+        func tick(_ index: Int) -> UInt64 { UInt64(UInt32(bitPattern: ticks[index])) }
         for core in 0..<Int(numCPUs) {
             let base = core * Int(CPU_STATE_MAX)
-            busy += UInt64(ticks[base + Int(CPU_STATE_USER)])
-                  + UInt64(ticks[base + Int(CPU_STATE_SYSTEM)])
-                  + UInt64(ticks[base + Int(CPU_STATE_NICE)])
-            idle += UInt64(ticks[base + Int(CPU_STATE_IDLE)])
+            busy += tick(base + Int(CPU_STATE_USER))
+                  + tick(base + Int(CPU_STATE_SYSTEM))
+                  + tick(base + Int(CPU_STATE_NICE))
+            idle += tick(base + Int(CPU_STATE_IDLE))
         }
         return CPULoad(busy: busy, total: busy + idle)
     }

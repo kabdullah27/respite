@@ -97,7 +97,10 @@ public enum StartupItems {
         if let exact = apps.first(where: { $0.bundleID == label }) {
             return exact
         }
-        if let prefixed = apps.first(where: { label.hasPrefix($0.bundleID + ".") }) {
+        // Prefix paling spesifik: "com.foo.bar.helper" milik com.foo.bar, bukan com.foo.
+        if let prefixed = apps
+            .filter({ label.hasPrefix($0.bundleID + ".") })
+            .max(by: { $0.bundleID.count < $1.bundleID.count }) {
             return prefixed
         }
         if let program {
@@ -112,25 +115,35 @@ public enum StartupItems {
 extension AppCatalog {
     /// Katalog ringan: bundle ID + nama saja, tanpa deep-size — buat matching.
     public static func quickCatalog(searchPaths: [URL]? = nil) -> [AppRef] {
-        let paths = searchPaths ?? defaultPaths
+        // App bawaan (/System/Applications) juga pemilik — Notes, Photos, dst.
+        let paths = searchPaths ?? (defaultPaths + [URL(fileURLWithPath: "/System/Applications")])
         var refs: [AppRef] = []
-        for root in paths {
+
+        // Turun sampai 2 level: "/Applications/Adobe Photoshop 2024/…app",
+        // "/Applications/Utilities/…app", Setapp, JetBrains Toolbox.
+        func collect(in directory: URL, depth: Int) {
             guard let children = try? FileManager.default.contentsOfDirectory(
-                at: root,
-                includingPropertiesForKeys: nil,
-                options: []
-            ) else { continue }
-            for child in children where child.pathExtension == "app" {
-                guard let dict = NSDictionary(contentsOf: child.appendingPathComponent("Contents/Info.plist")),
-                      let bundleID = dict["CFBundleIdentifier"] as? String
-                else { continue }
-                let rawName = (dict["CFBundleName"] as? String) ?? ""
-                let name = rawName.isEmpty
-                    ? child.deletingPathExtension().lastPathComponent
-                    : rawName
-                refs.append(AppRef(bundleID: bundleID, name: name))
+                at: directory,
+                includingPropertiesForKeys: [.isDirectoryKey],
+                options: [.skipsHiddenFiles]
+            ) else { return }
+            for child in children {
+                if child.pathExtension == "app" {
+                    guard let dict = NSDictionary(contentsOf: child.appendingPathComponent("Contents/Info.plist")),
+                          let bundleID = dict["CFBundleIdentifier"] as? String
+                    else { continue }
+                    let rawName = (dict["CFBundleName"] as? String) ?? ""
+                    let name = rawName.isEmpty
+                        ? child.deletingPathExtension().lastPathComponent
+                        : rawName
+                    refs.append(AppRef(bundleID: bundleID, name: name))
+                } else if depth > 0,
+                          (try? child.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true {
+                    collect(in: child, depth: depth - 1)
+                }
             }
         }
+        for root in paths { collect(in: root, depth: 2) }
         return refs
     }
 }
@@ -159,14 +172,16 @@ public enum StartupManager {
         process.arguments = args
         let pipe = Pipe()
         process.standardOutput = pipe
-        process.standardError = Pipe()
+        process.standardError = FileHandle.nullDevice
         do {
             try process.run()
-            process.waitUntilExit()
         } catch {
             return (-1, nil)
         }
+        // Baca SEBELUM waitUntilExit — output > buffer pipe (~64 KB) bikin
+        // launchctl blok nulis sementara kita blok nunggu dia exit.
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
         return (process.terminationStatus, String(data: data, encoding: .utf8))
     }
 
@@ -217,12 +232,13 @@ public enum StartupManager {
     /// app.respite.startup.toolbagus.plist di folder asli user).
     public static func addLoginApp(
         appPath: String,
+        slug: String? = nil,
         agentsDir: URL? = nil
     ) throws -> URL {
         let dir = agentsDir ?? userAgentsDir
-        let appName = (appPath as NSString).lastPathComponent
-            .replacingOccurrences(of: ".app", with: "")
-        let sanitized = appName
+        let appName = ((appPath as NSString).lastPathComponent as NSString)
+            .deletingPathExtension
+        let sanitized = slug ?? appName
             .replacingOccurrences(of: " ", with: "-")
             .lowercased()
         let plistURL = dir
@@ -286,7 +302,9 @@ public enum StartupManager {
         }
         if enabled {
             if !FileManager.default.fileExists(atPath: url.path) {
-                _ = try addLoginApp(appPath: appPath, agentsDir: agentsDir)
+                // Slug tetap — nama bundle ("Respite Beta.app") nggak boleh
+                // menggeser nama plist yang dicek isRespiteAutoStartEnabled.
+                _ = try addLoginApp(appPath: appPath, slug: "respite", agentsDir: agentsDir)
             } else {
                 try setAgentEnabled(plistURL: url, enabled: true)
             }

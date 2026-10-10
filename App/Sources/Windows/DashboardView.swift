@@ -15,7 +15,7 @@ struct DashboardView: View {
     @ObservedObject private var uninstallerModel = UninstallerModel.shared
     @ObservedObject private var browserModel = BrowserCleanerModel.shared
     @State private var selectedModule: Module?
-    @State private var expandedSections: Set<ModuleSection> = Set(ModuleSection.allCases)
+    @State private var expandedSections: Set<ModuleSection> = Set(ModuleSection.allCases.filter(\.isExpandedByDefault))
 
     private func sectionExpandBinding(_ section: ModuleSection) -> Binding<Bool> {
         Binding(
@@ -32,9 +32,9 @@ struct DashboardView: View {
 
     private func sectionSymbol(_ section: ModuleSection) -> String {
         switch section {
-        case .cleaning: return "sparkles"
-        case .monitoring: return "stethoscope"
-        case .misc: return "switch.2"
+        case .cleaning: return "externaldrive"
+        case .monitoring: return "heart.text.square"
+        case .misc: return "wrench.and.screwdriver"
         case .support: return "heart"
         }
     }
@@ -130,8 +130,8 @@ struct DashboardView: View {
                 } else {
                     EmptyStateView(
                         symbol: "waveform.path.ecg",
-                        title: NSLocalizedString("Pilih modul dari daftar", comment: ""),
-                        message: NSLocalizedString("Semua yang ditampilkan Respite bersifat baca-saja sampai seluruh safety guardrail aktif.", comment: "")
+                        title: NSLocalizedString("Pilih alat dari menu di kiri", comment: ""),
+                        message: NSLocalizedString("Tidak ada yang dihapus tanpa persetujuanmu.", comment: "")
                     )
                 }
             }
@@ -191,7 +191,7 @@ struct DashboardView: View {
                 .fill(statusDotColor)
                 .frame(width: 8, height: 8)
             VStack(alignment: .leading, spacing: 1) {
-                Text(NSLocalizedString("Akses Disk Penuh", comment: ""))
+                Text(NSLocalizedString("Izin akses file", comment: ""))
                     .font(.callout.weight(.semibold))
                     .lineLimit(1)
                 Text(displayCaption)
@@ -203,7 +203,7 @@ struct DashboardView: View {
             Spacer(minLength: DKSpacing.xs)
             statusIconButton(
                 icon: "gearshape",
-                help: NSLocalizedString("Buka Pengaturan System Settings", comment: "")
+                help: NSLocalizedString("Buka Pengaturan Sistem untuk memberi izin", comment: "")
             ) {
                 NSWorkspace.shared.open(Self.fdaPaneURL)
             }
@@ -270,9 +270,9 @@ struct DashboardView: View {
     private var statusCaption: String {
         switch fdaGranted {
         case .some(true):
-            return NSLocalizedString("Aktif — semua area bisa dipindai", comment: "")
+            return NSLocalizedString("Diizinkan — semua folder bisa diperiksa", comment: "")
         case .some(false):
-            return NSLocalizedString("Nonaktif — beberapa area terlewati", comment: "")
+            return NSLocalizedString("Belum diizinkan — beberapa folder dilewati", comment: "")
         case nil:
             return NSLocalizedString("Status tidak dapat ditentukan", comment: "")
         }
@@ -294,7 +294,7 @@ struct DashboardView: View {
     private var backgroundScansBanner: some View {
         HStack(spacing: DKSpacing.md) {
             ProgressView().controlSize(.small)
-            Text(NSLocalizedString("Memindai di latar belakang:", comment: ""))
+            Text(NSLocalizedString("Masih mencari di:", comment: ""))
                 .font(.callout)
                 .foregroundColor(.secondary)
             ForEach(activeScans) { module in
@@ -315,14 +315,14 @@ struct DashboardView: View {
         HStack(spacing: DKSpacing.md) {
             ProgressView().controlSize(.small)
             Text(String(
-                format: NSLocalizedString("Memindai file besar — %d file · %@", comment: ""),
+                format: NSLocalizedString("Mencari file besar — %d file · %@", comment: ""),
                 largeFiles.hits.count,
                 ByteFormat.string(from: largeFiles.scannedBytes)
             ))
             .font(.callout)
             .foregroundColor(.secondary)
             Spacer()
-            Button(NSLocalizedString("Hentikan pemindaian", comment: "")) {
+            Button(NSLocalizedString("Hentikan", comment: "")) {
                 largeFiles.cancelScan()
             }
             .controlSize(.small)
@@ -340,6 +340,10 @@ private struct ModuleDetailView: View {
     @ObservedObject var model: SystemStatsModel
 
     var body: some View {
+        scrollingPage
+    }
+
+    private var scrollingPage: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DKSpacing.xl) {
                 hero
@@ -354,7 +358,7 @@ private struct ModuleDetailView: View {
                 case .memoryMonitor:
                     MemoryMonitorView(model: model)
                 case .diagnostic:
-                    diagnosticSection
+                    DiagnosticView(model: model)
                 case .devCacheCleanup:
                     DevCacheView()
                 case .shredder:
@@ -375,6 +379,8 @@ private struct ModuleDetailView: View {
                     KeyboardLockView()
                 case .powerLid:
                     PowerLidView()
+                case .settings:
+                    SettingsView(embedded: true)
                 case .donation:
                     DonationDetailView()
                 default:
@@ -386,146 +392,23 @@ private struct ModuleDetailView: View {
         }
     }
 
-    /// Hero: icon di squircle tinted + judul + respitean — warna ikut
-    /// kategori modul (identitas tiap alat, gaya PureMac).
+    /// Judul halaman: nama alat + satu kalimat "alat ini buat apa".
     private var hero: some View {
-        HStack(alignment: .top, spacing: DKSpacing.lg) {
+        HStack(alignment: .center, spacing: DKSpacing.md) {
             Image(systemName: module.symbol)
-                .font(.system(size: 22, weight: .medium))
+                .font(.system(size: 18, weight: .medium))
                 .foregroundStyle(module.tintColor)
-                .frame(width: 52, height: 52)
+                .frame(width: 40, height: 40)
                 .background(module.tintColor.opacity(0.12))
                 .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
-            VStack(alignment: .leading, spacing: DKSpacing.xs) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(module.title)
-                    .font(.title2.weight(.semibold))
+                    .font(.title.weight(.bold))
                 Text(module.summary)
                     .font(.callout)
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-        }
-    }
-
-    // MARK: Diagnostic (live)
-
-    private var diagnosticSection: some View {
-        let score = model.healthScore
-        let band = HealthScore.Band.band(for: score)
-        return VStack(alignment: .leading, spacing: DKSpacing.lg) {
-            HStack(spacing: DKSpacing.xl) {
-                HealthRing(score: score, color: bandColor(band))
-
-                VStack(alignment: .leading, spacing: DKSpacing.md) {
-                    StatusPill(bandLabel(band), color: bandColor(band))
-                    Text(headline(band))
-                        .font(.title3.weight(.medium))
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer()
-            }
-
-            VStack(alignment: .leading, spacing: DKSpacing.md) {
-                Text(NSLocalizedString("Faktor penyusun", comment: "")).font(.title3.weight(.semibold))
-                factorRow(
-                    label: NSLocalizedString("CPU", comment: ""),
-                    fraction: model.cpuUsageFraction ?? 0,
-                    value: model.cpuUsageFraction
-                        .map { String(format: NSLocalizedString("%d%% dipakai", comment: ""), Int($0 * 100)) }
-                        ?? NSLocalizedString("mengukur…", comment: ""),
-                    note: weightLabel(20)
-                )
-                factorRow(
-                    label: NSLocalizedString("Memori", comment: ""),
-                    fraction: model.snapshot.memory.usedFraction,
-                    value: String(
-                        format: NSLocalizedString("%@ dipakai", comment: ""),
-                        ByteFormat.string(from: model.snapshot.memory.usedBytes)
-                    ),
-                    note: weightLabel(30)
-                )
-                factorRow(
-                    label: NSLocalizedString("Disk", comment: ""),
-                    fraction: 1 - model.snapshot.disk.availableFraction,
-                    value: String(
-                        format: NSLocalizedString("%@ tersedia", comment: ""),
-                        ByteFormat.string(from: model.snapshot.disk.availableBytes)
-                    ),
-                    note: weightLabel(25)
-                )
-                thermalRow
-            }
-
-            findingsSection
-
-            Text(NSLocalizedString("Bobot skor: memori 30%, disk 25%, thermal 25%, CPU 20%.", comment: ""))
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-    }
-
-    /// Temuan explanation engine — diagnosis akar masalah, bukan "Clean Now".
-    private var findingsSection: some View {
-        VStack(alignment: .leading, spacing: DKSpacing.md) {
-            Text(NSLocalizedString("Temuan", comment: "")).font(.title3.weight(.semibold))
-            VStack(alignment: .leading, spacing: DKSpacing.sm) {
-                ForEach(model.diagnosticFindings) { finding in
-                    HStack(alignment: .top, spacing: DKSpacing.sm) {
-                        Image(systemName: severityIcon(finding.severity))
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(severityColor(finding.severity))
-                            .padding(.top, 2)
-                        Text(findingText(finding.kind))
-                            .font(.callout)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-            }
-            .padding(DKSpacing.md)
-            .background(DKColor.surfaceSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
-        }
-    }
-
-    private func severityIcon(_ severity: DiagnosticFinding.Severity) -> String {
-        switch severity {
-        case .info: return "checkmark.circle"
-        case .attention: return "exclamationmark.triangle"
-        case .critical: return "xmark.octagon"
-        }
-    }
-
-    private func severityColor(_ severity: DiagnosticFinding.Severity) -> Color {
-        switch severity {
-        case .info: return DKColor.accent
-        case .attention: return DKColor.attention
-        case .critical: return DKColor.irreversible
-        }
-    }
-
-    private func findingText(_ kind: DiagnosticFinding.Kind) -> String {
-        switch kind {
-        case .thermalCritical:
-            return NSLocalizedString("Suhu tinggi terdeteksi — macOS sedang menurunkan performa (throttling) untuk mendinginkan sistem.", comment: "")
-        case .thermalFair:
-            return NSLocalizedString("Suhu mulai meninggi. Tutup aplikasi berat dan pastikan ventilasi tidak tertutup.", comment: "")
-        case .cpuHigh(let percent):
-            return String(
-                format: NSLocalizedString("Beban CPU %d%% — ada proses berat yang sedang berjalan; hentikan atau tutup jika tidak diperlukan.", comment: ""),
-                percent
-            )
-        case .memoryPressure(let percent):
-            return String(
-                format: NSLocalizedString("Memori terpakai %d%% — tutup aplikasi yang tidak digunakan untuk meredakan tekanan memori.", comment: ""),
-                percent
-            )
-        case .diskLow(let percent):
-            return String(
-                format: NSLocalizedString("Ruang disk tersisa %d%% — ruang yang sangat terbatas mulai memengaruhi performa.", comment: ""),
-                percent
-            )
-        case .allHealthy:
-            return NSLocalizedString("Tidak ditemukan penyebab kelambanan saat ini. Sistem dalam kondisi baik.", comment: "")
         }
     }
 
@@ -540,79 +423,6 @@ private struct ModuleDetailView: View {
         .frame(maxHeight: .infinity)
     }
 
-    // MARK: Baris faktor (dipakai beberapa modul)
-
-    private func factorRow(label: String, fraction: Double, value: String, note: String? = nil) -> some View {
-        VStack(spacing: DKSpacing.xs) {
-            HStack {
-                Text(label).font(.callout)
-                Spacer()
-                Text(value).font(.dkData(12))
-                if let note {
-                    Text("· \(note)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
-            UsageBar(fraction: fraction, color: fraction >= 0.85 ? DKColor.attention : DKColor.accent)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(label), \(value)")
-    }
-
-    private var thermalRow: some View {
-        HStack {
-            Text(NSLocalizedString("Thermal", comment: "")).font(.callout)
-            Spacer()
-            Text(thermalText)
-                .font(.dkData(12))
-                .foregroundColor(model.snapshot.thermalState == .nominal ? Color.primary : DKColor.attention)
-            Text("· \(weightLabel(25))")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
-    }
-
-    private func weightLabel(_ weight: Int) -> String {
-        String(format: NSLocalizedString("bobot %d%%", comment: ""), weight)
-    }
-
-    private var thermalText: String {
-        switch model.snapshot.thermalState {
-        case .nominal: return NSLocalizedString("Nominal — tanpa throttling", comment: "")
-        case .fair: return NSLocalizedString("Fair — suhu meninggi", comment: "")
-        case .serious: return NSLocalizedString("Serious — throttling aktif", comment: "")
-        case .critical: return NSLocalizedString("Critical", comment: "")
-        @unknown default: return "?"
-        }
-    }
-
-    private func bandColor(_ band: HealthScore.Band) -> Color {
-        switch band {
-        case .neutral: return DKColor.accent
-        case .attention: return DKColor.attention
-        case .critical: return DKColor.irreversible
-        }
-    }
-
-    private func bandLabel(_ band: HealthScore.Band) -> String {
-        switch band {
-        case .neutral: return NSLocalizedString("Sehat", comment: "")
-        case .attention: return NSLocalizedString("Perlu perhatian", comment: "")
-        case .critical: return NSLocalizedString("Perlu tindakan", comment: "")
-        }
-    }
-
-    private func headline(_ band: HealthScore.Band) -> String {
-        switch band {
-        case .neutral:
-            return NSLocalizedString("Semua indikator utama dalam kondisi baik.", comment: "")
-        case .attention:
-            return NSLocalizedString("Satu atau lebih indikator mulai mendekati batas wajar. Periksa faktor penyusun di bawah.", comment: "")
-        case .critical:
-            return NSLocalizedString("Beberapa indikator berada di tingkat kritis. Periksa faktor penyusun — biasanya satu tindakan cukup untuk memperbaikinya.", comment: "")
-        }
-    }
 }
 
 // MARK: - Halaman Dukungan
@@ -663,36 +473,5 @@ private struct DonationDetailView: View {
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-// MARK: - Ring Health Score// MARK: - Ring Health Score
-
-/// Ring kecil (bukan gauge raksasa ala CleanMyMac) — angka di tengah,
-/// warna band. Tanpa animasi: angka update instan (Design Spec §6).
-private struct HealthRing: View {
-    let score: Int
-    let color: Color
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(Color.primary.opacity(0.08), lineWidth: 10)
-            Circle()
-                .trim(from: 0, to: Double(score) / 100)
-                .stroke(color, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-            VStack(spacing: 0) {
-                Text("\(score)")
-                    .font(.dkData(30, weight: .semibold))
-                    .foregroundColor(color)
-                Text(NSLocalizedString("dari 100", comment: ""))
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .frame(width: 116, height: 116)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Health score \(score) dari 100")
     }
 }

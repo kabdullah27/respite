@@ -41,17 +41,30 @@ public struct ProcessGroup: Identifiable, Sendable, Equatable {
 /// Catatan jujur: atribusi **swap per-proses** (ri_swap_usage) cuma ada di
 /// API private Apple — yang bisa ditampilkan legal adalah physical footprint,
 /// yaitu pemicu utama tekanan memori yang bikin macOS nulis swap.
+/// Daftar semua PID. `proc_listallpids` minta ukuran buffer dalam BYTE —
+/// dulu dikasih jumlah elemen (4096) → maksimal 1024 PID, sisanya hilang.
+func allPIDs() -> [Int32] {
+    let estimate = proc_listallpids(nil, 0)
+    guard estimate > 0 else { return [] }
+    var pids = [Int32](repeating: 0, count: Int(estimate) + 64)
+    let count = pids.withUnsafeMutableBytes { buffer in
+        proc_listallpids(buffer.baseAddress, Int32(buffer.count))
+    }
+    guard count > 0 else { return [] }
+    return Array(pids.prefix(Int(count)))
+}
+
 public enum TopProcesses {
     public static func byMemoryFootprint(
         limit: Int = 12,
         minBytes: UInt64 = 100_000_000
     ) -> [ProcessMemory] {
-        var pids = [Int32](repeating: 0, count: 4096)
-        let count = proc_listallpids(&pids, Int32(pids.count))
+        let pids = allPIDs()
+        let count = pids.count
         guard count > 0 else { return [] }
 
         var results: [ProcessMemory] = []
-        for pid in pids[0..<Int(count)] where pid > 0 {
+        for pid in pids where pid > 0 {
             autoreleasepool {
             var info = rusage_info_v4()
             // Flavor 4 = RUSAGE_INFO_4 (makronya nggak diekspor ke Swift).
@@ -135,20 +148,26 @@ public enum CPUConsumers {
     public struct Group: Identifiable, Sendable, Equatable {
         public let name: String
         public let pids: [Int32]
-        /// 0...1 dari total CPU semua proses pada window sample.
+        /// Dengan `wallDelta`: fraksi SATU core (1.0 = 100% satu core, bisa
+        /// >1 buat proses multi-thread — sama kayak Activity Monitor).
+        /// Tanpa itu: porsi dari total CPU semua proses.
         public let fraction: Double
 
         public var id: String { name }
     }
 
+    /// Jam monoton dalam satuan yang SAMA dengan `ri_user_time` (mach tick
+    /// di Apple Silicon, ns di Intel) — delta-nya dipakai sebagai `wallDelta`.
+    public static func clock() -> UInt64 { mach_absolute_time() }
+
     /// Ambil sample kumulatif semua proses (syscall murah per proses).
     public static func sample() -> [Sample] {
-        var pids = [Int32](repeating: 0, count: 4096)
-        let count = proc_listallpids(&pids, Int32(pids.count))
+        let pids = allPIDs()
+        let count = pids.count
         guard count > 0 else { return [] }
 
         var results: [Sample] = []
-        for pid in pids[0..<Int(count)] where pid > 0 {
+        for pid in pids where pid > 0 {
             var info = rusage_info_v4()
             let result = withUnsafeMutablePointer(to: &info) { pointer in
                 pointer.withMemoryRebound(to: rusage_info_t?.self, capacity: 1) {
@@ -178,7 +197,8 @@ public enum CPUConsumers {
         from previous: [Sample],
         to current: [Sample],
         minFraction: Double = 0.03,
-        limit: Int = 8
+        limit: Int = 8,
+        wallDelta: UInt64? = nil
     ) -> [Group] {
         let prevByPID = Dictionary(uniqueKeysWithValues: previous.map { ($0.pid, $0.cpuTime) })
         let nameByPID = Dictionary(current.map { ($0.pid, $0.name) }, uniquingKeysWith: { first, _ in first })
@@ -193,6 +213,10 @@ public enum CPUConsumers {
             totalDelta += delta
         }
         guard totalDelta > 0 else { return [] }
+        // Porsi relatif bikin Mac idle kelihatan "sibuk": WindowServer pakai
+        // 1% satu core tapi dapat 0.6 karena yang lain ~0. Normalisasi ke
+        // waktu dinding kalau tersedia.
+        let denominator = wallDelta.map { max($0, 1) } ?? totalDelta
 
         let byName = Dictionary(grouping: deltas) { nameByPID[$0.pid] ?? "PID \($0.pid)" }
         return byName
@@ -200,7 +224,7 @@ public enum CPUConsumers {
                 Group(
                     name: name,
                     pids: members.map(\.pid),
-                    fraction: Double(members.reduce(0) { $0 + $1.delta }) / Double(totalDelta)
+                    fraction: Double(members.reduce(0) { $0 + $1.delta }) / Double(denominator)
                 )
             }
             .filter { $0.fraction >= minFraction }

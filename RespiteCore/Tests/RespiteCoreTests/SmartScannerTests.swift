@@ -156,7 +156,7 @@ final class CleanExecutorTests: XCTestCase {
         let outcome = CleanExecutor.moveToTrash([result], ledgerURL: ledgerURL)
 
         XCTAssertTrue(outcome.cleaned.isEmpty)
-        XCTAssertTrue(outcome.failed.isEmpty)
+        XCTAssertEqual(outcome.failed.map(\.url), [protectedURL], "ditolak harus dilaporkan, bukan hilang diam-diam")
         XCTAssertTrue(FileManager.default.fileExists(atPath: protectedURL.path), "file protected nggak boleh tersentuh")
         XCTAssertTrue(SafetyLedger.load(from: ledgerURL).isEmpty, "nggak boleh ada entry buat aksi yang ditolak")
     }

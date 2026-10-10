@@ -84,7 +84,12 @@ final class DuplicateModel: ObservableObject {
     func performClean() {
         var chosen: [CleanExecutor.TrashItem] = []
         for group in groups {
-            for file in group.files where selected.contains(file.id) {
+            // Minimal satu salinan per grup WAJIB tersisa. Kalau semua
+            // dicentang, yang disarankan disimpan (atau yang pertama) dilewati.
+            let keepID = group.files.allSatisfy({ selected.contains($0.id) })
+                ? (group.files.first(where: \.isSuggestedKeep) ?? group.files.first)?.id
+                : nil
+            for file in group.files where selected.contains(file.id) && file.id != keepID {
                 chosen.append(CleanExecutor.TrashItem(
                     url: file.url,
                     bytes: file.sizeBytes,
@@ -101,10 +106,9 @@ final class DuplicateModel: ObservableObject {
             if remaining.count < 2 { return nil }
             return DuplicateGroup(sizeBytes: group.sizeBytes, files: remaining)
         }
-        selected = []
-        for group in groups {
-            selected.formUnion(group.files.filter(\.isSelectedByDefault).map(\.id))
-        }
+        // Pertahankan pilihan user (minus yang sudah bersih) — reset ke
+        // default bakal mencentang lagi item yang sengaja di-uncheck.
+        selected.formIntersection(groups.flatMap { $0.files.map(\.id) })
         phase = .cleaned(outcome.freedBytes)
     }
 }

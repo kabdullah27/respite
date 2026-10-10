@@ -101,13 +101,20 @@ public enum AppCatalog {
                 }
 
                 let workers = max(2, ProcessInfo.processInfo.activeProcessorCount)
-                var measured = [Int: InstalledApp]()
+                // Value Optional: app yang di-skip (Apple, Respite, tanpa plist)
+                // tetap mengisi slot index-nya — kalau nggak, emitReady
+                // berhenti selamanya di index itu dan sisa app nggak tampil.
+                var measured = [Int: InstalledApp?]()
                 var nextToEmit = 0
+                var emittedCount = 0
                 var nextIndex = 0
 
                 func emitReady() {
-                    while let app = measured.removeValue(forKey: nextToEmit) {
-                        continuation.yield(.found(app))
+                    while let slot = measured.removeValue(forKey: nextToEmit) {
+                        if let app = slot {
+                            continuation.yield(.found(app))
+                            emittedCount += 1
+                        }
                         nextToEmit += 1
                     }
                 }
@@ -119,8 +126,9 @@ public enum AppCatalog {
                         nextIndex += 1
                     }
                     while let (index, app) = await group.next() {
-                        if let app { measured[index] = app }
+                        measured[index] = .some(app)
                         emitReady()
+                        if Task.isCancelled { group.cancelAll(); continue }
                         if nextIndex < candidates.count {
                             let index2 = nextIndex
                             group.addTask { (index2, Self.makeInstalledApp(from: candidates[index2])) }
@@ -130,7 +138,7 @@ public enum AppCatalog {
                 }
                 emitReady()
 
-                continuation.yield(.finished(total: nextToEmit))
+                continuation.yield(.finished(total: emittedCount))
                 continuation.finish()
             }
             continuation.onTermination = { _ in task.cancel() }
@@ -210,8 +218,20 @@ public enum LeftoverScanner {
         let fm = FileManager.default
         var items: [LeftoverItem] = []
 
-        func add(_ url: URL, _ confidence: LeftoverItem.Confidence) {
-            guard fm.fileExists(atPath: url.path) else { return }
+        // bundleID & nama berasal dari Info.plist milik app (nggak dipercaya):
+        // "../.." atau "a/b" bisa membuat path keluar dari root lokasi —
+        // misalnya Caches + "../.." = ~/Library ke-centang buat dihapus.
+        func add(_ root: URL, _ component: String, _ confidence: LeftoverItem.Confidence) {
+            guard !component.isEmpty,
+                  !component.hasPrefix("."),
+                  !component.contains("/"),
+                  !component.contains(":")
+            else { return }
+            let url = root.appendingPathComponent(component)
+            guard url.standardizedFileURL.deletingLastPathComponent().path
+                    == root.standardizedFileURL.path,
+                  fm.fileExists(atPath: url.path)
+            else { return }
             items.append(LeftoverItem(
                 url: url,
                 confidence: confidence,
@@ -220,30 +240,30 @@ public enum LeftoverScanner {
         }
 
         if let preferences = locations.preferences {
-            add(preferences.appendingPathComponent("\(bundleID).plist"), .exact)
+            add(preferences, "\(bundleID).plist", .exact)
         }
         if let caches = locations.caches {
-            add(caches.appendingPathComponent(bundleID), .exact)
-            add(caches.appendingPathComponent(app.name), .fuzzy)
+            add(caches, bundleID, .exact)
+            add(caches, app.name, .fuzzy)
         }
         if let support = locations.applicationSupport {
-            add(support.appendingPathComponent(bundleID), .exact)
-            add(support.appendingPathComponent(app.name), .fuzzy)
+            add(support, bundleID, .exact)
+            add(support, app.name, .fuzzy)
         }
         if let agents = locations.launchAgents {
-            add(agents.appendingPathComponent("\(bundleID).plist"), .exact)
+            add(agents, "\(bundleID).plist", .exact)
         }
         if let state = locations.savedApplicationState {
-            add(state.appendingPathComponent("\(bundleID).savedState"), .exact)
+            add(state, "\(bundleID).savedState", .exact)
         }
         if let logs = locations.logs {
-            add(logs.appendingPathComponent(app.name), .fuzzy)
+            add(logs, app.name, .fuzzy)
         }
         if let storage = locations.httpStorage {
-            add(storage.appendingPathComponent(bundleID), .exact)
+            add(storage, bundleID, .exact)
         }
         if let cookies = locations.cookies {
-            add(cookies.appendingPathComponent("\(bundleID).binarycookies"), .exact)
+            add(cookies, "\(bundleID).binarycookies", .exact)
         }
         return items
     }

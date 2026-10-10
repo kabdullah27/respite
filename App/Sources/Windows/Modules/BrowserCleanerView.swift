@@ -2,12 +2,13 @@ import SwiftUI
 import RespiteCore
 import DesignKit
 
-/// Browser Data Cleaner (TRD §4.9) v1 — cache saja. Browser yang masih
-/// berjalan TIDAK bisa dibersihkan (cache yang ditimpa bisa korup) —
-/// dideteksi via NSWorkspace dan dikunci dengan penjelasan.
+/// Pembersih Browser: satu kartu per browser, tiga centang (cache, riwayat,
+/// cookie). Browser yang masih berjalan TIDAK bisa dibersihkan (data yang
+/// ditimpa saat aktif bisa rusak) — dideteksi via NSWorkspace dan dikunci.
+/// Pola halaman mengikuti ToolPage (mencari → hasil → selesai).
 struct BrowserCleanerView: View {
     @ObservedObject private var model = BrowserCleanerModel.shared
-    @State private var showDryRunPreview = false
+    @State private var showConfirm = false
 
     private var selectedBytes: Int64 {
         model.results.reduce(Int64(0)) { total, result in
@@ -19,138 +20,169 @@ struct BrowserCleanerView: View {
         }
     }
 
+    private var totalBytes: Int64 {
+        model.results.reduce(Int64(0)) { total, result in
+            total + BrowserDataType.allCases.reduce(Int64(0)) { $0 + result.totalBytes(for: $1) }
+        }
+    }
+
+    private func isSelected(_ type: BrowserDataType) -> Bool {
+        model.selected.contains { $0.hasSuffix("|\(type.rawValue)") }
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: DKSpacing.lg) {
-                HStack(spacing: DKSpacing.md) {
-                    Button {
-                        model.rescan()
-                    } label: {
-                        Label(NSLocalizedString("Pindai Ulang", comment: ""), systemImage: "arrow.clockwise")
-                    }
-                    Spacer()
-                    Text(String(
-                        format: NSLocalizedString("%d browser", comment: ""),
-                        model.results.count
-                    ))
-                    .font(.dkData(12))
-                    .foregroundStyle(.secondary)
-                    Button("Bersihkan yang dipilih") { handleCleanRequest() }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(model.selected.isEmpty)
-                }
-
-                if let cleanedBytes = model.cleanedBytes {
-                    HStack {
-                        Label {
-                            Text(String(
-                                format: NSLocalizedString("%@ berhasil dibersihkan", comment: ""),
-                                ByteFormat.string(from: cleanedBytes)
-                            ))
-                        } icon: {
-                            Image(systemName: "checkmark.circle.fill")
-                        }
-                        .foregroundStyle(DKColor.accent)
-                        Spacer()
-                        Button("Buka Trash") {
-                            NSWorkspace.shared.open(URL(fileURLWithPath: NSString(string: "~/.Trash").expandingTildeInPath))
-                        }
-                        .controlSize(.small)
-                    }
-                    .padding(DKSpacing.md)
-                    .background(DKColor.accent.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
-                }
-
-                if model.isLoading {
-                    HStack(spacing: DKSpacing.sm) {
-                        ProgressView().controlSize(.small)
-                        Text(NSLocalizedString("Memuat…", comment: "")).foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 160)
-                } else if model.results.isEmpty {
-                    EmptyStateView(
-                        symbol: "globe",
-                        title: NSLocalizedString("Tidak ada browser yang dikenali", comment: ""),
-                        message: NSLocalizedString("Browser yang didukung (Chrome, Arc, Brave, Edge, Firefox, Safari) tidak ditemukan di folder Applications.", comment: "")
+        VStack(alignment: .leading, spacing: DKSpacing.lg) {
+            if let cleanedBytes = model.cleanedBytes {
+                ToolDoneCard(
+                    title: String(
+                        format: NSLocalizedString("%@ dipindahkan ke Trash", comment: ""),
+                        ByteFormat.string(from: cleanedBytes)
                     )
-                } else {
-                    VStack(spacing: DKSpacing.sm) {
-                        ForEach(model.results) { result in
-                            browserRow(result)
-                        }
-                    }
-                    .padding(DKSpacing.md)
-                    .background(DKColor.surfaceSecondary)
-                    .clipShape(RoundedRectangle(cornerRadius: DKRadius.card))
+                )
+                if model.failureCount > 0 {
+                    Text(String(
+                        format: NSLocalizedString("%d item gagal dibersihkan", comment: ""),
+                        model.failureCount
+                    ))
+                    .font(.callout)
+                    .foregroundColor(DKColor.attention)
                 }
-
-                Text(NSLocalizedString("Cache dibuat ulang otomatis dan tidak mengeluarkan kamu dari akun. Riwayat dan cookie bersifat lebih sensitif — tidak tercentang bawaan; menghapus cookie akan keluar dari semua situs, dan riwayat yang tersinkron ke akun tetap ada di server. Data browser yang masih berjalan tidak pernah disentuh. Riwayat/cookie Safari tidak didukung (dilindungi TCC).", comment: ""))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(DKSpacing.xl)
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if model.isLoading {
+                ToolProgressCard(
+                    title: NSLocalizedString("Memeriksa browser…", comment: ""),
+                    detail: NSLocalizedString("Sedang menghitung ukuran cache, riwayat, dan cookie.", comment: "")
+                )
+            } else if model.results.isEmpty {
+                ToolEmptyResult(
+                    title: NSLocalizedString("Tidak ada browser yang dikenali", comment: ""),
+                    message: NSLocalizedString("Browser yang didukung (Chrome, Arc, Brave, Edge, Firefox, Safari) tidak ditemukan di folder Applications.", comment: ""),
+                    onRescan: { model.rescan() }
+                )
+            } else {
+                results
+            }
         }
         .task { model.loadIfNeeded() }
         .alert(
-            NSLocalizedString("Pratinjau sebelum membersihkan", comment: ""),
-            isPresented: $showDryRunPreview
+            ToolConfirm.title(count: model.selected.count, bytes: selectedBytes),
+            isPresented: $showConfirm
         ) {
             Button(NSLocalizedString("Batal", comment: ""), role: .cancel) {}
-            Button(NSLocalizedString("Lanjutkan", comment: "")) {
+            Button(NSLocalizedString("Pindahkan", comment: "")) {
                 UserDefaults.standard.set(true, forKey: BrowserCleanerModel.dryRunKey)
                 model.performClean()
             }
         } message: {
-            Text(String(
-                format: NSLocalizedString(
-                    "Dry-run: %d jenis data (%@) akan dipindah ke Trash. Cache dibuat ulang otomatis; menghapus cookie akan MENGELUARKAN kamu dari semua situs; riwayat yang tersinkron ke akun tetap ada di server.",
-                    comment: ""
-                ),
-                model.selected.count,
-                ByteFormat.string(from: selectedBytes)
-            ))
+            Text(confirmMessage)
         }
     }
 
-    /// Gate dry-run: pertama kali → pratinjau dulu; setelah itu langsung.
+    /// Cookie & riwayat SELALU lewat konfirmasi (lihat requestClean) —
+    /// pesannya harus jelas apa akibatnya.
+    private var confirmMessage: String {
+        var parts: [String] = []
+        if isSelected(.cookies) {
+            parts.append(NSLocalizedString("Cookie ikut dihapus: kamu akan keluar dari semua situs dan perlu masuk lagi.", comment: ""))
+        }
+        if isSelected(.history) {
+            parts.append(NSLocalizedString("Riwayat penelusuran di Mac ini akan hilang. Riwayat yang tersinkron ke akun browser tetap ada.", comment: ""))
+        }
+        if isSelected(.cache) {
+            parts.append(NSLocalizedString("Cache aman dihapus — browser membuatnya ulang otomatis.", comment: ""))
+        }
+        parts.append(ToolConfirm.message)
+        return parts.joined(separator: "\n\n")
+    }
+
+    /// Pertama kali (atau ada cookie/riwayat) → konfirmasi dulu; selain itu langsung.
     private func handleCleanRequest() {
         if !model.requestClean() {
-            showDryRunPreview = true
+            showConfirm = true
         }
     }
 
-    // MARK: Row per browser
+    // MARK: Hasil
 
-    private func browserRow(_ result: BrowserScanResult) -> some View {
+    @ViewBuilder
+    private var results: some View {
+        ToolResultHeader(
+            title: String(
+                format: NSLocalizedString("%d browser · %@", comment: ""),
+                model.results.count,
+                ByteFormat.string(from: totalBytes)
+            ),
+            subtitle: NSLocalizedString("Centang apa yang mau dibersihkan di tiap browser. Cache sudah dicentang karena paling aman.", comment: ""),
+            onRescan: { model.rescan() }
+        )
+
+        ForEach(model.results) { result in
+            browserCard(result)
+        }
+
+        ToolActionBar(
+            selectedCount: model.selected.count,
+            selectedBytes: selectedBytes,
+            buttonTitle: NSLocalizedString("Bersihkan", comment: ""),
+            action: handleCleanRequest
+        )
+
+        ToolDetails {
+            Text(NSLocalizedString("Browser yang sedang terbuka tidak pernah disentuh.", comment: ""))
+            Text(NSLocalizedString("Riwayat yang tersinkron ke akun browser (mis. akun Google) tetap tersimpan di server.", comment: ""))
+            Text(NSLocalizedString("Riwayat dan cookie Safari tidak bisa dibersihkan dari sini karena dilindungi macOS.", comment: ""))
+        }
+    }
+
+    // MARK: Kartu per browser
+
+    private func browserCard(_ result: BrowserScanResult) -> some View {
         let isRunning = model.runningBundleIDs.contains(result.bundleID)
 
-        return VStack(alignment: .leading, spacing: DKSpacing.xs) {
-            HStack(spacing: DKSpacing.sm) {
-                Image(systemName: "globe")
-                    .foregroundStyle(DKColor.accent)
-                Text(result.name).font(.callout.weight(.semibold))
+        return ToolCard {
+            HStack(spacing: DKSpacing.md) {
+                browserIcon(result)
+                Text(result.name).font(.headline)
                 Spacer()
                 if isRunning {
-                    Text(NSLocalizedString("Masih berjalan", comment: ""))
-                        .font(.caption.weight(.medium))
-                        .foregroundColor(DKColor.attention)
+                    StatusPill(NSLocalizedString("Sedang dibuka", comment: ""), color: DKColor.attention)
                 }
             }
             if isRunning {
-                Text(NSLocalizedString("Tutup browser ini dulu sebelum membersihkan — data yang ditimpa saat browser aktif bisa rusak.", comment: ""))
-                    .font(.caption)
-                    .foregroundColor(DKColor.attention)
+                Label {
+                    Text(String(
+                        format: NSLocalizedString("Tutup %@ dulu, lalu tekan \"Pindai ulang\". Membersihkan browser yang sedang dibuka bisa merusak datanya.", comment: ""),
+                        result.name
+                    ))
                     .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(DKColor.attention)
+                }
+                .font(.callout)
             } else {
-                ForEach(BrowserDataType.allCases) { type in
-                    dataRow(result, type: type)
+                VStack(alignment: .leading, spacing: DKSpacing.sm) {
+                    ForEach(BrowserDataType.allCases) { type in
+                        dataRow(result, type: type)
+                    }
                 }
             }
         }
-        .padding(.vertical, DKSpacing.sm)
+    }
+
+    @ViewBuilder
+    private func browserIcon(_ result: BrowserScanResult) -> some View {
+        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: result.bundleID) {
+            Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
+                .resizable()
+                .frame(width: 28, height: 28)
+        } else {
+            Image(systemName: "globe")
+                .font(.system(size: 20))
+                .foregroundStyle(Color.respite)
+                .frame(width: 28, height: 28)
+        }
     }
 
     private func dataRow(_ result: BrowserScanResult, type: BrowserDataType) -> some View {
@@ -160,47 +192,39 @@ struct BrowserCleanerView: View {
         let isEmptyData = result.urls(for: type).isEmpty && type != .cache
 
         return HStack(spacing: DKSpacing.sm) {
-            Toggle("", isOn: Binding(
+            Toggle(isOn: Binding(
                 get: { model.selected.contains(key) },
                 set: { isOn in
                     if isOn { model.selected.insert(key) } else { model.selected.remove(key) }
                 }
-            ))
+            )) {
+                Text(dataTypeName(type)).font(.callout)
+            }
             .toggleStyle(.checkbox)
-            .labelsHidden()
             .disabled(!available || bytes == 0)
 
-            Text(dataTypeName(type)).font(.callout)
-            if type == .cookies {
-                Text(NSLocalizedString("— akan keluar dari semua situs", comment: ""))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
             Spacer()
             if isEmptyData {
-                Text(NSLocalizedString("tidak didukung", comment: ""))
-                    .font(.caption2)
+                Text(NSLocalizedString("tidak tersedia", comment: ""))
+                    .font(.caption)
                     .foregroundColor(Color(nsColor: .tertiaryLabelColor))
             } else if bytes == 0 {
-                Text(NSLocalizedString("bersih", comment: ""))
-                    .font(.caption2)
+                Text(NSLocalizedString("sudah bersih", comment: ""))
+                    .font(.caption)
                     .foregroundColor(.secondary)
             } else {
                 Text(ByteFormat.string(from: bytes))
-                    .font(.dkData(13))
+                    .font(.dkData(12))
+                    .foregroundColor(.secondary)
             }
         }
-        .padding(.leading, DKSpacing.lg)
     }
 
     private func dataTypeName(_ type: BrowserDataType) -> String {
         switch type {
-        case .cache: return NSLocalizedString("Cache", comment: "")
-        case .history: return NSLocalizedString("Riwayat", comment: "")
-        case .cookies: return NSLocalizedString("Cookie", comment: "")
+        case .cache: return NSLocalizedString("Cache (aman, dibuat ulang otomatis)", comment: "")
+        case .history: return NSLocalizedString("Riwayat penelusuran", comment: "")
+        case .cookies: return NSLocalizedString("Cookie (kamu akan keluar dari situs)", comment: "")
         }
     }
-
-    // MARK: Aksi
-
 }

@@ -31,11 +31,15 @@ final class UninstallerModel: ObservableObject {
     }
 
     func refreshApps() {
+        // Scan sebelumnya masih streaming → batalkan, kalau nggak dua task
+        // sama-sama append (baris dobel) dan yang lama mematikan spinner.
+        appsTask?.cancel()
         apps = []
         isLoadingApps = true
         appsTask = Task {
             do {
                 for try await event in AppCatalog.scanApps() {
+                    if Task.isCancelled { return }
                     if case .found(let app) = event {
                         apps.append(app)
                         apps.sort { $0.sizeBytes > $1.sizeBytes }
@@ -44,6 +48,7 @@ final class UninstallerModel: ObservableObject {
             } catch {
                 // Dibatalkan → tampilkan yang udah ada.
             }
+            guard !Task.isCancelled else { return }
             isLoadingApps = false
         }
     }
@@ -112,5 +117,6 @@ final class UninstallerModel: ObservableObject {
         let ids = Set(done.map(\.id))
         orphans.removeAll { ids.contains($0.id) }
         selectedOrphans.subtract(ids)
+        orphanTotalBytes -= done.reduce(0) { $0 + $1.sizeBytes }
     }
 }

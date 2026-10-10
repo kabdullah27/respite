@@ -69,6 +69,7 @@ final class KeyboardLockController: ObservableObject {
     private var observers: [NSObjectProtocol] = []
     private var autoUnlockItem: DispatchWorkItem?
     private var unlockAt: Date?
+    private var wakeObserver: NSObjectProtocol?
 
     /// `autoUnlockAfter` = detik sampai keyboard terbuka sendiri (nil =
     /// tanpa timer — manual via tombol tahan).
@@ -115,11 +116,16 @@ final class KeyboardLockController: ObservableObject {
 
         // Timer auto-unlock — pengaman utama: walau apa pun terjadi,
         // keyboard PASTI kembali dalam batas waktu yang dipilih user.
+        // wallDeadline, bukan deadline: DispatchTime berhenti saat Mac sleep,
+        // padahal hitung mundur di overlay pakai jam dinding.
         if let unlockAt {
             let item = DispatchWorkItem { [weak self] in
-                self?.unlock(notify: true)
+                MainActor.assumeIsolated { self?.unlock(notify: true) }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + autoUnlockAfter!, execute: item)
+            DispatchQueue.main.asyncAfter(
+                wallDeadline: .now() + max(0, unlockAt.timeIntervalSinceNow),
+                execute: item
+            )
             autoUnlockItem = item
         }
 
@@ -131,14 +137,23 @@ final class KeyboardLockController: ObservableObject {
             forName: NSApplication.didResignActiveNotification,
             object: nil, queue: .main
         ) { [weak self] _ in
-            self?.regainFocus()
+            MainActor.assumeIsolated { self?.regainFocus() }
         })
-        observers.append(center.addObserver(
+        // didWakeNotification cuma diposting di notification center NSWorkspace.
+        // Habis bangun: timer yang lewat batas langsung buka kunci.
+        wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,
             object: nil, queue: .main
         ) { [weak self] _ in
-            self?.regainFocus()
-        })
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                if let unlockAt = self.unlockAt, unlockAt <= Date() {
+                    self.unlock(notify: true)
+                } else {
+                    self.regainFocus()
+                }
+            }
+        }
     }
 
     func unlock(notify: Bool = false) {
@@ -149,6 +164,10 @@ final class KeyboardLockController: ObservableObject {
         isLocked = false
         observers.forEach(NotificationCenter.default.removeObserver)
         observers.removeAll()
+        if let wakeObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver)
+            self.wakeObserver = nil
+        }
         if notify {
             Notifier.post(
                 title: NSLocalizedString("Keyboard terbuka kembali", comment: ""),

@@ -20,7 +20,7 @@ public struct DiskMapItem: Identifiable, Sendable, Equatable {
 public enum DiskMapScanner {
     /// Ukur anak-anak LANGSUNG dari satu folder (per level — dipanggil
     /// ulang tiap drill down, bukan satu pass rekursif full disk).
-    /// Item 0 byte tetap dimasukkan biar peta jujur (folder kosong keliatan).
+    /// Item 0 byte dibuang — nggak punya luas di treemap.
     public static func children(of root: URL) -> [DiskMapItem] {
         guard let children = try? FileManager.default.contentsOfDirectory(
             at: root,
@@ -57,25 +57,28 @@ public enum Squarify {
             return [CGRect](repeating: .zero, count: sizes.count)
         }
 
+        // Kerja dalam satuan AREA (pt²), bukan fraksi — rasio aspek dan
+        // ketebalan baris harus satu unit dengan sisi rect.
+        let totalArea = Double(rect.width * rect.height)
         let sorted = sizes.enumerated()
-            .map { (fraction: $0.element / total, index: $0.offset) }
-            .sorted { $0.fraction > $1.fraction }
+            .map { (area: max(0, $0.element) / total * totalArea, index: $0.offset) }
+            .sorted { $0.area > $1.area }
 
         var rects = [CGRect](repeating: .zero, count: sizes.count)
-        var x = rect.minX
-        var y = rect.minY
-        var w = rect.width
-        var h = rect.height
-        var row: [(fraction: Double, index: Int)] = []
+        var x = Double(rect.minX)
+        var y = Double(rect.minY)
+        var w = Double(rect.width)
+        var h = Double(rect.height)
+        var row: [(area: Double, index: Int)] = []
 
-        func worstRatio(_ entries: [(fraction: Double, index: Int)], _ side: Double) -> Double {
-            let sum = entries.map(\.fraction).reduce(0, +)
+        func worstRatio(_ entries: [(area: Double, index: Int)], _ side: Double) -> Double {
+            let sum = entries.reduce(0) { $0 + $1.area }
             guard sum > 0, side > 0 else { return .infinity }
             var worst = 0.0
-            for entry in entries {
+            for entry in entries where entry.area > 0 {
                 let ratio = max(
-                    side * side * entry.fraction / (sum * sum),
-                    sum * sum / (side * side * entry.fraction)
+                    side * side * entry.area / (sum * sum),
+                    sum * sum / (side * side * entry.area)
                 )
                 worst = max(worst, ratio)
             }
@@ -83,17 +86,17 @@ public enum Squarify {
         }
 
         func flushRow() {
-            let sum = row.map(\.fraction).reduce(0, +)
+            let sum = row.reduce(0) { $0 + $1.area }
             guard !row.isEmpty, sum > 0, w > 0, h > 0 else {
                 row = []
                 return
             }
             if w >= h {
                 // Baris jadi kolom vertikal di sisi kiri.
-                let thickness = w * sum
+                let thickness = min(w, sum / h)
                 var cursor = y
                 for entry in row {
-                    let height = h * (entry.fraction / sum)
+                    let height = entry.area / thickness
                     rects[entry.index] = CGRect(x: x, y: cursor, width: thickness, height: height)
                     cursor += height
                 }
@@ -101,10 +104,10 @@ public enum Squarify {
                 w -= thickness
             } else {
                 // Baris jadi strip horizontal di atas.
-                let thickness = h * sum
+                let thickness = min(h, sum / w)
                 var cursor = x
                 for entry in row {
-                    let width = w * (entry.fraction / sum)
+                    let width = entry.area / thickness
                     rects[entry.index] = CGRect(x: cursor, y: y, width: width, height: thickness)
                     cursor += width
                 }

@@ -119,7 +119,9 @@ final class SmartScanModel: ObservableObject {
         failedItems = outcome.failed
         let cleanedURLs = Set(outcome.cleaned.map(\.url))
         results.removeAll { cleanedURLs.contains($0.url) }
-        selected = Set(results.filter(\.isSelectedByDefault).map(\.id))
+        // Pertahankan pilihan user (minus yang sudah bersih) — reset ke
+        // default bakal mencentang lagi item yang sengaja di-uncheck.
+        selected.formIntersection(results.map(\.id))
         let categoryByURL = Dictionary(
             chosen.map { ($0.url, $0.category) },
             uniquingKeysWith: { first, _ in first }

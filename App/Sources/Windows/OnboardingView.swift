@@ -4,8 +4,9 @@ import DesignKit
 import AppKit
 
 /// Onboarding first-run (PRD §8, Design Spec §8.2): tiga langkah singkat —
-/// welcome, permintaan Full Disk Access DENGAN alasan konkret + status live,
-/// dan prinsip privasi. Ditampilkan sekali (flag UserDefaults).
+/// apa yang dilakukan Respite, janji keamanan (tidak ada yang dihapus tanpa
+/// persetujuan, semua ke Trash), lalu izin akses file (opsional) dengan
+/// status live. Ditampilkan sekali (flag UserDefaults).
 struct OnboardingView: View {
     let onFinish: () -> Void
 
@@ -30,8 +31,8 @@ struct OnboardingView: View {
             Group {
                 switch step {
                 case 0: welcomePage
-                case 1: accessPage
-                default: privacyPage
+                case 1: safetyPage
+                default: accessPage
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -52,7 +53,7 @@ struct OnboardingView: View {
                     }
                 }
                 Spacer()
-                Button(step < 2 ? NSLocalizedString("Lanjut", comment: "") : NSLocalizedString("Mulai menggunakan Respite", comment: "")) {
+                Button(step < 2 ? NSLocalizedString("Lanjut", comment: "") : NSLocalizedString("Mulai pakai Respite", comment: "")) {
                     if step < 2 {
                         step += 1
                     } else {
@@ -63,26 +64,46 @@ struct OnboardingView: View {
             }
             .padding(DKSpacing.md)
         }
-        .frame(width: 500, height: 420)
+        .frame(width: 520, height: 460)
         .onAppear { refreshFDAStatus() }
     }
 
-    // MARK: Halaman 1 — Selamat datang
+    // MARK: Langkah 1 — Apa yang dilakukan Respite
 
     private var welcomePage: some View {
-        VStack(spacing: DKSpacing.lg) {
-            FeatureRow(symbol: "tray.full", text: NSLocalizedString("Pindai cache, file besar, sisa aplikasi, dan cache developer — lengkap dengan alasan kenapa aman dihapus.", comment: ""))
-            FeatureRow(symbol: "waveform.path.ecg", text: NSLocalizedString("Diagnosis kenapa Mac lambat saat ini — dari data sungguhan, bukan angka menakut-nakuti.", comment: ""))
-            FeatureRow(symbol: "trash", text: NSLocalizedString("Semua penghapusan pergi ke Trash dan bisa dibatalkan — bukan dihapus permanen.", comment: ""))
+        VStack(alignment: .leading, spacing: DKSpacing.lg) {
+            pageTitle(NSLocalizedString("Bikin Mac kamu lega dan lancar lagi", comment: ""))
+            FeatureRow(symbol: "sparkles", text: NSLocalizedString("Cari file yang tidak terpakai — file sementara, file besar, dan sisa aplikasi.", comment: ""))
+            FeatureRow(symbol: "questionmark.circle", text: NSLocalizedString("Jelaskan kenapa Mac terasa lambat, dengan bahasa sederhana.", comment: ""))
+            FeatureRow(symbol: "lock", text: NSLocalizedString("Semua berjalan di Mac kamu. Tidak ada data yang dikirim ke mana pun.", comment: ""))
         }
         .frame(maxWidth: 400, alignment: .leading)
     }
 
-    // MARK: Halaman 2 — Full Disk Access
+    // MARK: Langkah 2 — Aman
+
+    private var safetyPage: some View {
+        VStack(alignment: .leading, spacing: DKSpacing.lg) {
+            pageTitle(NSLocalizedString("Tidak ada yang dihapus tanpa persetujuanmu", comment: ""))
+            FeatureRow(symbol: "checkmark.circle", text: NSLocalizedString("Kamu selalu melihat daftarnya dulu dan memilih sendiri apa yang dibuang.", comment: ""))
+            FeatureRow(symbol: "trash", text: NSLocalizedString("Semuanya masuk ke Trash, jadi bisa dikembalikan kapan saja.", comment: ""))
+            FeatureRow(symbol: "shield", text: NSLocalizedString("Dokumen pribadi dan file sistem tidak pernah disentuh.", comment: ""))
+        }
+        .frame(maxWidth: 400, alignment: .leading)
+    }
+
+    private func pageTitle(_ text: String) -> some View {
+        Text(text)
+            .font(.title3.weight(.semibold))
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    // MARK: Langkah 3 — Izin akses file (opsional)
 
     private var accessPage: some View {
         VStack(alignment: .leading, spacing: DKSpacing.lg) {
-            Text(NSLocalizedString("Respite membutuhkan Akses Disk Penuh untuk memindai ~/Library/Caches, Trash, dan sisa data aplikasi secara utuh. Tanpa itu, sebagian hasil pindai bisa kosong.", comment: ""))
+            pageTitle(NSLocalizedString("Izinkan akses file (boleh nanti)", comment: ""))
+            Text(NSLocalizedString("Supaya Respite bisa menemukan semua file yang bisa dibersihkan, beri izin \"Akses Disk Penuh\". Tanpa izin ini, sebagian hasil bisa kosong.", comment: ""))
                 .font(.callout)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -108,7 +129,7 @@ struct OnboardingView: View {
             }
             .controlSize(.large)
 
-            Text(NSLocalizedString("Aktifkan Respite di daftar Akses Disk Penuh, lalu kembali ke sini. Bisa juga nanti lewat Pengaturan sistem — sebagian fitur tetap berfungsi.", comment: ""))
+            Text(NSLocalizedString("Nyalakan Respite di daftar Akses Disk Penuh, lalu kembali ke sini. Boleh dilewati — sebagian besar fitur tetap bisa dipakai.", comment: ""))
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -134,25 +155,14 @@ struct OnboardingView: View {
 
     private var fdaStatusText: String {
         switch fdaGranted {
-        case .some(true): return NSLocalizedString("Akses Disk Penuh aktif", comment: "")
-        case .some(false): return NSLocalizedString("Akses Disk Penuh belum aktif", comment: "")
-        case nil: return NSLocalizedString("Status tidak dapat dipastikan", comment: "")
+        case .some(true): return NSLocalizedString("Izin sudah diberikan", comment: "")
+        case .some(false): return NSLocalizedString("Izin belum diberikan", comment: "")
+        case nil: return NSLocalizedString("Belum bisa dipastikan", comment: "")
         }
     }
 
     private func refreshFDAStatus() {
         fdaGranted = FullDiskAccess.likelyGranted()
-    }
-
-    // MARK: Halaman 3 — Privasi
-
-    private var privacyPage: some View {
-        VStack(spacing: DKSpacing.lg) {
-            FeatureRow(symbol: "antenna.slash", text: NSLocalizedString("Tanpa telemetri — tidak ada data yang dikirim ke mana pun. Satu-satunya permintaan jaringan (nanti) hanya pemeriksaan pembaruan.", comment: ""))
-            FeatureRow(symbol: "lock", text: NSLocalizedString("Semua proses berjalan lokal di Mac kamu.", comment: ""))
-            FeatureRow(symbol: "shield", text: NSLocalizedString("Folder pribadi (Documents, Desktop, Keychain, Mail) tidak pernah masuk pemindaian — batas keras yang tidak bisa dimatikan.", comment: ""))
-        }
-        .frame(maxWidth: 400, alignment: .leading)
     }
 }
 

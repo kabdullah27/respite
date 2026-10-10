@@ -30,8 +30,8 @@ final class RespiteUITests: XCTestCase {
         let app = launchAndWait()
         XCTAssertTrue(app.staticTexts["Respite"].firstMatch.exists, "branding Respite di sidebar")
         // Hero CTA di Beranda (English-first).
-        let scan = app.buttons["Scan This Mac"]
-        XCTAssertTrue(scan.waitForExistence(timeout: 10), "CTA 'Scan This Mac' di Beranda")
+        let scan = app.buttons["Clean Up My Mac"]
+        XCTAssertTrue(scan.waitForExistence(timeout: 10), "CTA 'Clean Up My Mac' di Beranda")
     }
 
     /// ⌘1..⌘9 memindahkan modul tanpa crash — spot-check tiap tujuan.
@@ -40,15 +40,15 @@ final class RespiteUITests: XCTestCase {
 
         // ⌘1 → Beranda (CTA scan ada).
         app.typeKey("1", modifierFlags: .command)
-        XCTAssertTrue(app.buttons["Scan This Mac"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["Clean Up My Mac"].waitForExistence(timeout: 8))
 
-        // ⌘2 → Pindai Cerdas: tombol Start Scan module.
+        // ⌘2 → Bersihkan Cepat: tombol Start Scan.
         app.typeKey("2", modifierFlags: .command)
-        XCTAssertTrue(app.buttons["Start Scan"].waitForExistence(timeout: 8), "modul Smart Scan")
+        XCTAssertTrue(app.buttons["Start Scan"].waitForExistence(timeout: 8), "modul Bersihkan Cepat")
 
-        // ⌘3 → Copot Aplikasi: section Orphaned Data.
+        // ⌘3 → File Besar: halaman memakai pola mulai yang sama.
         app.typeKey("3", modifierFlags: .command)
-        XCTAssertTrue(app.staticTexts["Orphaned Data"].waitForExistence(timeout: 8), "modul App Uninstaller")
+        XCTAssertTrue(app.buttons["Start Scan"].waitForExistence(timeout: 8), "modul File Besar")
 
         // ⌘4..⌘9: cukup assert app masih hidup (window ada) tiap lompatan.
         for key in ["4", "5", "6", "7", "8", "9"] {
@@ -57,15 +57,15 @@ final class RespiteUITests: XCTestCase {
         }
     }
 
-    /// About window via chip versi "1.0" di sidebar (menu bar API XCUITest
+    /// About window via chip versi "1.2" di sidebar (menu bar API XCUITest
     /// di macOS ini flaky — jalur chip mengetes flow yang sama).
     func testAboutWindow() throws {
         let app = launchAndWait()
-        let chip = app.buttons["1.0"].firstMatch
+        let chip = app.buttons["1.2"].firstMatch
         XCTAssertTrue(chip.waitForExistence(timeout: 8), "chip versi di sidebar")
         chip.click()
 
-        let version = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Version'")).firstMatch
+        let version = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Version' OR value CONTAINS 'Version'")).firstMatch
         XCTAssertTrue(version.waitForExistence(timeout: 10), "About window menampilkan versi")
     }
 
@@ -86,3 +86,4 @@ final class RespiteUITests: XCTestCase {
         )
     }
 }
+

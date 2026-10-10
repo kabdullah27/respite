@@ -46,6 +46,7 @@ final class SystemStatsModel: ObservableObject {
     private var lifetimeCancellables: [AnyCancellable] = []
     private var previousCPULoad: CPULoad?
     private var previousCPUSample: [CPUConsumers.Sample] = []
+    private var previousCPUSampleClock: UInt64 = 0
     private var watchdogHistory: [WatchdogSample] = []
     private var notifiedRunawayNames: Set<String> = []
     private var sweepNotified = false
@@ -68,7 +69,8 @@ final class SystemStatsModel: ObservableObject {
             }
         // Bangun dari sleep: thermal & uptime langsung dicek ulang —
         // nilainya paling sering stale tepat setelah wake.
-        wakeCancellable = NotificationCenter.default
+        // didWakeNotification HANYA diposting di notification center NSWorkspace.
+        wakeCancellable = NSWorkspace.shared.notificationCenter
             .publisher(for: NSWorkspace.didWakeNotification)
             .sink { [weak self] _ in
                 self?.refresh()
@@ -88,6 +90,7 @@ final class SystemStatsModel: ObservableObject {
             }
             .store(in: &lifetimeCancellables)
         previousCPUSample = CPUConsumers.sample()
+        previousCPUSampleClock = CPUConsumers.clock()
     }
 
     /// Health Score dengan CPU terhaluskan sebagai input keempat.
@@ -129,10 +132,10 @@ final class SystemStatsModel: ObservableObject {
         for verdict in verdicts where !notifiedRunawayNames.contains(verdict.name) {
             notifiedRunawayNames.insert(verdict.name)
             Notifier.post(
-                title: NSLocalizedString("Proses berat terdeteksi", comment: ""),
+                title: NSLocalizedString("Ada aplikasi yang bekerja terlalu keras", comment: ""),
                 body: String(
                     format: NSLocalizedString(
-                        "%1$@ sudah memakai CPU tinggi (rata-rata %2$d%%) selama ±%3$d menit. Buka Monitor Memori Respite untuk meninjau atau menghentikannya.",
+                        "%1$@ memakai banyak tenaga prosesor (rata-rata %2$d%%) selama ±%3$d menit. Buka Respite → Aplikasi Berat untuk melihat atau menutupnya.",
                         comment: ""
                     ),
                     verdict.name,
@@ -149,6 +152,10 @@ final class SystemStatsModel: ObservableObject {
     /// Scheduled Maintenance: evaluasi verdict sweep + notifikasi sekali
     /// per kejadian (rising-edge, cooldown 1 jam).
     private func updateScheduledMaintenance(now: Date) {
+        guard scheduledMaintenanceEnabled else {
+            sweepNotified = false
+            return
+        }
         let verdict = UptimeGuardian.evaluate(
             uptime: snapshot.uptime,
             swapUsedBytes: snapshot.swap?.usedBytes ?? 0,
@@ -166,10 +173,10 @@ final class SystemStatsModel: ObservableObject {
             sweepNotified = true
             sweepLastNotifiedAt = now
             Notifier.post(
-                title: NSLocalizedString("Maintenance Sweep disarankan", comment: ""),
+                title: NSLocalizedString("Mac kamu perlu disegarkan", comment: ""),
                 body: String(
                     format: NSLocalizedString(
-                        "Uptime sudah lama dan kondisi memori mulai membebani. Buka Uptime Guardian Respite untuk melihat alasannya dan menjalankan sweep tanpa restart.",
+                        "Mac sudah lama menyala dan memorinya mulai penuh. Buka Respite → Aplikasi Berat untuk menyegarkannya tanpa restart.",
                         comment: ""
                     )
                 )
@@ -189,7 +196,12 @@ final class SystemStatsModel: ObservableObject {
 
     private func refreshCelsiusIfNeeded() {
         // Mesin terkunci: coba ulang tiap 15 tick (jangan spam syscall).
-        if celsiusMissStreak >= 3, celsiusMissStreak % 15 != 0 { return }
+        // Streak tetap naik saat di-skip — kalau nggak, nyangkut di 3 dan
+        // sensor nggak pernah dicek ulang.
+        if celsiusMissStreak >= 3 {
+            celsiusMissStreak += 1
+            if celsiusMissStreak % 15 != 0 { return }
+        }
         if let c = SMCReader.cpuCelsius() {
             cpuCelsius = c
             celsiusMissStreak = 0
@@ -202,27 +214,35 @@ final class SystemStatsModel: ObservableObject {
     private func refresh() {
         // Hemat CPU (profil 2026-09-25: 5.2% rata-rata — layout SwiftUI
         // dominan, bukan pengukuran): kalau TIDAK ADA tampilan yang terlihat
-        // (main window hidden + popover tertutup), jangan buat snapshot baru
-        // — @Published tak berubah → SwiftUI tidak re-render. Tick tetap
-        // jalan (murah); refresh penuh dipicu saat app aktif/panel terbuka.
-        if !anythingVisible {
-            // Watchdog tetap jalan walau hidden (notifikasi runaway tetap
-            // berharga) tapi cukup tiap 15 tick = 30 dtk — deteksinya
-            // berbasis jendela sustain 10 menit, granularitas 2 dtk sia-sia.
+        // (main window hidden + popover tertutup), refresh cuma tiap 15 tick
+        // = 30 dtk. Tetap ambil sample BARU — skor menu bar, watchdog, dan
+        // Uptime Guardian butuh data segar justru saat app di background
+        // (dulu watchdog mengulang data CPU beku → notifikasi runaway palsu).
+        let visible = anythingVisible
+        if !visible {
             hiddenTick += 1
-            if hiddenTick % 15 == 0 {
-                updateWatchdog(now: Date())
-            }
-            return
+            guard hiddenTick % 15 == 0 else { return }
         }
         snapshot = SystemStats.snapshot()
-        ownFootprintBytes = SelfMemory.footprintBytes()
-        battery = BatteryMonitor.read()
-        refreshCelsiusIfNeeded()
-        let cpuSample = CPUConsumers.sample()
-        topCPUGroups = CPUConsumers.groups(from: previousCPUSample, to: cpuSample)
-        previousCPUSample = cpuSample
+        if visible {
+            ownFootprintBytes = SelfMemory.footprintBytes()
+            battery = BatteryMonitor.read()
+            refreshCelsiusIfNeeded()
+        }
+        sampleCPU()
         updateWatchdog(now: Date())
+    }
+
+    private func sampleCPU() {
+        let clock = CPUConsumers.clock()
+        let cpuSample = CPUConsumers.sample()
+        // Normalisasi ke waktu dinding → fraksi satu core (bukan porsi
+        // relatif antar proses, yang bikin Mac idle tampak "sibuk").
+        let wallDelta = clock > previousCPUSampleClock ? clock - previousCPUSampleClock : nil
+        topCPUGroups = CPUConsumers.groups(from: previousCPUSample, to: cpuSample, wallDelta: wallDelta)
+        previousCPUSample = cpuSample
+        previousCPUSampleClock = clock
+
         if let current = CPUSampler.sample() {
             if let previous = previousCPULoad {
                 let instant = CPUSampler.usageFraction(from: previous, to: current)

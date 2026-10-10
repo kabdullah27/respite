@@ -49,7 +49,14 @@ final class BrowserCleanerModel: ObservableObject {
 
     /// true = bersih langsung; false = pratinjau dry-run dulu.
     func requestClean() -> Bool {
-        if UserDefaults.standard.bool(forKey: Self.dryRunKey) {
+        // Consent dry-run pertama biasanya buat cache saja. Cookie/riwayat
+        // (logout semua situs, irreversible secara praktis) selalu lewat
+        // pratinjau — jangan terbawa consent cache.
+        let touchesSensitive = selected.contains {
+            $0.hasSuffix("|\(BrowserDataType.cookies.rawValue)")
+                || $0.hasSuffix("|\(BrowserDataType.history.rawValue)")
+        }
+        if !touchesSensitive, UserDefaults.standard.bool(forKey: Self.dryRunKey) {
             performClean()
             return true
         }

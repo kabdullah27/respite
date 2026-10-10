@@ -110,21 +110,33 @@ public enum UpdateChecker {
     /// Bandingkan dua versi secara numerik per komponen ("1.10.0" > "1.9.2",
     /// "1.0" < "1.0.1"). Komponen non-numerik diabaikan (dianggap 0).
     /// Pure & teruji — jangan sentuh tanpa update test.
+    /// Pre-release ("1.2.0-beta.2") < rilis final dengan inti sama.
     public static func isVersion(_ lhs: String, newerThan rhs: String) -> Bool {
-        let l = components(lhs)
-        let r = components(rhs)
-        let count = max(l.count, r.count)
+        let (lCore, lPre) = split(lhs)
+        let (rCore, rPre) = split(rhs)
+        let count = max(lCore.count, rCore.count)
         for i in 0..<count {
-            let a = i < l.count ? l[i] : 0
-            let b = i < r.count ? r[i] : 0
+            let a = i < lCore.count ? lCore[i] : 0
+            let b = i < rCore.count ? rCore[i] : 0
             if a != b { return a > b }
         }
-        return false
+        switch (lPre, rPre) {
+        case (nil, nil): return false
+        case (nil, _?): return true          // final > pre-release
+        case (_?, nil): return false
+        case let (l?, r?):
+            return l.compare(r, options: .numeric) == .orderedDescending
+        }
     }
 
-    private static func components(_ version: String) -> [Int] {
-        normalize(version)
+    /// Inti numerik + suffix pre-release (tanpa build metadata "+...").
+    /// Dulu "1.2.0-beta.2" dibaca [1,2,0,2] — lebih baru dari 1.2.0.
+    private static func split(_ version: String) -> ([Int], String?) {
+        let withoutBuild = normalize(version).split(separator: "+", maxSplits: 1).first.map(String.init) ?? ""
+        let parts = withoutBuild.split(separator: "-", maxSplits: 1).map(String.init)
+        let core = (parts.first ?? "")
             .split(separator: ".")
             .map { Int($0.prefix(while: \.isNumber)) ?? 0 }
+        return (core, parts.count > 1 ? parts[1] : nil)
     }
 }

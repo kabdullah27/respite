@@ -1,704 +1,640 @@
-/* Respite — English translations.
-   Key = teks Indonesia (source language, PRD §14). Kalau key nggak ada di sini,
-   otomatis fallback ke teks Indonesia. */
+/* Respite — English. Kunci = teks sumber Bahasa Indonesia di kode. Dibuat ulang otomatis; edit nilai, bukan kunci. */
 
-/* Menu bar dropdown */
-"Sehat" = "Healthy";
-"Perlu perhatian" = "Needs attention";
-"Perlu tindakan" = "Action needed";
-"Beban keseluruhan prosesor" = "Total processor load";
-"dari %@ · %@ tersedia" = "of %@ · %@ available";
-"%@ tersedia" = "%@ available";
-"dari total %@" = "of %@ total";
-"Fair — suhu meninggi" = "Fair — running warm";
-"Serious — throttling aktif" = "Serious — throttling active";
+/* App/Sources/MenuBar/MenuBarView.swift */
+"%1$@ dari %2$@ terpakai" = "%1$@ of %2$@ used";
+"%@ masih kosong" = "%@ free";
+"Bersihkan Mac" = "Clean Up Mac";
+"Buka Kenapa Mac Lambat?" = "Open Why Is My Mac Slow?";
+"Dukung pengembangan Respite" = "Support Respite's development";
+"Keluar" = "Quit";
+"Memori" = "Memory";
+"Pengaturan" = "Settings";
+"Penyimpanan" = "Storage";
+"Prosesor" = "Processor";
+"Suhu" = "Temperature";
+
+/* App/Sources/MenuBar/StatusBarController.swift */
+"Dukung Pengembangan" = "Support Development";
+"Keluar dari Respite" = "Quit Respite";
+"Kunci Keyboard" = "Keyboard Lock";
+
+/* App/Sources/MenuBar/SystemStatsModel.swift */
+"%1$@ memakai banyak tenaga prosesor (rata-rata %2$d%%) selama ±%3$d menit. Buka Respite → Aplikasi Berat untuk melihat atau menutupnya." = "%1$@ has been using a lot of processor power (%2$d%% on average) for about %3$d minutes. Open Respite → Heavy Apps to see it or quit it.";
+"Ada aplikasi yang bekerja terlalu keras" = "An app is working too hard";
+"Mac kamu perlu disegarkan" = "Your Mac could use a refresh";
+"Mac sudah lama menyala dan memorinya mulai penuh. Buka Respite → Aplikasi Berat untuk menyegarkannya tanpa restart." = "Your Mac has been on for a long time and its memory is filling up. Open Respite → Heavy Apps to refresh it without restarting.";
+
+/* App/Sources/RespiteApp.swift */
+"Buka Respite" = "Open Respite";
+"Ke Modul" = "Go to Tool";
+"Periksa Pembaruan…" = "Check for Updates…";
+"Tentang Respite" = "About Respite";
+
+/* App/Sources/Utils/UptimeFormat.swift */
 "%d hari %d jam" = "%dd %dh";
 "%d jam" = "%dh";
-"Buka Respite" = "Open Respite";
-"Keluar dari Respite" = "Quit Respite";
 
-/* Sidebar sections */
-"Pembersihan" = "Cleaning";
-"Pemantauan" = "Monitoring";
-
-/* Module titles */
-"File Besar & Lama" = "Large & Old Files";
-"Diagnosis Performa" = "Performance Diagnosis";
-
-/* Module summaries */
-"Pindai cache, log, dan Trash; dikelompokkan per kategori lengkap dengan alasan mengapa aman dihapus." = "Scan caches, logs, and the Trash, grouped by category with an explanation of why they are safe to remove.";
-"Hapus aplikasi beserta sisa datanya di Application Support, Caches, Preferences, dan LaunchAgents." = "Remove apps along with their leftovers in Application Support, Caches, Preferences, and LaunchAgents.";
-"Temukan file besar atau lama yang jarang digunakan, dapat diurutkan berdasarkan ukuran, tanggal, atau tipe." = "Find large or rarely-used old files, sortable by size, date, or type.";
-"Pantau RAM, CPU, dan disk secara langsung dari menu bar dengan aksi pembebas memori." = "Monitor RAM, CPU, and disk live from the menu bar, with a free-up-memory action.";
-"Pantau uptime, tekanan memori, dan swap. Saat kondisi menyerupai penyebab umum restart, tawarkan Maintenance Sweep tanpa reboot." = "Watch uptime, memory pressure, and swap. When conditions resemble the usual reasons people restart, it offers a Maintenance Sweep with no reboot.";
-"Analisis baca-saja untuk menemukan akar kelambanan saat ini, dirangkum singkat dilengkapi Health Score 0–100." = "A read-only analysis that pinpoints the current cause of slowness, summarized briefly with a 0–100 Health Score.";
-"Ketahui apakah kelambanan berasal dari throttling akibat suhu — bukan dari file sampah." = "Find out whether slowness comes from heat throttling — not from junk files.";
-"Bersihkan cache developer: Xcode DerivedData, simulator runtime, CocoaPods/SPM, Docker, Homebrew, dan node_modules." = "Clean developer caches: Xcode DerivedData, simulator runtimes, CocoaPods/SPM, Docker, Homebrew, and node_modules.";
-
-/* Dashboard */
-"Pilih modul dari daftar" = "Choose a module from the list";
-"Semua yang ditampilkan Respite bersifat baca-saja sampai seluruh safety guardrail aktif." = "Everything Respite displays is read-only until all safety guardrails are active.";
-"Sekarang" = "Current status";
-"Memori terpakai" = "Memory in use";
-"Tersedia" = "Available";
-"Disk tersedia" = "Disk available";
-"%d%% dipakai" = "%d%% in use";
-"mengukur…" = "measuring…";
-"Faktor penyusun" = "Contributing factors";
-"dari 100" = "of 100";
-"Nominal — tanpa throttling" = "Nominal — no throttling";
-"Semua indikator utama dalam kondisi baik." = "All key indicators are healthy.";
-"Satu atau lebih indikator mulai mendekati batas wajar. Periksa faktor penyusun di bawah." = "One or more indicators are approaching reasonable limits. See the contributing factors below.";
-"Beberapa indikator berada di tingkat kritis. Periksa faktor penyusun — biasanya satu tindakan cukup untuk memperbaikinya." = "Several indicators are at a critical level. Check the contributing factors — usually one action is enough to fix it.";
-"Bobot skor: memori 40%, disk 30%, thermal 30% — input CPU & I/O menyusul." = "Score weights: memory 40%, disk 30%, thermal 30% — CPU & I/O inputs land next.";
-"Segera tersedia" = "Coming soon";
-"dari %@" = "of %@";
-"%@ dipakai" = "%@ in use";
-"Nominal" = "Nominal";
-
-/* Smart Scan */
-"Mulai Pindai" = "Start Scan";
-"Batalkan" = "Cancel";
-"Memindai…" = "Scanning…";
-"Cache" = "Caches";
-"Log" = "Logs";
-"Trash" = "Trash";
-"Cache aman dibuat ulang oleh aplikasi pemiliknya." = "Caches are safely rebuilt by the app that owns them.";
-"Log lama hanya berguna untuk investigasi masalah yang sudah lewat." = "Old logs are only useful for investigating issues that have already passed.";
-"Sudah berada di Trash — menunggu dikosongkan." = "Already in the Trash — waiting to be emptied.";
-"Baru" = "New";
-"Bersihkan yang dipilih" = "Clean Selected";
-"%@ terpilih" = "%@ selected";
-"Pratinjau sebelum membersihkan" = "Preview before cleaning";
-"Dry-run: %d item (%@) akan dipindah ke Trash dan bisa dikembalikan dari sana." = "Dry run: %d items (%@) will be moved to the Trash, where you can restore them.";
-"Lanjutkan" = "Proceed";
-"Batal" = "Cancel";
-"%@ berhasil dibersihkan" = "%@ cleaned";
-"%d item gagal dibersihkan" = "%d items could not be cleaned";
-"Pindai Ulang" = "Scan Again";
-
-/* Increment 3 */
-"Keluar" = "Quit";
-"Temuan" = "Findings";
-"Bobot skor: memori 30%, disk 25%, thermal 25%, CPU 20%." = "Score weights: memory 30%, disk 25%, thermal 25%, CPU 20%.";
-"Suhu tinggi terdeteksi — macOS sedang menurunkan performa (throttling) untuk mendinginkan sistem." = "High temperature detected — macOS is throttling performance to cool the system down.";
-"Suhu mulai meninggi. Tutup aplikasi berat dan pastikan ventilasi tidak tertutup." = "Temperature is rising. Close heavy apps and make sure ventilation is unobstructed.";
-"Beban CPU %d%% — ada proses berat yang sedang berjalan; hentikan atau tutup jika tidak diperlukan." = "CPU load at %d%% — a heavy process is running; stop or close it if it's not needed.";
-"Memori terpakai %d%% — tutup aplikasi yang tidak digunakan untuk meredakan tekanan memori." = "Memory at %d%% in use — close unused apps to relieve memory pressure.";
-"Ruang disk tersisa %d%% — ruang yang sangat terbatas mulai memengaruhi performa." = "Only %d%% disk space left — critically low space is starting to affect performance.";
-"Tidak ditemukan penyebab kelambanan saat ini. Sistem dalam kondisi baik." = "No cause of slowness found right now. The system is in good shape.";
-
-/* Scan progress */
-"Menunggu" = "Waiting";
-"%d item · %@" = "%d items · %@";
-"Tidak ada" = "None";
-
-/* Clean trust */
-"Dipindah ke Trash — bisa dipulihkan dari Finder kapan saja." = "Moved to the Trash — restorable from Finder at any time.";
-"Folder sistem dan dokumen pribadi tidak pernah disentuh oleh aksi ini." = "System folders and personal documents are never touched by this action.";
-"Buka Trash" = "Open Trash";
-"Semua item masih bisa dipulihkan dari Trash." = "All items can still be restored from the Trash.";
-
-/* Score transparency */
-"Skor: memori 30% · disk 25% · thermal 25% · CPU 20%" = "Score: memory 30% · disk 25% · thermal 25% · CPU 20%";
-"bobot %d%%" = "weight %d%%";
-"Buka Diagnosis Performa" = "Open Performance Diagnosis";
-
-/* Donation (tombol permanen, tanpa popup) */
+/* App/Sources/Windows/AboutView.swift */
 "Dukung Respite" = "Support Respite";
-"Dukung pengembangan Respite" = "Support Respite's development";
-"Dukung Pengembangan" = "Support Development";
-"Buka halaman donasi" = "Opens the donation page";
+"Pembersih Mac yang tenang — lokal & privat." = "A calm Mac cleaner — local & private.";
+"Respite" = "Respite";
+"Semua proses berjalan di Mac kamu. Tanpa telemetri, tanpa langganan, tanpa fitur terkunci." = "Everything runs on your Mac. No tracking, no subscription, no locked features.";
+"Versi %@ (build %@)" = "Version %@ (build %@)";
 
-/* Settings */
-"Umum" = "General";
-"Bahasa" = "Language";
-"Ikut Sistem" = "Follow System";
-"Efektif setelah aplikasi dibuka ulang." = "Takes effect after relaunching the app.";
-"Masa Recency Guard" = "Recency Guard window";
-"%d hari" = "%d days";
-"Item yang disentuh dalam %d hari terakhir tidak tercentang secara bawaan." = "Items touched in the last %d days are unchecked by default.";
-"Folder yang dikecualikan dari hasil scan." = "Folders excluded from scan results.";
-"Whitelist tidak dapat mengubah Protected List — folder sistem dan dokumen pribadi tetap terlindungi." = "The whitelist cannot override the Protected List — system folders and personal documents stay protected.";
-"Belum ada pengecualian" = "No exclusions yet";
-"Tambahkan folder yang tidak ingin discan, misalnya disk image yang selalu ter-mount." = "Add a folder you don't want scanned, e.g. a disk image that stays mounted.";
-"Hapus" = "Remove";
-"Tambah Folder…" = "Add Folder…";
-"Pilih folder yang tidak ingin dimasukkan ke hasil scan Respite." = "Choose a folder to exclude from Respite scan results.";
+/* App/Sources/Windows/DashboardView.swift */
+"Bayar Sekali" = "Pay Once";
+"Bayar sekali, sesukamu" = "Pay once, whatever you like";
+"Belum diizinkan — beberapa folder dilewati" = "Not allowed yet — some folders are skipped";
+"Buka Pengaturan Sistem untuk memberi izin" = "Open System Settings to give access";
+"Diizinkan — semua folder bisa diperiksa" = "Allowed — all folders can be checked";
+"Hentikan" = "Stop";
+"Izin akses file" = "File access";
+"Kalau Respite membantu, dukung pengembangannya satu kali dengan nominal berapa pun." = "If Respite helps you, support its development once with any amount you like.";
+"Masih mencari di:" = "Still looking in:";
+"Mencari file besar — %d file · %@" = "Looking for large files — %d files · %@";
+"Periksa ulang status akses" = "Check access again";
+"Pilih alat dari menu di kiri" = "Pick a tool from the menu on the left";
+"Respite gratis. Selamanya." = "Respite is free. Forever.";
+"Segera tersedia" = "Coming soon";
+"Sekali bayar bukan langganan — tidak ada tagihan berulang, tidak ada data pembayaran yang disimpan Respite." = "A one-time payment, not a subscription — no recurring charges, and Respite doesn't store any payment details.";
+"Status tidak dapat ditentukan" = "Status unknown";
+"Sudah diizinkan? Buka ulang Respite." = "Already allowed? Reopen Respite.";
+"Tanpa langganan, tanpa fitur terkunci, tanpa iklan, tanpa telemetri — semua proses berjalan di Mac kamu." = "No subscription, no locked features, no ads, no tracking — everything runs on your Mac.";
+"Tidak ada yang dihapus tanpa persetujuanmu." = "Nothing is deleted without your OK.";
 
-/* Uptime Guardian */
-"Swap" = "Swap";
-"Memori tersedia" = "Memory available";
-"sejak terakhir restart, termasuk waktu sleep" = "since the last restart, sleep time included";
-"free + inactive dari total RAM" = "free + inactive of total RAM";
-"dari kapasitas swap %@" = "of %@ swap capacity";
-"Kondisi belum memerlukan Maintenance Sweep." = "Conditions don't call for a Maintenance Sweep yet.";
-"Maintenance Sweep disarankan" = "Maintenance Sweep recommended";
-"Uptime sudah mencapai %d hari" = "Uptime has reached %d days";
-"Pemakaian swap tinggi (%@)" = "High swap usage (%@)";
-"Memori tersedia tinggal %d%%" = "Only %d%% memory available";
-"Jalankan Maintenance Sweep" = "Run Maintenance Sweep";
-"Sedang menjalankan…" = "Running…";
-"Konfirmasi Maintenance Sweep" = "Confirm Maintenance Sweep";
-"Finder dan Dock akan direstart — keduanya hilang sebentar (±2 detik) lalu kembali sendiri. Tidak ada data yang hilang." = "Finder and Dock will be restarted — they disappear briefly (~2 seconds) then come back on their own. No data is lost.";
-"Maintenance Sweep selesai — Finder & Dock sudah direstart." = "Maintenance Sweep done — Finder & Dock have been restarted.";
-"Step gagal: %@" = "Failed steps: %@";
-"Versi ini hanya menjalankan langkah tanpa privilege. Langkah sistem-level (purge memori, periodic scripts) akan menyusul bersama privileged helper." = "This version only runs non-privileged steps. System-level steps (memory purge, periodic scripts) will follow with the privileged helper.";
+/* App/Sources/Windows/KeyboardLock.swift */
+"Keyboard Terkunci" = "Keyboard Locked";
+"Keyboard terbuka kembali" = "Keyboard unlocked";
+"Respite tetap jalan di belakang — membersihkan layar sekarang aman." = "Respite keeps running in the background — it's safe to wipe the screen now.";
+"Tahan 1 detik untuk membuka kunci keyboard" = "Hold for 1 second to unlock the keyboard";
+"Tahan untuk Buka Kunci" = "Hold to Unlock";
+"Timer habis — keyboard berfungsi normal lagi." = "Time's up — your keyboard works normally again.";
+"Trackpad & mouse tetap berfungsi. Semua ketukan keyboard ditahan selama layar ini aktif." = "Your trackpad and mouse still work. All key presses are blocked while this screen is showing.";
+"atau tekan ⌘⌥L — pintasan darurat yang tetap jalan saat terkunci" = "or press ⌘⌥L — an emergency shortcut that works even while locked";
+"terbuka otomatis dalam %d:%02d" = "unlocks automatically in %d:%02d";
+"terkunci %d:%02d" = "locked %d:%02d";
 
-/* Large & Old Files */
-"Terbesar" = "Largest";
-"Terlama" = "Oldest";
-"Minimal" = "Minimum";
-"Urut" = "Sort";
-"Folder pribadi (Documents, Desktop, Keychain, Mail, Messages, Photos) tidak ikut discan — itu batas keras Protected List." = "Personal folders (Documents, Desktop, Keychain, Mail, Messages, Photos) are not scanned — that's a hard Protected List boundary.";
-"Klik dua kali untuk pratinjau. Klik kanan untuk menampilkan di Finder." = "Double-click to preview. Right-click to reveal in Finder.";
-"Pratinjau" = "Preview";
-"Tampilkan di Finder" = "Reveal in Finder";
-"Dry-run: %d file (%@) akan dipindah ke Trash dan bisa dikembalikan dari sana." = "Dry run: %d files (%@) will be moved to the Trash, where you can restore them.";
+/* App/Sources/Windows/Module.swift */
+"Aplikasi Berat" = "Heavy Apps";
+"Aplikasi Saat Login" = "Login Apps";
+"Atur Mac menyala saat dibuka." = "Choose whether your Mac turns on when opened.";
+"Atur Respite sesuai keinginanmu." = "Set up Respite the way you like.";
+"Atur apakah Mac langsung menyala saat layarnya dibuka." = "Choose whether your Mac turns on right away when you open the lid.";
+"Atur aplikasi yang jalan saat login." = "Manage apps that open at login.";
+"Atur aplikasi yang otomatis berjalan saat kamu masuk ke Mac." = "Manage the apps that open automatically when you log in to your Mac.";
+"Atur bahasa, pengecualian, riwayat, dan pembaruan Respite." = "Set Respite's language, exclusions, history, and updates.";
+"Baterai" = "Battery";
+"Beranda" = "Home";
+"Bersihkan Cepat" = "Quick Clean";
+"Bersihkan cache dan riwayat browser." = "Clear browser cache and history.";
+"Bersihkan file build untuk programmer." = "Clean up build files for programmers.";
+"Buang file sementara yang aman dihapus." = "Remove temporary files that are safe to delete.";
+"Cache Developer" = "Developer Cache";
+"Cari file besar yang sudah lama tidak kamu buka." = "Find large files you haven't opened in a long time.";
+"Cari file yang sama persis tapi tersimpan lebih dari sekali." = "Find identical files that are saved more than once.";
+"Cari foto yang hampir sama, misalnya hasil jepret beruntun atau hasil edit." = "Find photos that look almost the same, like burst shots or edited copies.";
+"Cari tahu penyebab Mac lambat." = "Find out why your Mac is slow.";
+"Cek apakah Mac kepanasan." = "Check if your Mac is overheating.";
+"Cek apakah Mac terlalu panas sehingga sengaja diperlambat." = "Check if your Mac is so hot that it's being slowed down on purpose.";
+"Cek kesehatan baterai." = "Check your battery's health.";
+"Cek kondisi baterai: sisa kapasitas dan berapa kali sudah diisi ulang." = "Check your battery's condition: how much capacity is left and how many times it's been charged.";
+"Data Browser" = "Browser Data";
+"Dukung pengembangan Respite." = "Support Respite's development.";
+"File Besar" = "Large Files";
+"File Ganda" = "Duplicate Files";
+"Foto Mirip" = "Similar Photos";
+"Hapus Aplikasi" = "Uninstall Apps";
+"Hapus Permanen" = "Delete Permanently";
+"Hapus aplikasi sampai bersih, termasuk file sisa yang biasanya tertinggal." = "Remove apps completely, including the leftover files that usually stay behind.";
+"Hapus aplikasi sampai ke sisa-sisanya." = "Remove apps and everything they leave behind.";
+"Hapus cache, riwayat, atau cookie browser kamu." = "Clear your browser's cache, history, or cookies.";
+"Hapus file rahasia selamanya." = "Delete private files forever.";
+"Hapus file rahasia tanpa lewat Trash. Hati-hati: tidak bisa dibatalkan." = "Delete private files without going through the Trash. Careful: this can't be undone.";
+"Hapus file sementara (cache dan log) yang aman dibuang. Aplikasi akan membuatnya lagi saat perlu." = "Delete temporary files (caches and logs) that are safe to remove. Apps will make them again when needed.";
+"Kenapa Mac Lambat?" = "Why Is My Mac Slow?";
+"Kondisi Mac kamu dan cara cepat membersihkannya." = "How your Mac is doing, and a quick way to clean it up.";
+"Kunci keyboard saat dibersihkan." = "Lock the keyboard while you clean it.";
+"Lihat apa yang membuat Mac lambat sekarang, dijelaskan dengan bahasa sederhana." = "See what's slowing your Mac down right now, explained in plain words.";
+"Lihat aplikasi yang paling banyak memakai memori dan tenaga prosesor, lalu tutup bila perlu." = "See which apps use the most memory and processor power, and quit them if needed.";
+"Lihat dan tutup aplikasi yang berat." = "See and quit heavy apps.";
+"Matikan keyboard sebentar supaya aman saat dilap atau dibersihkan." = "Turn off the keyboard for a moment so it's safe to wipe or clean.";
+"Nyala Saat Dibuka" = "Power On Lid Open";
+"Respite gratis tanpa fitur terkunci. Donasi membantu pengembangannya." = "Respite is free with no locked features. Donations help keep it going.";
+"Suhu Mac" = "Mac Temperature";
+"Temukan file besar yang jarang dibuka." = "Find large files you rarely open.";
+"Temukan file yang tersimpan dua kali." = "Find files that are saved twice.";
+"Temukan foto yang hampir sama." = "Find photos that look almost the same.";
+"Untuk programmer: hapus file build dan unduhan dari Xcode, Homebrew, node_modules, dan sejenisnya." = "For programmers: delete build files and downloads from Xcode, Homebrew, node_modules, and similar tools.";
 
-/* Swap & top processes */
-"Kenapa swap bisa besar?" = "Why can swap grow so large?";
-"Saat RAM mulai sempit, macOS memindahkan halaman memori yang jarang dipakai ke disk — itulah swap." = "When RAM gets tight, macOS moves rarely-used memory pages to disk — that's swap.";
-"Swap tidak otomatis turun setelah memorinya lega — ruangnya tetap terpakai sampai halaman benar-benar tidak dibutuhkan lagi." = "Swap doesn't automatically shrink after memory frees up — the space stays used until the pages are truly no longer needed.";
-"Cara paling aman mengosongkannya: tutup aplikasi pemakan memori di bawah, atau restart Mac. Penghapusan swapfile manual adalah langkah berisiko yang sengaja tidak disediakan di sini." = "The safest way to clear it: close the memory-hungry apps below, or restart your Mac. Manually deleting swapfiles is a risky step deliberately not offered here.";
-"Pemakai memori terbesar" = "Largest memory consumers";
-"Segarkan" = "Refresh";
-"Memuat…" = "Loading…";
-"Tidak ada proses dengan memori di atas 100 MB." = "No processes using more than 100 MB of memory.";
-"Proses-proses ini penyumbang tekanan memori terbesar — penyebab utama swap bertambah. Atribusi swap per-proses tidak tersedia di API publik macOS." = "These processes contribute the most memory pressure — the main reason swap grows. Per-process swap attribution isn't available in public macOS APIs.";
-
-/* App Uninstaller */
+/* App/Sources/Windows/Modules/AppUninstallerView.swift */
+"\"Pasti milik aplikasi ini\" = nama filenya cocok persis dengan ID aplikasi. \"Mungkin milik aplikasi ini\" = hanya cocok dari nama aplikasi, jadi periksa dulu sebelum ikut dihapus." = "\"Definitely belongs to this app\" = the file name exactly matches the app's ID. \"Might belong to this app\" = it only matches the app's name, so check it before deleting it too.";
+"%@ dan %d file sisanya akan dipindahkan ke Trash." = "%@ and %d leftover files will be moved to the Trash.";
+"%@ sudah dipindahkan ke Trash" = "%@ was moved to the Trash";
+"%@ tidak bisa dihapus" = "%@ couldn't be removed";
+"%d aplikasi terpasang" = "%d apps installed";
+"%d item ditemukan · %@" = "%d items found · %@";
+"Aplikasi ini + %d file sisa · %@" = "This app + %d leftover files · %@";
+"Aplikasi ini mungkin dilindungi sistem atau sedang dibuka. Tutup aplikasinya lalu coba lagi." = "This app may be protected by the system or still open. Quit the app and try again.";
+"Aplikasinya selalu ikut dihapus. Centang file sisa yang mau ikut dibuang." = "The app itself is always removed. Check the leftover files you also want to remove.";
+"Aplikasinya — selalu ikut dihapus" = "The app itself — always removed";
+"Biasanya hanya beberapa detik." = "This usually takes just a few seconds.";
 "Cari aplikasi…" = "Search apps…";
+"File ini milik aplikasi yang sudah tidak terpasang. Kalau ragu, biarkan tidak dicentang." = "This file belongs to an app that's no longer installed. If you're not sure, leave it unchecked.";
+"ID aplikasi (bundle ID): %@" = "App ID (bundle ID): %@";
+"Kembali ke daftar" = "Back to list";
+"Klik aplikasi yang ingin kamu hapus. File sisanya akan dicarikan sekalian." = "Click the app you want to remove. Respite will find its leftover files too.";
+"Lokasi: %@" = "Location: %@";
 "Memuat aplikasi…" = "Loading apps…";
 "Memuat… %d aplikasi" = "Loading… %d apps";
+"Mencari file sisa…" = "Looking for leftover files…";
+"Mencari file yang ditinggalkan aplikasi yang sudah tidak ada di Mac kamu." = "Looking for files left behind by apps that are no longer on your Mac.";
+"Mencari sisa aplikasi lama…" = "Looking for leftovers from old apps…";
+"Mungkin milik aplikasi ini" = "Might belong to this app";
+"Nama (A–Z)" = "Name (A–Z)";
+"Pasti milik aplikasi ini" = "Definitely belongs to this app";
+"Periksa dulu" = "Check first";
+"Sedang menghitung ukuran tiap aplikasi." = "Figuring out the size of each app.";
+"Sisa aplikasi lama · %@" = "Leftovers from old apps · %@";
+"Sisa dari aplikasi yang sudah dihapus" = "Leftovers from removed apps";
 "Tidak ada aplikasi yang cocok." = "No matching apps.";
-"Aplikasi sistem Apple dan Respite sendiri tidak ditawarkan untuk di-uninstall." = "Apple system apps and Respite itself are never offered for uninstall.";
-"Sisa data yang ditemukan" = "Leftover data found";
-"Perkiraan" = "Probable";
-"Dicocokkan dari bundle ID aplikasi. Item berlabel Perkiraan dicocokkan dari nama dan perlu diperiksa dulu sebelum ikut dihapus." = "Matched by the app's bundle ID. Items labeled Probable are matched by name — review them before including.";
-"Aplikasi (%@) — selalu ikut dihapus" = "App (%@) — always removed";
-"Memuat sisa data…" = "Scanning leftovers…";
-"Tidak ada sisa data yang ditemukan." = "No leftover data found.";
-"Uninstall %@" = "Uninstall %@";
-"Konfirmasi uninstall" = "Confirm uninstall";
-"%@ beserta %d item sisa data (%@) akan dipindah ke Trash — bisa dikembalikan dari sana." = "%@ along with %d leftover items (%@) will be moved to the Trash — restorable from there.";
-"%@ berhasil di-uninstall" = "%@ uninstalled";
-"Kembali ke daftar" = "Back to list";
+"Tidak ada file sisa — hanya aplikasinya yang akan dihapus." = "No leftover files — only the app itself will be removed.";
+"Tidak ada sisa dari aplikasi yang sudah dihapus." = "No leftovers from removed apps.";
+"Yang tidak yakin milik siapa tidak dicentang otomatis." = "Files we're not sure about aren't checked automatically.";
 
-/* Donation module */
-"Dukungan" = "Support";
-
-/* Kill process */
-"Hentikan" = "Stop";
-"Hentikan proses" = "Stop process";
-"%@ (PID %d) akan diminta berhenti dengan sinyal penghentian yang sopan (SIGTERM) — aplikasi sempat menyimpan pekerjaan. Pekerjaan yang belum disimpan bisa hilang. Proses milik sistem tidak dapat dihentikan tanpa privilege." = "%@ (PID %d) will be asked to stop with a graceful termination signal (SIGTERM) — the app gets a chance to save its work. Unsaved work may be lost. System-owned processes cannot be stopped without privileges.";
-"Sinyal penghentian dikirim ke %@." = "Termination signal sent to %@.";
-"%@ adalah proses kritis sistem dan tidak dapat dihentikan." = "%@ is a critical system process and cannot be stopped.";
-"Gagal menghentikan %@: %@" = "Failed to stop %@: %@";
-"%d proses" = "%d processes";
-"%@ (%d proses) akan diminta berhenti dengan sinyal penghentian yang sopan (SIGTERM) — aplikasi sempat menyimpan pekerjaan. Pekerjaan yang belum disimpan bisa hilang. Proses milik sistem tidak dapat dihentikan tanpa privilege." = "%@ (%d processes) will be asked to stop with a graceful termination signal (SIGTERM) — apps get a chance to save their work. Unsaved work may be lost. System-owned processes cannot be stopped without privileges.";
-"Sinyal penghentian dikirim ke %d proses %@." = "Termination signal sent to %d %@ processes.";
-"Gagal menghentikan %@: %d dari %d proses berhasil." = "Failed to stop %@: %d of %d processes were stopped.";
-"Tidak ada proses dengan memori cukup besar untuk ditampilkan." = "No processes using enough memory to display.";
-"Proses-proses ini penyumbang tekanan memori terbesar — penyebab utama swap bertambah. Proses dengan nama sama digabung jadi satu baris. Atribusi swap per-proses tidak tersedia di API publik macOS." = "These processes contribute the most memory pressure — the main reason swap grows. Same-named processes are merged into one row. Per-process swap attribution isn't available in public macOS APIs.";
-
-/* Self memory */
-"Jejak memori Respite sendiri" = "Respite's own memory footprint";
-"Angka yang sama dengan kolom Memory di Activity Monitor. Target kami: tetap jauh lebih ringan dari aplikasi yang dibersihkannya." = "The same number shown in Activity Monitor's Memory column. Our target: stay far lighter than the apps it cleans.";
-
-/* Developer Cache Cleanup */
-"Tool terdeteksi" = "Detected tools";
-"Sub-modul hanya ditawarkan untuk tool yang benar-benar terpasang." = "Sub-modules are only offered for tools actually installed.";
-"Tambah folder project untuk node_modules…" = "Add project folder for node_modules…";
-"%d folder dipilih" = "%d folders selected";
-"Pilih folder tempat project JavaScript/TypeScript kamu berada — Respite mencari node_modules di dalamnya (maksimal 4 level)." = "Choose the folder holding your JavaScript/TypeScript projects — Respite searches for node_modules inside it (up to 4 levels deep).";
-"Docker terdeteksi tapi pembersihannya lewat CLI docker menyusul bersama gate eksekusi command — target di atas semuanya berbasis file, aman dipindah ke Trash dan akan dibuat ulang otomatis saat dibutuhkan." = "Docker is detected, but its cleanup via the docker CLI will follow along with command-execution gating — the targets above are all file-based, safe to move to the Trash and rebuilt automatically when needed.";
-"Dry-run: %d item (%@) akan dipindah ke Trash — DerivedData, cache, dan node_modules akan dibuat ulang otomatis saat dibutuhkan." = "Dry run: %d items (%@) will be moved to the Trash — DerivedData, caches, and node_modules are rebuilt automatically when needed.";
-"Hasil build Xcode — dibuat ulang otomatis saat build berikutnya." = "Xcode build output — rebuilt automatically on the next build.";
-"Arsip build lama — pastikan tidak ada yang masih perlu di-submit." = "Old build archives — make sure none still need to be submitted.";
-"Cache CocoaPods — pod akan diunduh ulang saat dibutuhkan." = "CocoaPods cache — pods are re-downloaded when needed.";
-"Cache Swift Package Manager — diunduh ulang otomatis." = "Swift Package Manager cache — re-downloaded automatically.";
-"Cache unduhan Homebrew — aman dihapus, brew mengunduh ulang bila perlu." = "Homebrew download cache — safe to remove; brew re-downloads when needed.";
-"Dependensi Node — install ulang dengan npm/pnpm/yarn bila project dipakai lagi." = "Node dependencies — reinstall with npm/pnpm/yarn when the project is used again.";
-"Xcode DerivedData" = "Xcode DerivedData";
-"Arsip Xcode" = "Xcode Archives";
-"Cache CocoaPods" = "CocoaPods Cache";
-"Cache Swift Package Manager" = "Swift Package Manager Cache";
-"Cache Homebrew" = "Homebrew Cache";
-"Cache Composer (PHP)" = "Composer Cache (PHP)";
-"Cache build Go" = "Go Build Cache";
-"Cache modul Go" = "Go Module Cache";
-"Registry Cargo (Rust)" = "Cargo Registry (Rust)";
-"Dependensi git Cargo" = "Cargo Git Dependencies";
-"Cache paket Composer — diunduh ulang otomatis saat composer install." = "Composer package cache — re-downloaded automatically on composer install.";
-"Cache build Go — dikompilasi ulang otomatis saat build berikutnya." = "Go build cache — recompiled automatically on the next build.";
-"Cache modul Go (bisa berukuran GB) — modul diunduh ulang saat dibutuhkan." = "Go module cache (can be GB-sized) — modules re-download when needed.";
-"Registry crate Cargo — diunduh ulang saat dibutuhkan. ~/.cargo/bin (toolchain) tidak pernah disentuh." = "Cargo crate registry — re-downloaded when needed. ~/.cargo/bin (toolchain) is never touched.";
-"Dependensi git Cargo — di-clone ulang saat dibutuhkan." = "Cargo git dependencies — re-cloned when needed.";
-
-/* Ekspor riwayat */
-"Ekspor Riwayat…" = "Export History…";
-
-/* Onboarding */
-"Kembali" = "Back";
-"Lanjut" = "Next";
-"Mulai menggunakan Respite" = "Start using Respite";
-"Pindai cache, file besar, sisa aplikasi, dan cache developer — lengkap dengan alasan kenapa aman dihapus." = "Scan caches, large files, app leftovers, and developer caches — each with an explanation of why it's safe to remove.";
-"Diagnosis kenapa Mac lambat saat ini — dari data sungguhan, bukan angka menakut-nakuti." = "Diagnose why your Mac is slow right now — from real data, not scary numbers.";
-"Semua penghapusan pergi ke Trash dan bisa dibatalkan — bukan dihapus permanen." = "Every deletion goes to the Trash and can be undone — never deleted permanently.";
-"Respite membutuhkan Akses Disk Penuh untuk memindai ~/Library/Caches, Trash, dan sisa data aplikasi secara utuh. Tanpa itu, sebagian hasil pindai bisa kosong." = "Respite needs Full Disk Access to fully scan ~/Library/Caches, the Trash, and app leftovers. Without it, some scan results may be empty.";
-"Akses Disk Penuh aktif" = "Full Disk Access is enabled";
-"Akses Disk Penuh belum aktif" = "Full Disk Access is not enabled yet";
-"Status tidak dapat dipastikan" = "Status cannot be determined";
-"Periksa ulang" = "Check again";
-"Buka Pengaturan Privasi" = "Open Privacy Settings";
-"Aktifkan Respite di daftar Akses Disk Penuh, lalu kembali ke sini. Bisa juga nanti lewat Pengaturan sistem — sebagian fitur tetap berfungsi." = "Enable Respite in the Full Disk Access list, then come back here. You can also do it later via System Settings — some features still work without it.";
-"Tanpa telemetri — tidak ada data yang dikirim ke mana pun. Satu-satunya permintaan jaringan (nanti) hanya pemeriksaan pembaruan." = "No telemetry — nothing is ever sent anywhere. The only network request (later) is the update check.";
-"Semua proses berjalan lokal di Mac kamu." = "Everything runs locally on your Mac.";
-"Folder pribadi (Documents, Desktop, Keychain, Mail) tidak pernah masuk pemindaian — batas keras yang tidak bisa dimatikan." = "Personal folders (Documents, Desktop, Keychain, Mail) are never scanned — a hard limit that cannot be turned off.";
-
-/* Riwayat (ledger viewer) */
-"Riwayat" = "History";
-"Setiap aksi pembersihan tercatat sebelum dieksekusi — untuk audit dan pemulihan." = "Every cleaning action is recorded before execution — for audit and recovery.";
-"Menghapus riwayat tidak memengaruhi file yang sudah ada di Trash." = "Clearing history doesn't affect files already in the Trash.";
-"Belum ada riwayat." = "No history yet.";
-"Aksi pembersihan, penghentian proses, dan Maintenance Sweep akan tercatat di sini." = "Cleaning actions, process stops, and Maintenance Sweeps will be recorded here.";
-"%d entri" = "%d entries";
-"Hapus Riwayat" = "Clear History";
-"Hapus semua riwayat aksi?" = "Clear all action history?";
-"Riwayat adalah jejak audit aksi yang sudah dilakukan. File di Trash tidak terpengaruh." = "History is an audit trail of actions already performed. Files in the Trash are unaffected.";
-"Pindah ke Trash" = "Moved to Trash";
-"Hentikan proses" = "Stopped process";
-"Restart proses" = "Restarted process";
-
-/* Thermal */
-"Status thermal" = "Thermal status";
-"Batas kecepatan CPU" = "CPU speed limit";
-"%d%%" = "%d%%";
-"Tidak ada throttling — performa CPU berjalan penuh." = "No throttling — the CPU is running at full speed.";
-"Sistem sedang menurunkan kecepatan CPU karena suhu. Tutup aplikasi berat dan pastikan ventilasi tidak tertutup — kelambanan saat ini berasal dari panas, bukan dari file sampah." = "The system is reducing CPU speed due to heat. Close heavy apps and keep ventilation unobstructed — the current slowness comes from heat, not junk files.";
-"Sumber: ProcessInfo.thermalState dan pmset -g therm (CPU_Speed_Limit). 100% berarti tidak ada throttling. Modul ini sepenuhnya baca-saja." = "Sources: ProcessInfo.thermalState and pmset -g therm (CPU_Speed_Limit). 100% means no throttling. This module is fully read-only.";
-"Status thermal dari sistem menyebut Fair, tetapi batas kecepatan CPU masih 100% — tidak ada penalti performa nyata saat ini. Nilai thermalState kadang tertinggal setelah Mac bangun dari sleep; Respite memeriksanya ulang setiap 2 detik dan setiap kali Mac bangun." = "The system reports a Fair thermal status, but the CPU speed limit is still 100% — no real performance penalty right now. thermalState can lag after waking from sleep; Respite re-checks it every 2 seconds and on every wake.";
-"Memindai file besar — %d file · %@" = "Scanning large files — %d files · %@";
-"Hentikan pemindaian" = "Stop scanning";
-
-/* Integrasi */
-"Integrasi" = "Integrations";
-"Pemicu cepat dari Raycast atau Alfred lewat skema URL respite:// — Respite harus sedang berjalan. Semua aksi hanya membuka modul terkait, tidak ada yang dieksekusi otomatis." = "Quick triggers from Raycast or Alfred via the respite:// URL scheme — Respite must be running. Every action only opens the related module; nothing is executed automatically.";
-"Buka Folder Skrip" = "Open Scripts Folder";
-"Folder berisi skrip Raycast siap pakai dan petunjuk Alfred (Workflow: Keyword → Open URL)." = "The folder contains ready-to-use Raycast scripts and Alfred instructions (Workflow: Keyword → Open URL).";
-
-/* Trash Manager */
-"Kelola Trash" = "Trash Manager";
-"Lihat isi Trash, kelola ukurannya, dan hapus permanen yang sudah tidak diperlukan — dengan konfirmasi berlapis." = "See what's in the Trash, manage its size, and permanently delete what's no longer needed — with layered confirmation.";
-"Trash kosong" = "Trash is empty";
-"Tidak ada yang perlu dikelola — file yang dibersihkan Respite juga masuk ke sini dulu." = "Nothing to manage — files cleaned by Respite land here first, too.";
-"Pilih >30 hari (%d)" = "Select >30 days old (%d)";
-"Hapus permanen (%d)" = "Delete permanently (%d)";
-"Hapus permanen dari Trash?" = "Delete permanently from the Trash?";
-"%d item (%@) akan dihapus selamanya — melewati Trash, TIDAK BISA DIBATALKAN dengan cara apa pun. Kalau masih ragu, batalkan dan kelola lewat Finder." = "%d items (%@) will be deleted forever — bypassing the Trash, CANNOT BE UNDONE by any means. If unsure, cancel and manage via Finder.";
-"Ketik \"hapus\" untuk mengonfirmasi" = "Type \"hapus\" to confirm";
-"Hapus Permanen" = "Delete Permanently";
-"%@ dihapus permanen" = "%@ deleted permanently";
-"Mengembalikan item (Put Back) adalah fitur Finder — klik kanan item lalu pilih Tampilkan di Finder untuk menariknya kembali secara manual. Info asal-usulnya disimpan proprietary oleh Finder dan tidak bisa dibaca aplikasi lain." = "Restoring items (Put Back) is a Finder feature — right-click an item and choose Reveal in Finder to drag it back manually. Origin information is stored proprietary by Finder and cannot be read by other apps.";
-
-/* CPU consumers */
-"Pemakai memori terbesar" = "Largest memory consumers";
-"Beban CPU per proses, dihitung dari delta waktu CPU antar pembaruan (metrik yang sama dengan Activity Monitor), diperbarui otomatis tiap 2 detik. Status \"Not Responding\" hanya bisa dibaca lewat API privat — app yang macet justru turun ke 0%." = "CPU load per process, computed from CPU-time deltas between updates (the same metric Activity Monitor uses), refreshed automatically every 2 seconds. \"Not Responding\" status can only be read via private APIs — a fully hung app actually drops to 0%.";
-"Beban CPU seimbang — tidak ada proses dominan." = "CPU load is balanced — no dominant process.";
-
-/* Shredder */
-"Hapus permanen untuk file yang benar-benar sensitif — melewati Trash, dengan konfirmasi berlapis. Bukan jalur default: semua modul lain tetap bisa dibatalkan." = "Permanent deletion for truly sensitive files — bypassing the Trash, with layered confirmation. Not the default path: every other module stays undoable.";
-"Pilih file atau folder…" = "Choose files or folders…";
-"Keluarkan" = "Remove from list";
-"Belum ada yang dipilih" = "Nothing selected yet";
-"Pilih file atau folder yang ingin dihapus permanen. Untuk pembersihan biasa, gunakan modul lain — semuanya lewat Trash dan bisa dibatalkan." = "Pick files or folders to delete permanently. For regular cleaning, use the other modules — everything goes through the Trash and can be undone.";
-"Pilih file atau folder yang ingin dihapus permanen — tidak bisa dibatalkan." = "Pick files or folders to delete permanently — this cannot be undone.";
-"Shredder melewati Trash sepenuhnya — data ditimpa dan tidak bisa dipulihkan oleh utilitas pemulihan. Gunakan hanya untuk dokumen yang benar-benar sensitif; selain itu, biarkan pembersihan biasa lewat Trash yang bisa dibatalkan." = "The Shredder bypasses the Trash entirely — data is overwritten and cannot be recovered by restoration tools. Use it only for genuinely sensitive documents; otherwise let regular cleaning go through the undoable Trash.";
-
-/* Duplicate Finder */
-"Temukan file duplikat persis (byte identik) — foto maupun non-foto — dengan perbandingan tiga fase yang cepat. Salinan terlama disarankan disimpan." = "Find exact duplicate files (byte-identical) — photos and non-photos alike — with fast three-phase comparison. The oldest copy is suggested to keep.";
-"Pilih folder…" = "Choose folder…";
-"Pilih folder yang sering menumpuk duplikat — misalnya folder foto, Downloads, atau Documents." = "Pick a folder where duplicates pile up — e.g. your photos folder, Downloads, or Documents.";
-"%d file dipindai · %d grup" = "%d files scanned · %d groups";
-"%d grup · hemat potensial %@" = "%d groups · potential savings %@";
-"%d salinan · %@ per file" = "%d copies · %@ each";
-"hemat %@" = "save %@";
-"Simpan" = "Keep";
-"Dry-run: %d salinan (%@) akan dipindah ke Trash dan bisa dikembalikan dari sana." = "Dry run: %d copies (%@) will be moved to the Trash, where you can restore them.";
-"Deteksi duplikat persis (byte identik) — berlaku untuk semua jenis file termasuk foto. Deteksi foto yang mirip secara visual tapi berbeda byte (Similar Photos) menyusul sebagai fitur terpisah." = "Detects exact duplicates (byte-identical) — applies to every file type including photos. Visually similar but byte-different photos (Similar Photos) will follow as a separate feature.";
-"Pilih folder yang ingin diperiksa duplikatnya." = "Choose the folder to check for duplicates.";
-
-/* Similar Photos */
-"Temukan foto yang mirip secara visual — hasil edit, resize, atau rekaman ulang — dengan sidik jari ringan tanpa model ML." = "Find visually similar photos — edits, resizes, or re-shots — using a lightweight fingerprint, no ML models.";
-"Pilih folder foto…" = "Choose photos folder…";
-"%d foto dipindai · %d grup" = "%d photos scanned · %d groups";
-"%d grup mirip" = "%d similar groups";
-"%d foto mirip" = "%d similar photos";
-"Dry-run: %d foto (%@) akan dipindah ke Trash dan bisa dikembalikan dari sana." = "Dry run: %d photos (%@) will be moved to the Trash, where you can restore them.";
-"Perbandingan visual dengan sidik jari ringan (aHash 8×8, tanpa model ML): foto dengan komposisi serupa dikelompokkan — hasil edit, resize, atau rekaman ulang. Kecocokan bukan kepastian: periksa thumbnail sebelum menghapus." = "Visual comparison using a lightweight fingerprint (8×8 aHash, no ML models): photos with similar composition are grouped — edits, resizes, or re-shots. A match is not a certainty: check thumbnails before deleting.";
-"Pilih folder berisi foto yang ingin diperiksa kemiripannya." = "Choose the folder of photos to check for similarity.";
-
-/* Disk Space Map */
-"Peta Disk" = "Disk Map";
-"Visualisasi treemap pemakaian disk per folder — klik folder untuk masuk lebih dalam. Baca-saja: untuk memperbesar sel, semakin besar ukurannya." = "A treemap visualization of disk usage per folder — click a folder to drill down. Read-only: the larger the cell, the bigger the item.";
-"Naik" = "Up";
-"Folder kosong" = "Empty folder";
-"Tidak ada item berukuran >0 byte di folder ini." = "No items larger than 0 bytes in this folder.";
-
-/* Battery Health */
-"Kesehatan Baterai" = "Battery Health";
-"Cycle count dan kapasitas baterai langsung dari IOKit — sepenuhnya baca-saja, disembunyikan otomatis di Mac desktop." = "Cycle count and battery capacity straight from IOKit — fully read-only, hidden automatically on desktop Macs.";
+/* App/Sources/Windows/Modules/BatteryHealthView.swift */
+"%1$d kali (batas wajar ±%2$d)" = "%1$d times (normal limit about %2$d)";
+"%1$d%% · %2$@" = "%1$d%% · %2$@";
+"Baterai jadi lebih cepat habis dari waktu baru. Masih bisa dipakai, tapi mulai pertimbangkan penggantian." = "Your battery runs out faster than when it was new. It still works, but it's time to think about replacing it.";
+"Baterai mulai melemah" = "Battery is getting weaker";
+"Baterai perlu diganti" = "Battery needs replacing";
+"Baterai sehat" = "Battery is healthy";
 "Cycle count" = "Cycle count";
-"siklus" = "cycles";
-"jumlah siklus pengisian penuh yang sudah dipakai" = "full charge cycles used so far";
-"Kapasitas saat ini" = "Current capacity";
-"dari kapasitas maksimum yang masih bisa ditampung" = "of the maximum capacity it can still hold";
+"Indikator kondisi baterai resmi dari Apple (mis. \"Service Recommended\") tersedia di Pengaturan Sistem › Baterai. Modul ini sepenuhnya baca-saja dan tidak mengubah pengaturan daya apa pun." = "Apple's official battery condition indicator (e.g. \"Service Recommended\") is in System Settings › Battery. This tool only reads information and never changes any power settings.";
+"Isi baterai sekarang" = "Current charge";
+"Kamu bisa melihat kondisinya di Pengaturan Sistem › Baterai." = "You can check its condition in System Settings › Battery.";
+"Kapasitas penuh vs kapasitas desain" = "Full capacity vs. original capacity";
+"Kapasitasnya sudah jauh berkurang. Bawa ke servis resmi Apple untuk penggantian baterai." = "Its capacity has dropped a lot. Take it to an Apple Authorized Service Provider to replace the battery.";
+"Kondisi baterai belum terbaca" = "Couldn't read battery condition yet";
+"Mac desktop langsung tersambung ke listrik, jadi tidak ada baterai yang perlu dicek. Semuanya aman." = "Desktop Macs plug straight into the wall, so there's no battery to check. All good.";
+"Mac ini tidak memakai baterai" = "This Mac doesn't have a battery";
+"Masih kuat dipakai seharian seperti biasa." = "Still strong enough to last all day as usual.";
+"Masih menyimpan %d%% dari kapasitas aslinya" = "Still holds %d%% of its original capacity";
+"Satu siklus = pemakaian setara 100% isi baterai (boleh dicicil, mis. dua kali 50%). Baterai dianggap sehat selama kapasitas penuhnya masih di atas 80% kapasitas desain." = "One cycle = using a total of 100% battery (it can add up, e.g. 50% twice). A battery counts as healthy while its full capacity is still above 80% (compared to when it was new).";
 "Status daya" = "Power status";
-"Mengisi" = "Charging";
-"Dipakai" = "On battery";
-"Indikator kondisi baterai resmi dari Apple (mis. \"Service Recommended\") tersedia di Pengaturan Sistem › Baterai. Modul ini sepenuhnya baca-saja dan tidak mengubah pengaturan daya apa pun." = "Apple's official battery condition indicator (e.g. \"Service Recommended\") is in System Settings › Battery. This module is fully read-only and changes no power settings.";
-"Tidak ada baterai" = "No battery";
-"Mac ini terhubung langsung ke daya (desktop) — modul baterai disembunyikan otomatis." = "This Mac runs on direct power (desktop) — the battery module hides automatically.";
+"Sudah diisi ulang" = "Times charged";
+"sedang diisi" = "charging";
+"tidak sedang diisi" = "not charging";
 
-/* Desktop Declutter */
-"Rapikan Desktop" = "Declutter Desktop";
-"Arsipkan screenshot yang menumpuk di Desktop ke folder per-bulan — dipindahkan, bukan dihapus." = "Archive piled-up screenshots on your Desktop into per-month folders — moved, not deleted.";
-"Arsipkan yang dipilih (%d)" = "Archive selected (%d)";
-"ke Arsip Desktop/%@" = "to Desktop Archive/%@";
-"Desktop sudah rapi" = "Desktop is tidy";
-"Tidak ada screenshot menumpuk di Desktop — nama file default \"Screenshot …\" yang terdeteksi akan diarsip otomatis per bulan." = "No piled-up screenshots on your Desktop — files matching the default \"Screenshot …\" name get archived per month.";
-"Arsipkan ke Desktop Archive?" = "Archive to Desktop Archive?";
-"Arsipkan" = "Archive";
-"%d file (%@) akan dipindahkan ke ~/Desktop Archive/<bulan>/. Tidak ada yang dihapus — semuanya bisa dipindahkan kembali dari folder arsip." = "%d files (%@) will be moved to ~/Desktop Archive/<month>/. Nothing is deleted — everything can be moved back from the archive folder.";
-"%d file diarsipkan ke Desktop Archive" = "%d files archived to Desktop Archive";
-"Buka Folder Arsip" = "Open Archive Folder";
-"Hanya memeriksa file tingkat atas di Desktop dengan pola nama screenshot bawaan macOS — folder dan file lain tidak disentuh. Item dipindahkan ke ~/Desktop Archive per bulan (berdasarkan tanggal jepretan di nama file), bukan dihapus. Desktop memang dilindungi dari pemindaian otomatis; modul ini berjalan eksplisit atas permintaan kamu." = "Only checks top-level Desktop files matching macOS's default screenshot naming — folders and other files are untouched. Items move to ~/Desktop Archive by month (based on the capture date in the filename), never deleted. The Desktop is protected from automatic scans; this module runs explicitly at your request.";
-
-/* Startup & Login Items */
-"Daftar LaunchAgent/LaunchDaemon dengan asal-usul aplikasi pemiliknya — bukan sekadar nama file." = "Lists LaunchAgents/LaunchDaemons with the owning app identified — not just cryptic filenames.";
-"%d item" = "%d items";
-"Buka Pengaturan Login Items" = "Open Login Items Settings";
-"Tidak ada item launchd" = "No launchd items";
-"Tidak ditemukan LaunchAgent/LaunchDaemon di lokasi standar." = "No LaunchAgents/LaunchDaemons found in the standard locations.";
-"Launch Agent — user (jalan saat login)" = "Launch Agent — user (runs at login)";
-"Launch Agent — sistem" = "Launch Agent — system";
-"Launch Daemon — sistem (jalan sejak boot)" = "Launch Daemon — system (runs from boot)";
-"dari app %@ (%@)" = "from app %@ (%@)";
-"Asal tidak diketahui — label tidak cocok dengan app terinstall mana pun" = "Unknown origin — the label matches no installed app";
-
-/* Browser Cleaner */
-"Bersihkan cache browser (Chrome, Arc, Brave, Edge, Firefox, Safari) — dibuat ulang otomatis, tanpa mengeluarkan kamu dari akun." = "Clean browser caches (Chrome, Arc, Brave, Edge, Firefox, Safari) — rebuilt automatically, without signing you out.";
+/* App/Sources/Windows/Modules/BrowserCleanerView.swift */
 "%d browser · %@" = "%d browsers · %@";
-"Tidak ada browser yang dikenali" = "No recognized browsers";
+"%d item gagal dibersihkan" = "%d items couldn't be cleaned";
+"Bersihkan" = "Clean Up";
 "Browser yang didukung (Chrome, Arc, Brave, Edge, Firefox, Safari) tidak ditemukan di folder Applications." = "None of the supported browsers (Chrome, Arc, Brave, Edge, Firefox, Safari) were found in the Applications folder.";
-"Masih berjalan — tutup browser ini dulu sebelum membersihkan (cache yang ditimpa bisa rusak)." = "Still running — close this browser before cleaning (overwritten caches can corrupt).";
-"Tidak ada cache yang perlu dibersihkan." = "No cache to clean.";
-"%d lokasi cache" = "%d cache locations";
-"Dry-run: cache %d browser (%@) akan dipindah ke Trash dan dibuat ulang otomatis saat browser berikutnya dibuka." = "Dry run: %d browsers' caches (%@) will be moved to the Trash and rebuilt automatically the next time the browser opens.";
-"Versi ini membersihkan CACHE saja — dibuat ulang otomatis oleh browser dan tidak mengeluarkan kamu dari akun. Riwayat dan cookie menyusul. Safari membutuhkan Full Disk Access. Cache browser yang masih berjalan tidak disentuh — browser bisa menyimpan data penting di sana." = "This version cleans CACHES only — rebuilt automatically by the browser, and it won't sign you out. History and cookies come later. Safari requires Full Disk Access. Caches of a running browser are never touched — the browser may hold important data there.";
+"Browser yang sedang terbuka tidak pernah disentuh." = "Browsers that are open are never touched.";
+"Cache (aman, dibuat ulang otomatis)" = "Cache (safe, rebuilt automatically)";
+"Cache aman dihapus — browser membuatnya ulang otomatis." = "Cache is safe to delete — the browser rebuilds it automatically.";
+"Centang apa yang mau dibersihkan di tiap browser. Cache sudah dicentang karena paling aman." = "Check what you want to clean in each browser. Cache is already checked because it's the safest.";
+"Cookie (kamu akan keluar dari situs)" = "Cookies (you'll be signed out of websites)";
+"Cookie ikut dihapus: kamu akan keluar dari semua situs dan perlu masuk lagi." = "Cookies will be deleted too: you'll be signed out of all websites and need to sign in again.";
+"Memeriksa browser…" = "Checking browsers…";
+"Riwayat dan cookie Safari tidak bisa dibersihkan dari sini karena dilindungi macOS." = "Safari history and cookies can't be cleaned from here because macOS protects them.";
+"Riwayat penelusuran" = "Browsing history";
+"Riwayat penelusuran di Mac ini akan hilang. Riwayat yang tersinkron ke akun browser tetap ada." = "Browsing history on this Mac will be erased. History synced to your browser account stays.";
+"Riwayat yang tersinkron ke akun browser (mis. akun Google) tetap tersimpan di server." = "History synced to your browser account (e.g. your Google account) stays saved on their servers.";
+"Sedang dibuka" = "Currently open";
+"Sedang menghitung ukuran cache, riwayat, dan cookie." = "Figuring out the size of cache, history, and cookies.";
+"Tidak ada browser yang dikenali" = "No recognized browsers";
+"Tutup %@ dulu, lalu tekan \"Pindai ulang\". Membersihkan browser yang sedang dibuka bisa merusak datanya." = "Quit %@ first, then click \"Scan again\". Cleaning a browser while it's open can damage its data.";
+"sudah bersih" = "already clean";
+"tidak tersedia" = "not available";
 
-/* Time Machine snapshots */
-"Snapshot Time Machine" = "Time Machine Snapshots";
-"Lihat snapshot lokal Time Machine yang membuat disk terlihat penuh — dengan penjelasan jujur soal purgeable space." = "See the local Time Machine snapshots that make your disk look full — with an honest explanation of purgeable space.";
-"%d snapshot" = "%d snapshots";
-"Apa itu snapshot lokal?" = "What are local snapshots?";
-"Saat Time Machine membackup, macOS menyimpan snapshot lokal APFS — inilah yang sering membuat disk \"terlihat penuh\" padahal kosong di Finder." = "When Time Machine backs up, macOS stores local APFS snapshots — often why the disk \"looks full\" with nothing visible in Finder.";
-"Ruang ini bersifat purgeable: macOS otomatis mengambilnya kembali saat disk benar-benar butuh ruang. Ini perilaku normal, bukan kebocoran." = "This space is purgeable: macOS automatically reclaims it when the disk truly needs room. That's normal behavior, not a leak.";
-"Penghapusan manual hanya untuk kondisi darurat (disk penuh saat ini juga) dan memerlukan privileged helper — menyusul. Menjalankan backup reguler juga membersihkan snapshot lama secara otomatis." = "Manual deletion is for emergencies only (disk full right now) and needs the privileged helper — coming later. Running regular backups also clears old snapshots automatically.";
-"Tidak ada snapshot lokal" = "No local snapshots";
-"Disk tidak sedang menyimpan snapshot Time Machine lokal." = "The disk isn't storing any local Time Machine snapshots.";
-"purgeable — auto-reclaim" = "purgeable — auto-reclaimed";
-
-/* Privacy audit */
-"Audit Izin Privasi" = "Privacy Permission Audit";
-"Tinjau app yang punya akses kamera, mikrofon, rekam layar, dan akses disk penuh — baca-saja, pencabutan lewat System Settings." = "Review apps with camera, microphone, screen recording, and full disk access — read-only, revoked via System Settings.";
-"%d izin" = "%d permissions";
-"Buka Pengaturan" = "Open Settings";
-"Diizinkan" = "Allowed";
-"Ditolak" = "Denied";
-"TCC.db tidak terbaca" = "TCC.db unreadable";
-"Membaca basis data izin membutuhkan Full Disk Access. Aktifkan lewat Pengaturan Sistem › Privasi & Keamanan › Akses Disk Penuh, lalu buka ulang Respite. (Skema TCC tidak didokumentasikan dan bisa berubah antar versi macOS.)" = "Reading the permission database requires Full Disk Access. Enable it in System Settings › Privacy & Security › Full Disk Access, then relaunch Respite. (The TCC schema is undocumented and can change between macOS versions.)";
-"Tidak ada izin tercatat" = "No recorded permissions";
-"Tidak ditemukan app dengan izin sensitif yang tercatat." = "No apps with recorded sensitive permissions were found.";
-"Respite membaca daftar izin secara baca-saja dan tidak pernah mencabut izin secara langsung — mencabut hanya bisa dilakukan lewat System Settings (klik tombol di tiap kategori), sesuai desain keamanan macOS." = "Respite reads the permission list read-only and never revokes permissions directly — revocation can only happen in System Settings (use the button in each category), per macOS's security design.";
-
-/* Watchdog */
-"Proses berat terdeteksi" = "Heavy process detected";
-"%1$@ sudah memakai CPU tinggi (rata-rata %2$d%%) selama ±%3$d menit. Buka Monitor Memori Respite untuk meninjau atau menghentikannya." = "%1$@ has been using high CPU (averaging %2$d%%) for about %3$d minutes. Open Respite's Memory Monitor to review or stop it.";
-"%1$@ — CPU tinggi berkelanjutan (rata-rata %2$d%% selama ±%3$d menit)" = "%1$@ — sustained high CPU (averaging %2$d%% for ~%3$d minutes)";
-"Proses berat yang berjalan terus-menerus — bukan spike sesaat. Periksa apakah masih diperlukan." = "A heavy process running continuously — not a momentary spike. Check whether it's still needed.";
-
-/* Mail Attachments */
-"Lampiran Email" = "Mail Attachments";
-"Bersihkan lampiran email besar yang sudah lama terunduh — aslinya tetap aman di server mail." = "Clean large email attachments that were downloaded long ago — the originals stay safe on the mail server.";
-"%d lampiran · %@" = "%d attachments · %@";
-"Folder Mail tidak terbaca" = "Mail folder unreadable";
-"Membaca lampiran email membutuhkan Full Disk Access. Aktifkan lewat Pengaturan Sistem › Privasi & Keamanan › Akses Disk Penuh, lalu buka ulang Respite." = "Reading email attachments requires Full Disk Access. Enable it in System Settings › Privacy & Security › Full Disk Access, then relaunch Respite.";
-"Tidak ada lampiran besar" = "No large attachments";
-"Tidak ditemukan lampiran berukuran ≥1 MB yang berumur di atas 90 hari." = "No attachments ≥1 MB older than 90 days were found.";
-"Dry-run: %d lampiran (%@) akan dipindah ke Trash. Aslinya tetap aman di server mail." = "Dry run: %d attachments (%@) will be moved to the Trash. The originals stay safe on the mail server.";
-"Hanya file di bawah folder Attachments di dalam ~/Library/Mail yang diperiksa — data email itu sendiri tidak pernah disentuh. File asli tetap ada di server mail; Mail mengunduh ulang lampiran kalau kamu membukanya lagi. Folder Mail memang dilindungi dari pemindaian otomatis; modul ini berjalan eksplisit atas permintaan kamu dan hanya memindahkan ke Trash." = "Only files under the Attachments folder inside ~/Library/Mail are checked — the email data itself is never touched. Originals stay on the mail server; Mail re-downloads an attachment when you open it again. The Mail folder is protected from automatic scanning by design; this module runs explicitly at your request and only moves files to the Trash.";
-
-/* Browser data types */
-"Cache" = "Cache";
-"Riwayat" = "History";
-"Cookie" = "Cookies";
-"— akan keluar dari semua situs" = "— will sign you out of every site";
-"tidak didukung" = "not supported";
-"bersih" = "clean";
-"%d browser" = "%d browsers";
-"Masih berjalan" = "Still running";
-"Tutup browser ini dulu sebelum membersihkan — data yang ditimpa saat browser aktif bisa rusak." = "Close this browser before cleaning — data overwritten while it's running can corrupt.";
-"Dry-run: %d jenis data (%@) akan dipindah ke Trash. Cache dibuat ulang otomatis; menghapus cookie akan MENGELUARKAN kamu dari semua situs; riwayat yang tersinkron ke akun tetap ada di server." = "Dry run: %d data types (%@) will be moved to the Trash. Caches rebuild automatically; deleting cookies will SIGN YOU OUT of every site; history synced to your account stays on the server.";
-"Cache dibuat ulang otomatis dan tidak mengeluarkan kamu dari akun. Riwayat dan cookie bersifat lebih sensitif — tidak tercentang bawaan; menghapus cookie akan keluar dari semua situs, dan riwayat yang tersinkron ke akun tetap ada di server. Data browser yang masih berjalan tidak pernah disentuh. Riwayat/cookie Safari tidak didukung (dilindungi TCC)." = "Caches rebuild automatically and won't sign you out. History and cookies are more sensitive — unchecked by default; deleting cookies signs you out of every site, and history synced to your account stays on the server. Data of a running browser is never touched. Safari history/cookies aren't supported (TCC-protected).";
-
-/* Scheduled maintenance */
-"Pemeliharaan terjadwal" = "Scheduled maintenance";
-"Selama Respite berjalan, kondisi sistem diperiksa berkala — kalau Maintenance Sweep disarankan, kamu mendapat notifikasi. (Versi jadwal penuh via launchd menyusul bersama infra signing.)" = "While Respite is running, system conditions are checked periodically — if a Maintenance Sweep is recommended, you get a notification. (The full launchd-scheduled version will follow with the signing setup.)";
-"Maintenance Sweep disarankan" = "Maintenance Sweep recommended";
-"Uptime sudah lama dan kondisi memori mulai membebani. Buka Uptime Guardian Respite untuk melihat alasannya dan menjalankan sweep tanpa restart." = "Uptime has been long and memory conditions are starting to weigh things down. Open Respite's Uptime Guardian to see the reasons and run a sweep without restarting.";
-
-/* Pembayaran bayar sekali */
-"Respite gratis. Selamanya." = "Respite is free. Forever.";
-"Tanpa langganan, tanpa fitur terkunci, tanpa iklan, tanpa telemetri — semua proses berjalan di Mac kamu." = "No subscription, no locked features, no ads, no telemetry — everything runs on your Mac.";
-"Bayar sekali, sesukamu" = "Pay once, your call";
-"Kalau Respite membantu, dukung pengembangannya satu kali dengan nominal berapa pun." = "If Respite helps you, support its development once with any amount.";
-"Bayar Sekali" = "Pay Once";
-"Sekali bayar bukan langganan — tidak ada tagihan berulang, tidak ada data pembayaran yang disimpan Respite." = "One-time payment, not a subscription — no recurring charges, and Respite stores no payment data.";
-
-"Pusat pantauan RAM, CPU, swap, dan uptime — plus Maintenance Sweep dan daftar proses yang bisa dihentikan." = "The hub for RAM, CPU, swap, and uptime — plus Maintenance Sweep and the list of stoppable processes.";
-"Kesehatan baterai" = "Battery health";
-
-/* Nama modul (ID → EN) */
-"Pindai Cerdas" = "Smart Scan";
-"Pencari Duplikat" = "Duplicate Finder";
-"Foto Mirip" = "Similar Photos";
-"Penghancur File" = "Shredder";
-"Deteksi Suhu" = "Heat Detection";
-"Copot Aplikasi" = "App Uninstaller";
-
-
-"Pemantau Memori" = "Memory Monitor";
-"Sisa Pengembang" = "Developer Cache";
-"Pembersih Peramban" = "Browser Cleaner";
-"Aplikasi Saat Login" = "Startup Apps";
-/* Startup manager */
-"Tambah Aplikasi…" = "Add App…";
-"Pilih aplikasi yang ingin dijalankan otomatis saat login." = "Pick the apps to launch automatically at login.";
-"%d aplikasi ditambahkan — berjalan saat login berikutnya" = "%d apps added — will run at next login";
-"Gagal mengubah %@" = "Failed to change %@";
-"Gagal mendaftarkan %@" = "Failed to register %@";
-"Agent milik user bisa dinyalakan/dimatikan langsung dari sini — berlaku saat login berikutnya. Tombol Tambah Aplikasi mendaftarkan app pilihanmu lewat LaunchAgent yang dikelola Respite. Agent SISTEM butuh hak admin: kelola lewat tombol Pengaturan Login Items." = "User-owned agents can be toggled right here — effective at next login. Add App registers your chosen app via a Respite-managed LaunchAgent. SYSTEM agents need admin rights: manage them via the Login Items Settings button.";
-
-/* Beranda / PureMac-style */
-"Perawatan Cerdas" = "Smart Care";
-"Tinjauan ruang yang bisa dibebaskan dan alat untuk mengelolanya." = "An overview of reclaimable space and the tools to manage it.";
-"Health Score %d/100" = "Health Score %d/100";
-"%d alat" = "%d tools";
-"Respite memeriksa cache, log, data pengembang, dan Trash. Semuanya kamu tinjau dulu sebelum dihapus." = "Respite checks caches, logs, developer data, and Trash. You review everything before anything is deleted.";
-"Pindai Mac Ini" = "Scan This Mac";
-"Lokal & privat" = "Local & private";
-"Penyimpanan Mac" = "Mac Storage";
-"TERPAKAI" = "USED";
-"Terpakai" = "Used";
-"Alat" = "Tools";
-"Utilitas untuk penyimpanan, aplikasi, dan perawatan sistem" = "Utilities for storage, apps, and system care";
-"Beranda" = "Home";
-"Tinjauan kondisi Mac dan pintasan ke semua alat." = "A snapshot of your Mac's condition and shortcuts to every tool.";
-"Pindai cache, log, dan Trash sekaligus." = "Scan caches, logs, and Trash in one pass.";
-"Hapus aplikasi beserta sisa datanya." = "Remove apps along with their leftover data.";
-"Temukan file besar atau lama yang jarang dipakai." = "Find large or old files you rarely use.";
-"Pantau RAM, CPU, swap, dan proses berat." = "Watch RAM, CPU, swap, and heavy processes.";
-"Cari akar masalah Mac lambat sekarang." = "Find what is slowing your Mac down right now.";
-"Cek apakah panas membuat Mac melambat." = "Check whether heat is slowing your Mac down.";
-"Bersihkan cache Xcode, Homebrew, Docker, dll." = "Clean Xcode, Homebrew, Docker, and other dev caches.";
-"Hapus permanen untuk file sensitif." = "Permanently delete sensitive files.";
-"Temukan file duplikat yang identik byte." = "Find byte-identical duplicate files.";
-"Temukan foto mirip dari hasil edit." = "Find similar photos from edits and exports.";
-"Cycle count dan kesehatan baterai." = "Cycle count and battery health.";
-"Kelola aplikasi yang jalan saat login." = "Manage apps that launch at login.";
-"Bersihkan cache semua browser." = "Clean every browser's cache.";
-"Dukung pengembangan Respite." = "Support Respite's development.";
-"Akses Disk Penuh" = "Full Disk Access";
-"Aktif — semua area bisa dipindai" = "On — every area can be scanned";
-"Nonaktif — beberapa area terlewati" = "Off — some areas are skipped";
-"Status tidak dapat ditentukan" = "Status undetermined";
-"Periksa ulang status akses" = "Re-check access status";
-
-/* English-first pass + section header */
-"%d file · %@" = "%d files · %@";
-"CPU" = "CPU";
-"Disk" = "Disk";
-"Thermal" = "Thermal";
-"Uptime" = "Uptime";
-"Critical" = "Critical";
-"Whitelist" = "Whitelist";
-"node_modules" = "node_modules";
-"Pindai cache, log, dan Trash — hasilnya dikelompokkan dan dijelaskan kenapa aman dihapus." = "Scan caches, logs, and Trash — results are grouped with an explanation of why they are safe to delete.";
-"Analisis baca-saja untuk mencari akar masalah Mac lambat sekarang — dirangkum singkat plus Health Score 0–100." = "A read-only analysis to find what is slowing your Mac down right now — summarized briefly, plus a 0–100 Health Score.";
-"Bersihkan cache developer: Xcode DerivedData, simulator, CocoaPods/SPM, Docker, Homebrew, node_modules, sampai Cargo." = "Clean developer caches: Xcode DerivedData, simulators, CocoaPods/SPM, Docker, Homebrew, node_modules, and Cargo.";
-"Cek apakah kelambanan berasal dari panas berlebih (throttling) — bukan dari file sampah." = "Check whether sluggishness comes from excess heat (throttling) — not from junk files.";
-"Hapus permanen untuk file yang benar-benar sensitif — lewat konfirmasi berlapis. Semua modul lain tetap bisa dibatalkan lewat Trash." = "Permanently delete truly sensitive files — behind layered confirmation. Every other module stays reversible via Trash.";
-"Respite gratis penuh tanpa fitur terkunci. Donasi menjaga pengembangannya berlanjut." = "Respite is fully free with no locked features. Donations keep development going.";
-"Temukan file besar atau lama yang jarang dipakai — urutkan sesuai ukuran, tanggal, atau tipe." = "Find large or old files you rarely use — sort by size, date, or type.";
-"Memori" = "Memory";
-"Bebaskan ruang di Mac kamu." = "Free up space on your Mac.";
-
-"Buka Pengaturan System Settings" = "Open System Settings";
-"Sudah diizinkan? Buka ulang Respite." = "Already allowed? Reopen Respite.";
-
-/* Popover + About + shortcuts */
-"Keluar Respite" = "Quit Respite";
-"Tentang Respite" = "About Respite";
-"Ke Modul" = "Go to Module";
-"Versi %@ (build %@)" = "Version %@ (build %@)";
-"Pembersih Mac yang tenang — lokal & privat." = "A calm Mac cleaner — local & private.";
-"Semua proses berjalan di Mac kamu. Tanpa telemetri, tanpa langganan, tanpa fitur terkunci." = "Everything runs on your Mac. No telemetry, no subscription, no locked features.";
-
-/* Popover alasan status */
-"Suhu tinggi — macOS sedang menurunkan performa." = "High temperature — macOS is throttling performance.";
-"Suhu mulai meninggi — tutup aplikasi berat." = "Temperature is rising — close heavy apps.";
-"Beban CPU %d%% — ada proses berat yang berjalan." = "CPU load %d%% — a heavy process is running.";
-"Memori terpakai %d%% — tutup aplikasi yang tidak digunakan." = "Memory at %d%% — close apps you're not using.";
-"Ruang disk tersisa %d%% — bebasakan sebagian." = "Only %d%% disk space free — free some up.";
-
-/* Orphan Finder + AI logs + force stop + exclude */
-"Sisa Data Tanpa Pemilik" = "Orphaned Data";
-"Belum dipindai — mulai untuk mencari sisa data aplikasi yang sudah tidak terpasang." = "Not scanned yet — start to find leftovers from apps that are no longer installed.";
-"Memindai Library…" = "Scanning Library…";
-"Item di Library yang tidak cocok dengan aplikasi mana pun yang masih terpasang. Matching ketat — kalau ragu, biarkan tidak tercentang." = "Items in your Library that match no installed app. Matching is strict — when in doubt, leave unchecked.";
-"Pindahkan %d item terpilih (%@) ke Trash" = "Move %d selected items (%@) to Trash";
-"Pindahkan sisa data ke Trash?" = "Move leftover data to Trash?";
-"Pindahkan" = "Move";
-"%d item (%@) akan dipindah ke Trash. Respite hanya menghapus yang tercentang — bisa dikembalikan dari Trash." = "%d items (%@) will be moved to Trash. Only checked items are touched — recoverable from Trash.";
-"%d item dipindah ke Trash (%@)." = "%d items moved to Trash (%@).";
-"Selalu kecualikan folder ini" = "Always exclude this folder";
-"Hentikan Paksa" = "Force Stop";
+/* App/Sources/Windows/Modules/DevCacheView.swift */
+"Arsip Xcode" = "Xcode Archives";
+"Arsip build lama — pastikan tidak ada yang masih perlu di-submit." = "Old build archives — make sure none still need to be submitted.";
+"Belum ada — node_modules tidak dicari" = "None yet — node_modules isn't searched";
+"Bersihkan sisa build dan cache alat developer" = "Clean up build leftovers and developer tool caches";
+"Cache CocoaPods" = "CocoaPods Cache";
+"Cache CocoaPods — pod akan diunduh ulang saat dibutuhkan." = "CocoaPods cache — pods are downloaded again when needed.";
+"Cache Composer (PHP)" = "Composer Cache (PHP)";
+"Cache Homebrew" = "Homebrew Cache";
+"Cache Swift Package Manager" = "Swift Package Manager Cache";
+"Cache Swift Package Manager — diunduh ulang otomatis." = "Swift Package Manager cache — downloaded again automatically.";
+"Cache build Go" = "Go Build Cache";
+"Cache build Go — dikompilasi ulang otomatis saat build berikutnya." = "Go build cache — rebuilt automatically on the next build.";
+"Cache modul Go" = "Go Module Cache";
+"Cache modul Go (bisa berukuran GB) — modul diunduh ulang saat dibutuhkan." = "Go module cache (can be several GB) — modules are downloaded again when needed.";
+"Cache paket Composer — diunduh ulang otomatis saat composer install." = "Composer package cache — downloaded again automatically on composer install.";
+"Cache unduhan Homebrew — aman dihapus, brew mengunduh ulang bila perlu." = "Homebrew download cache — safe to delete; brew downloads it again when needed.";
+"Dependensi Node — install ulang dengan npm/pnpm/yarn bila project dipakai lagi." = "Node dependencies — reinstall with npm/pnpm/yarn when you use the project again.";
+"Dependensi git Cargo" = "Cargo Git Dependencies";
+"Dependensi git Cargo — di-clone ulang saat dibutuhkan." = "Cargo git dependencies — cloned again when needed.";
+"Ditemukan di Mac kamu:" = "Found on your Mac:";
+"Docker belum bisa dibersihkan dari sini — pembersihannya butuh perintah docker dan akan menyusul." = "Docker can't be cleaned from here yet — it needs the docker command, and support is coming later.";
+"Folder proyek" = "Project folders";
+"Hanya cache yang bisa dibuat ulang otomatis — kode proyekmu tidak disentuh." = "Only caches that are rebuilt automatically — your project code is never touched.";
+"Hasil build Xcode" = "Xcode build files";
+"Hasil build Xcode — dibuat ulang otomatis saat build berikutnya." = "Xcode build files — rebuilt automatically on the next build.";
+"Log Ollama & LM Studio — aman dihapus. Model AI (GB-an, mahal diunduh ulang) tidak pernah disentuh." = "Ollama & LM Studio logs — safe to delete. AI models (several GB, slow to download again) are never touched.";
 "Log aplikasi AI" = "AI app logs";
-"Log Ollama & LM Studio — aman dihapus. Model AI (GB-an, mahal diunduh ulang) tidak pernah disentuh." = "Ollama & LM Studio logs — safe to delete. AI models (GBs, costly to re-download) are never touched.";
-"proses ini dilindungi sistem dan tidak pernah bisa dihentikan" = "this process is protected by the system and can never be stopped";
-"prosesnya milik root/sistem — butuh privilege yang Respite sengaja tidak minta" = "it belongs to root/system — needs privilege Respite deliberately doesn't ask for";
-"prosesnya sudah berhenti sendiri" = "the process already stopped on its own";
-"Pindai" = "Scan";
-"%1$@ (%2$d proses). \"Hentikan\" mengirim sinyal sopan (SIGTERM) — aplikasi sempat menyimpan pekerjaan; \"Hentikan Paksa\" (SIGKILL) langsung mematikan tanpa kesempatan menyimpan, untuk proses yang macet atau mengabaikan sinyal sopan. Pekerjaan belum tersimpan bisa hilang. Proses milik sistem/root tetap tidak bisa tanpa privilege; proses yang dijaga launchd bisa hidup lagi — matikan agent-nya di Aplikasi Saat Login." = "%1$@ (%2$d processes). \"Stop\" sends a polite signal (SIGTERM) — apps get to save their work; \"Force Stop\" (SIGKILL) kills immediately with no chance to save, for stuck processes that ignore the polite signal. Unsaved work may be lost. System/root-owned processes still require privilege; launchd-managed processes may come back — disable their agent in Login Apps.";
-"Gagal menghentikan %1$@ (%2$d dari %3$d terkirim) — %4$@. Kalau prosesnya hidup lagi setelah dihentikan, dia dijaga launchd: matikan agent-nya di Aplikasi Saat Login." = "Failed to stop %1$@ (%2$d of %3$d delivered) — %4$@. If it comes back after being stopped, launchd is managing it: disable its agent in Login Apps.";
+"Model AI (Ollama, LM Studio) dan toolchain di ~/.cargo/bin tidak pernah disentuh." = "AI models (Ollama, LM Studio) and the toolchain in ~/.cargo/bin are never touched.";
+"Pilih folder tempat project JavaScript/TypeScript kamu berada — Respite mencari node_modules di dalamnya (maksimal 4 level)." = "Choose the folder where your JavaScript/TypeScript projects live — Respite looks for node_modules inside it (up to 4 levels deep).";
+"Registry Cargo (Rust)" = "Cargo Registry (Rust)";
+"Registry crate Cargo — diunduh ulang saat dibutuhkan. ~/.cargo/bin (toolchain) tidak pernah disentuh." = "Cargo crate registry — downloaded again when needed. ~/.cargo/bin (toolchain) is never touched.";
+"Semua di bawah ini dibuat ulang otomatis saat dibutuhkan. Yang baru dipakai tidak dicentang otomatis." = "Everything below is rebuilt automatically when needed. Recently used items aren't checked automatically.";
+"Semua ini akan dibuat ulang otomatis saat dibutuhkan (mis. saat build atau install berikutnya)." = "All of this is rebuilt automatically when needed (e.g. on your next build or install).";
+"Tambah folder…" = "Add Folder…";
+"Tidak ada cache developer yang perlu dibersihkan saat ini." = "There's no developer cache to clean up right now.";
+"node_modules" = "node_modules";
+"node_modules hanya dicari di folder proyek yang kamu pilih." = "node_modules is only searched in the project folders you choose.";
+"terakhir diubah %@" = "last changed %@";
 
-/* Updater */
-"Pembaruan" = "Updates";
-"Versi terpasang" = "Installed version";
-"Periksa Pembaruan…" = "Check for Updates…";
-"Menghubungi server rilis…" = "Contacting the release server…";
-"Pembaruan tersedia: %@ → %@" = "Update available: %@ → %@";
-"Buka Halaman Rilis" = "Open Release Page";
-"Respite sudah versi terbaru." = "Respite is up to date.";
-"Terakhir diperiksa %@" = "Last checked %@";
-"Pemeriksaan hanya berjalan saat kamu menekan tombol — tidak ada pemeriksaan otomatis di latar belakang, tidak ada data yang dikirim selain permintaan halaman rilis. Pemasangan otomatis (Sparkle) akan tersedia setelah aplikasi ditandatangani." = "Checking runs only when you press the button — no automatic background checks, and nothing is sent except a request for the release page. Automatic installation (Sparkle) will come once the app is signed.";
+/* App/Sources/Windows/Modules/DiagnosticView.swift */
+"Ada yang perlu diperhatikan" = "A few things need attention";
+"Bagaimana skor dihitung?" = "How is the score calculated?";
+"Cek suhu" = "Check temperature";
+"Cukup sibuk" = "Fairly busy";
+"Hangat" = "Warm";
+"Kosongkan ruang" = "Free up space";
+"Lihat aplikasi berat" = "See heavy apps";
+"Mac kamu butuh perhatian" = "Your Mac needs attention";
+"Mac kamu dalam kondisi baik" = "Your Mac is in good shape";
+"Mac kamu sedang panas, jadi macOS sengaja memperlambatnya supaya dingin." = "Your Mac is hot, so macOS is slowing it down on purpose to cool it off.";
+"Mac mulai hangat. Tutup aplikasi berat dan jangan tutupi lubang udaranya." = "Your Mac is getting warm. Quit heavy apps and don't block its air vents.";
+"Memori hampir penuh (%d%% terpakai). Tutup aplikasi yang tidak sedang dipakai." = "Memory is almost full (%d%% used). Quit apps you're not using.";
+"Mengukur…" = "Measuring…";
+"Normal" = "Normal";
+"Panas — sedang diperlambat" = "Hot — being slowed down";
+"Prosesor sedang sibuk (%d%%). Ada aplikasi yang bekerja keras — tutup kalau tidak dipakai." = "The processor is busy (%d%%). An app is working hard — quit it if you're not using it.";
+"Ruang penyimpanan tinggal %d%%. Mac bisa melambat kalau penyimpanan hampir penuh." = "Only %d%% of storage is left. Your Mac can slow down when storage is almost full.";
+"Sangat panas" = "Very hot";
+"Sangat sibuk" = "Very busy";
+"Santai" = "Relaxed";
+"Skor 0–100 dari empat hal: memori (30%), penyimpanan (25%), suhu (25%), dan prosesor (20%). Di atas 70 berarti sehat. Pemeriksaan ini hanya membaca — tidak ada yang diubah." = "A 0–100 score based on four things: memory (30%), storage (25%), temperature (25%), and processor (20%). Above 70 means healthy. This check only reads information — nothing is changed.";
+"Skor kesehatan %d dari 100" = "Health score %d of 100";
+"Tidak ada masalah yang terlihat. Mac kamu berjalan normal." = "No problems found. Your Mac is running normally.";
+"Yang diperiksa" = "What we checked";
+"Yang kami temukan" = "What we found";
 
-/* Failed detail + search */
-"%d item gagal dibersihkan — lihat alasannya" = "%d items failed to clean — see why";
-"Cari nama atau folder…" = "Search name or folder…";
+/* App/Sources/Windows/Modules/DuplicateView.swift */
+"%d file diperiksa · %d kelompok ditemukan" = "%d files checked · %d groups found";
+"%d file tidak bisa dipindahkan." = "%d files couldn't be moved.";
+"%d salinan ganda · %@" = "%d duplicate copies · %@";
+"%d salinan · hemat %@" = "%d copies · save %@";
+"Cari file yang tersimpan lebih dari sekali" = "Find files that are saved more than once";
+"Dua file dianggap ganda kalau isinya sama persis, bukan cuma namanya." = "Two files count as duplicates if their contents are exactly the same, not just their names.";
+"File yang diubah %d hari terakhir tidak dicentang otomatis." = "Files changed in the last %d days aren't checked automatically.";
+"Foto yang hanya mirip (bukan sama persis) dicari di alat Foto Mirip." = "Photos that are only similar (not exactly the same) are found with the Similar Photos tool.";
+"Mencari file yang isinya sama persis, walau namanya beda." = "Looking for files with exactly the same contents, even if their names are different.";
+"Pilih folder dulu — misalnya Downloads, Documents, atau folder foto." = "Choose a folder first — for example Downloads, Documents, or a photos folder.";
+"Pilih folder yang ingin diperiksa file gandanya." = "Choose a folder to check for duplicate files.";
+"Pilih folder…" = "Choose Folder…";
+"Salinan paling lama ditandai \"Disimpan\". Kalau semua salinan dicentang, satu tetap disisakan." = "The oldest copy is marked \"Kept\". If every copy is checked, one is still kept.";
+"Satu salinan dari setiap file selalu disimpan." = "One copy of every file is always kept.";
+"Semua file di folder %@ hanya ada satu salinan." = "Every file in the %@ folder has only one copy.";
+"Tidak ada file ganda" = "No duplicate files";
+"Yang ditandai \"Disimpan\" tetap ada. Centang salinan yang mau dibuang. Klik dua kali untuk melihat isinya." = "Copies marked \"Kept\" stay. Check the copies you want to remove. Double-click to see what's inside.";
 
-/* Purgeable */
-"Purgeable" = "Purgeable";
-"Ruang purgeable dibebaskan macOS sendiri saat dibutuhkan — tidak dihitung sebagai ruang yang bisa Respite bebaskan." = "Purgeable space is released by macOS itself when needed — it is not counted as space Respite can free.";
-"Memindai di latar belakang:" = "Scanning in the background:";
-
-/* Search duplikat/foto + a11y */
-"Buka modul" = "Open module";
+/* App/Sources/Windows/Modules/HomeView.swift */
+"%1$@ kosong dari %2$@" = "%1$@ free of %2$@";
+"%d%% sudah terpakai" = "%d%% used";
+"Alat untuk pengguna lanjutan ada di menu kiri, bagian \"Alat Lain\"." = "Tools for advanced users are in the menu on the left, under \"More Tools\".";
+"Bersihkan Mac Sekarang" = "Clean Up My Mac";
+"Kamu akan melihat daftarnya dulu. Tidak ada yang dihapus tanpa persetujuanmu." = "You'll see the list first. Nothing is deleted without your OK.";
+"Lihat penjelasan" = "See explanation";
 "Penyimpanan %d persen terpakai" = "Storage %d percent used";
-"Bersihkan pencarian" = "Clear search";
-"Status Akses Disk Penuh" = "Full Disk Access status";
+"Saran untuk kamu" = "Suggestions for you";
+"Semua berjalan normal. Ada saran kecil di bawah." = "Everything is running normally. There's a small tip below.";
 
-/* Suhu CPU */
-"Suhu CPU" = "CPU Temperature";
-"tidak terbaca" = "not readable";
-"Mac ini tidak membuka sensor suhu CPU ke aplikasi (umum di Apple Silicon modern). Nilai suhu akan tampil otomatis di Mac yang mengizinkannya — status thermal dan batas kecepatan di atas tetap indikator resmi yang tersedia." = "This Mac does not expose CPU temperature sensors to apps (common on modern Apple Silicon). The temperature will appear automatically on Macs that allow it — the thermal state and speed limit above remain the official indicators available.";
-"Sumber: ProcessInfo.thermalState, pmset -g therm (CPU_Speed_Limit), dan sensor SMC (kalau terbaca). 100% berarti tidak ada throttling. Modul ini sepenuhnya baca-saja." = "Sources: ProcessInfo.thermalState, pmset -g therm (CPU_Speed_Limit), and SMC sensors (when readable). 100% means no throttling. This module is fully read-only.";
-
-/* Orphan sort */
-"Nama" = "Name";
-
-/* Kunci Keyboard + Lainnya */
-"Lainnya" = "Misc";
-"Kunci Keyboard" = "Keyboard Lock";
-"Kunci keyboard saat membersihkan, dan kontrol auto-start Respite." = "Lock the keyboard while cleaning, and control Respite's auto-start.";
-"Kunci keyboard + jalankan saat login." = "Keyboard lock + launch at login.";
-"untuk membersihkan layar & keyboard tanpa salah tekan" = "clean the screen & keyboard without accidental presses";
-"Menahan semua ketukan keyboard selama layar kunci aktif — trackpad & mouse tetap berfungsi. Buka kunci dengan menahan tombol yang muncul di layar selama 1 detik." = "Blocks all key presses while the lock screen is active — trackpad & mouse keep working. Unlock by holding the on-screen button for 1 second.";
-"Sudah Terkunci — buka di layar penuh" = "Already Locked — unlock on the full screen";
-"Kunci Keyboard Sekarang" = "Lock Keyboard Now";
-"Terkunci" = "Locked";
-"Pendekatan overlay (pola KeyboardCleanTool): input ditahan selama layar kunci aktif, bukan dimatikan di level hardware. Menutup paksa Respite juga langsung membuka kunci — tidak ada state yang tertinggal." = "Overlay approach (KeyboardCleanTool pattern): key presses are held while the lock screen is active, not disabled at the hardware level. Force-quitting Respite also unlocks instantly — no lingering state.";
-"Nonaktifkan kalau kamu tidak ingin Respite terbuka sendiri setiap Mac dinyalakan. Pengaturan yang sama ada di Pengaturan → Umum." = "Turn off if you don't want Respite to open itself every time your Mac starts. The same setting lives in Settings → General.";
-"Gagal mengubah auto-start: %@" = "Failed to change auto-start: %@";
-"Keyboard Terkunci" = "Keyboard Locked";
-"terkunci %d:%02d" = "locked %d:%02d";
-"Trackpad & mouse tetap berfungsi. Semua ketukan keyboard ditahan selama layar ini aktif." = "Trackpad & mouse keep working. All key presses are held while this screen is active.";
-"Tahan untuk Buka Kunci" = "Hold to Unlock";
-"Tahan 1 detik untuk membuka kunci keyboard" = "Hold 1 second to unlock the keyboard";
-"Respite tetap jalan di belakang — membersihkan layar sekarang aman." = "Respite keeps running behind — wiping the screen now is safe.";
-
-/* AutoBoot lid */
-"Nyala saat lid dibuka" = "Power on when lid opens";
-"status firmware: %@" = "firmware status: %@";
-"Aktif (default pabrik)" = "On (factory default)";
-"Nonaktif — harus tekan power" = "Off — press power to start";
-"tidak dapat dibaca" = "unreadable";
-"Secara pabrik, Mac menyala sendiri begitu lid dibuka (atau charger dicolok) — kadang nyala sendiri di dalam tas. Matikan ini kalau kamu ingin Mac hanya menyala setelah tombol power ditekan. Berlaku di level firmware, bertahan lintas reboot." = "From the factory, Macs power on as soon as the lid opens (or the charger is plugged in) — sometimes booting inside your bag. Turn this off if you want your Mac to start only after pressing the power button. Applies at firmware level and survives reboots.";
-"Aktifkan Nyala-otomatis" = "Enable power-on-open";
-"Nonaktifkan — butuh tekan power" = "Disable — power button required";
-"Mengubahnya memunculkan dialog admin macOS sekali (setting di level firmware, semua akun ikut kena). Menguji: matikan Mac penuh → tutup lid → buka lid — kalau tidak menyala, setting berhasil." = "Changing it shows the macOS admin dialog once (firmware-level setting, applies to all accounts). To verify: shut down fully → close the lid → reopen — if it doesn't power on, it worked.";
-"Perubahan dibatalkan atau ditolak — setting tidak diubah." = "Change cancelled or denied — setting was not modified.";
-
-/* Keyboard lock timer */
-"Buka otomatis setelah" = "Auto-open after";
+/* App/Sources/Windows/Modules/KeyboardLockView.swift */
 "1 menit" = "1 minute";
 "2 menit" = "2 minutes";
 "3 menit" = "3 minutes";
 "5 menit" = "5 minutes";
+"Atau tunggu waktunya habis — terbuka sendiri" = "Or wait for the timer to run out — it unlocks by itself";
+"Buka sendiri setelah" = "Unlock automatically after";
+"Cara membuka kunci:" = "How to unlock:";
+"Darurat: tekan ⌘⌥L" = "Emergency: press ⌘⌥L";
+"Keyboard sedang terkunci" = "The keyboard is locked";
+"Kunci Keyboard Sekarang" = "Lock Keyboard Now";
+"Mau mengelap keyboard atau layar? Kunci keyboard dulu supaya tidak ada tombol yang tertekan. Trackpad dan mouse tetap bisa dipakai." = "Want to wipe your keyboard or screen? Lock the keyboard first so no keys get pressed. Your trackpad and mouse still work.";
+"Overlay menahan input selama aktif, bukan mematikan keyboard di level hardware — tidak ada state yang tertinggal." = "The overlay blocks input while it's active — it never turns off the keyboard at the hardware level, so nothing is left behind.";
+"Paksa keluar Respite — kunci hilang sendiri" = "Force quit Respite — the lock goes away on its own";
+"Saat ini: keyboard bisa dipakai seperti biasa" = "Right now: the keyboard works as usual";
+"Saat ini: keyboard terkunci" = "Right now: the keyboard is locked";
 "Tanpa timer" = "No timer";
-"Cara keluar (3 jalur, semua pakai trackpad):" = "Ways out (3 paths, all trackpad-only):";
-"1. Tahan tombol di layar kunci 1 detik. 2. Tunggu timer habis — terbuka sendiri + notifikasi. 3. Paksa keluar Respite (⌥⌘Esc) — kunci hilang sendiri karena ini cuma overlay aplikasi, bukan setting sistem." = "1. Hold the on-screen button for 1 second. 2. Wait for the timer — unlocks itself with a notification. 3. Force-quit Respite (⌥⌘Esc) — the lock vanishes on its own since it's just an app overlay, not a system setting.";
-"terbuka otomatis dalam %d:%02d" = "opens automatically in %d:%02d";
-"Keyboard terbuka kembali" = "Keyboard unlocked";
-"Timer habis — keyboard berfungsi normal lagi." = "Timer elapsed — keyboard works normally again.";
+"Tekan dan tahan tombol di layar selama 1 detik" = "Press and hold the button on screen for 1 second";
 
-"Daftarkan LaunchAgent kecil yang membuka Respite setiap Mac dinyalakan. Kelola juga dari modul Aplikasi Saat Login." = "Registers a small LaunchAgent that opens Respite every time your Mac starts. Also manageable from the Login Apps module.";
-"Jalankan Respite saat login" = "Run Respite at login";
-"Pendekatan overlay (pola KeyboardCleanTool): input ditahan selama layar kunci aktif, bukan dimatikan di level hardware. Trackpad tidak pernah disentuh." = "Overlay approach (the KeyboardCleanTool pattern): key presses are held while the lock screen is active, never disabled at the hardware level. The trackpad is never touched.";
-"Setting firmware (NVRAM) — berlaku untuk semua akun" = "Firmware-level setting (NVRAM) — applies to every account";
+/* App/Sources/Windows/Modules/LargeFilesView.swift */
+"%@ dipindahkan ke Trash" = "%@ moved to the Trash";
+"%@ · terakhir diubah %@" = "%@ · last changed %@";
+"%d file besar · %@" = "%d large files · %@";
+"%d file ditemukan · %@" = "%d files found · %@";
+"Baru dipakai" = "Recently used";
+"Cari file besar yang jarang kamu buka" = "Find large files you rarely open";
+"Cari nama file…" = "Search file names…";
+"Centang file yang tidak kamu butuhkan lagi. Klik dua kali untuk melihat isinya." = "Check the files you don't need anymore. Double-click to see what's inside.";
+"Dokumen, Desktop, Foto, dan Mail tidak ikut diperiksa." = "Documents, Desktop, Photos, and Mail aren't checked.";
+"File yang dipakai %d hari terakhir tidak dicentang otomatis." = "Files used in the last %d days aren't checked automatically.";
+"Jangan tampilkan folder ini lagi" = "Don't show this folder again";
+"Lihat isi" = "Preview";
+"Pindahkan" = "Move";
+"Semua dipindah ke Trash, jadi masih bisa dikembalikan." = "Everything goes to the Trash, so you can still get it back.";
+"Tampilkan di Finder" = "Show in Finder";
+"Tampilkan file mulai dari" = "Show files starting from";
+"Terbesar dulu" = "Largest first";
+"Terlama dulu" = "Oldest first";
+"Tidak ada file di atas %@ di luar folder pribadimu." = "No files larger than %@ outside your personal folders.";
 
-"bersihkan layar & keyboard tanpa salah tekan" = "clean the screen & keyboard without accidental presses";
-"Menahan semua ketukan keyboard selama layar kunci aktif — trackpad & mouse tetap berfungsi." = "Holds every key press while the lock screen is active — trackpad & mouse keep working.";
-"Cara keluar (semua via trackpad):" = "Ways out (all trackpad-only):";
-"Tahan tombol di layar selama 1 detik" = "Hold the on-screen button for 1 second";
-"Tunggu timer habis — terbuka sendiri, plus notifikasi" = "Wait for the timer — unlocks itself, with a notification";
-"Paksa keluar Respite — kunci hilang sendiri" = "Force-quit Respite — the lock disappears on its own";
-"Overlay menahan input selama aktif, bukan mematikan keyboard di level hardware — tidak ada state yang tertinggal." = "The overlay holds input while active, never disables the keyboard at the hardware level — no lingering state.";
-"Kunci keyboard saat membersihkan layar." = "Lock the keyboard while cleaning the screen.";
-"Atur Mac menyala sendiri saat lid dibuka." = "Control whether your Mac powers on when the lid opens.";
-"Tahan semua ketukan keyboard selama layar kunci aktif." = "Holds every key press while the lock screen is active.";
-"Secara pabrik, Mac menyala sendiri begitu lid dibuka (atau charger dicolok) — kadang nyala sendiri di dalam tas. Matikan ini kalau kamu ingin Mac hanya menyala setelah tombol power ditekan." = "From the factory, Macs power on as soon as the lid opens (or the charger is plugged in) — sometimes booting inside your bag. Turn this off if you want your Mac to start only after pressing the power button.";
-"Mengubahnya memunculkan dialog admin macOS sekali. Menguji: matikan Mac penuh → tutup lid → buka lid — kalau tidak menyala, setting berhasil." = "Changing it shows the macOS admin dialog once. To verify: shut down fully → close the lid → reopen — if it doesn't power on, it worked.";
-"Atur apakah Mac menyala sendiri saat lid dibuka." = "Control whether your Mac powers on when the lid opens.";
-"⌘⌥L — pintasan darurat yang tetap jalan saat terkunci" = "⌘⌥L — an emergency shortcut that still works while locked";
-"atau tekan ⌘⌥L — pintasan darurat yang tetap jalan saat terkunci" = "or press ⌘⌥L — an emergency shortcut that still works while locked";
-"Nyala saat dibuka" = "Power on-open";
-"Proses melebihi batas waktu — kemungkinan dialog admin tidak terjawab. Coba lagi dan pastikan dialog password terlihat." = "The process timed out — the admin dialog may have gone unanswered. Try again and make sure the password dialog is visible.";
-"Diterapkan — status di atas dibaca ulang dari firmware." = "Applied — the status above was re-read from the firmware.";
+/* App/Sources/Windows/Modules/MemoryMonitorView.swift */
+"\"Segarkan tanpa restart\" (Maintenance Sweep) versi ini hanya menjalankan langkah tanpa privilege: restart Finder dan Dock. Langkah sistem-level (purge memori, periodic scripts, memori compressed) akan menyusul bersama privileged helper." = "In this version, \"Refresh without restarting\" (Maintenance Sweep) only runs steps that don't need admin rights: restarting Finder and the Dock. System-level steps (memory purge, periodic scripts, compressed memory) will come later with a privileged helper.";
+"%1$@ (%2$d%%)" = "%1$@ (%2$d%%)";
+"%1$@ dari %2$@" = "%1$@ of %2$@";
+"Ada yang gagal: %@" = "Something went wrong: %@";
+"Disarankan menyegarkan Mac sekarang" = "We recommend refreshing your Mac now";
+"Finder dan Dock akan direstart — keduanya hilang sebentar (±2 detik) lalu kembali sendiri. Tidak ada data yang hilang." = "Finder and the Dock will restart — they disappear for a moment (about 2 seconds) and then come back on their own. No data is lost.";
+"Finder dan Dock dimulai ulang — hilang sebentar lalu kembali sendiri. Tidak ada data yang hilang." = "Finder and the Dock restart — they disappear for a moment and then come back on their own. No data is lost.";
+"Jejak memori Respite memakai angka yang sama dengan kolom Memory di Activity Monitor. Target kami: tetap jauh lebih ringan dari aplikasi yang dibersihkannya." = "Respite's memory use is measured the same way as the Memory column in Activity Monitor. Our goal: stay much lighter than the apps it cleans up after.";
+"Jejak memori Respite sendiri (footprint)" = "Respite's own memory use (footprint)";
+"Lanjutkan" = "Continue";
+"Mac bisa terasa lambat. Tutup aplikasi berat di bawah yang sedang tidak kamu pakai." = "Your Mac may feel slow. Quit any heavy apps below that you're not using.";
+"Mac mulai meminjam ruang penyimpanan sebagai memori cadangan (%@)" = "Your Mac is starting to borrow storage space as extra memory (%@)";
+"Mac sudah menyala lebih dari %d hari tanpa restart" = "Your Mac has been on for more than %d days without a restart";
+"Masih aman, tapi menutup aplikasi yang tidak dipakai bisa membuat Mac lebih ringan." = "Still fine, but quitting apps you're not using can make your Mac feel lighter.";
+"Masih banyak ruang untuk aplikasi lain. Tidak perlu menutup apa pun." = "There's plenty of room for other apps. No need to quit anything.";
+"Memori tersedia (free + inactive)" = "Available memory (free + inactive)";
+"Memori yang masih bebas tinggal %d%%" = "Only %d%% of memory is still free";
+"Memori: cukup lega" = "Memory: plenty of room";
+"Memori: hampir penuh" = "Memory: almost full";
+"Memori: mulai penuh" = "Memory: filling up";
+"Perawatan ringan" = "Light maintenance";
+"Sedang menjalankan…" = "Running…";
+"Segarkan Mac tanpa restart?" = "Refresh your Mac without restarting?";
+"Segarkan tanpa restart" = "Refresh without restarting";
+"Sejak terakhir restart. Mac yang lama tidak direstart kadang terasa makin berat." = "Since the last restart. A Mac that hasn't been restarted in a while can feel slower and slower.";
+"Selesai — Finder dan Dock sudah dimulai ulang." = "Done — Finder and the Dock have restarted.";
+"Sudah menyala selama %@" = "On for %@";
+"Swap terpakai" = "Swap used";
+"Swap: saat RAM mulai sempit, macOS memindahkan isi memori yang jarang dipakai ke disk. Swap tidak otomatis turun setelah memori lega — cara paling aman mengosongkannya adalah menutup aplikasi berat atau restart Mac. Penghapusan swapfile manual sengaja tidak disediakan karena berisiko." = "Swap: when RAM gets tight, macOS moves rarely used memory to the disk. Swap doesn't go down on its own once memory frees up — the safest way to clear it is to quit heavy apps or restart your Mac. Deleting swap files manually isn't offered on purpose because it's risky.";
 
-"Buka kunci untuk mengubah setting nyala saat lid dibuka" = "Unlock to change the power-on-open setting";
-"Autentikasi gagal — password tersimpan dihapus. Coba lagi untuk memasukkan ulang, atau pakai dialog sistem." = "Authentication failed — the stored password was deleted. Try again to re-enter it, or use the system dialog.";
-"Password admin" = "Admin password";
-"Sekali ini saja: masukkan password admin untuk mengubah setting firmware. Kalau disimpan, perubahan berikutnya cukup pakai Touch ID — gagal atau tidak tersedia otomatis pakai password Mac." = "Just this once: enter the admin password to change the firmware setting. If saved, later changes only need Touch ID — falling back to your Mac's password if it fails or is unavailable.";
-"Username admin" = "Admin username";
-"Simpan di Keychain — perubahan berikutnya pakai Touch ID" = "Save to Keychain — later changes use Touch ID";
-"Pakai dialog sistem" = "Use system dialog";
-"Simpan & Jalankan" = "Save & Run";
-"Password admin tersimpan di Keychain (dibuka dengan Touch ID)." = "Admin password is stored in the Keychain (unlocked with Touch ID).";
-"Menguji: matikan Mac penuh → tutup lid → buka lid — kalau tidak menyala, setting berhasil." = "To verify: shut down fully → close the lid → reopen — if it doesn't power on, it worked.";
-"Setiap perubahan memunculkan dialog admin macOS — password tidak pernah disimpan aplikasi. Menguji: matikan Mac penuh → tutup lid → buka lid — kalau tidak menyala, setting berhasil." = "Every change shows the macOS admin dialog — the password is never stored by the app. To verify: shut down fully → close the lid → reopen — if it doesn't power on, it worked.";
-"Aktifkan" = "Enable";
-"Nonaktifkan" = "Disable";
-"Menunggu dialog admin…" = "Waiting for the admin dialog…";
+/* App/Sources/Windows/Modules/PermanentDeleteConfirmSheet.swift */
+"%d item (%@) akan dihapus selamanya. File ini tidak masuk Trash dan tidak bisa dikembalikan. Kalau masih ragu, pilih Batal." = "%d items (%@) will be deleted forever. These files won't go to the Trash and can't be recovered. If you're not sure, choose Cancel.";
+"Hapus selamanya?" = "Delete forever?";
+"Ketik \"hapus\" untuk mengonfirmasi" = "Type \"delete\" to confirm";
+"Ketik kata hapus di kotak di atas supaya tombolnya aktif." = "Type the word \"delete\" in the box above to enable the button.";
+"hapus" = "delete";
+
+/* App/Sources/Windows/Modules/PowerLidView.swift */
+"Biasanya Mac langsung menyala begitu layarnya dibuka atau charger dicolok — kadang malah menyala sendiri di dalam tas. Kamu bisa mengaturnya supaya Mac hanya menyala setelah tombol power ditekan." = "Your Mac usually turns on as soon as you open the lid or plug in the charger — sometimes even inside your bag. You can set it to turn on only after you press the power button.";
+"Hanya nyala saat tombol power ditekan" = "Turn on only when the power button is pressed";
+"Menunggu password kamu…" = "Waiting for your password…";
+"Nyalakan sendiri saat dibuka" = "Turn on automatically when opened";
+"Saat ini: Mac hanya menyala setelah tombol power ditekan" = "Right now: your Mac turns on only after the power button is pressed";
+"Saat ini: Mac menyala sendiri saat dibuka" = "Right now: your Mac turns on by itself when opened";
+"Saat ini: pengaturan ini tidak bisa dibaca di Mac kamu" = "Right now: this setting can't be read on your Mac";
+"Setiap perubahan memunculkan dialog admin macOS — password tidak pernah disimpan aplikasi. Menguji: matikan Mac penuh → tutup lid → buka lid — kalau tidak menyala, setting berhasil." = "Every change shows a macOS admin prompt — the app never stores your password. To test: shut down your Mac completely → close the lid → open the lid. If it doesn't turn on, the setting worked.";
+"Setting firmware (NVRAM) — berlaku untuk semua akun" = "Firmware setting (NVRAM) — applies to every account";
+"Tersimpan. Status di atas sudah diperbarui." = "Saved. The status above has been updated.";
+"macOS akan meminta password Mac kamu untuk menyimpan perubahan ini." = "macOS will ask for your Mac password to save this change.";
+
+/* App/Sources/Windows/Modules/ShredderView.swift */
+"%@ dihapus permanen" = "%@ deleted permanently";
+"File langsung dihapus — tidak lewat Trash." = "Files are deleted right away — they don't go to the Trash.";
+"File sudah dihapus selamanya dan tidak ada di Trash." = "The files have been deleted forever and aren't in the Trash.";
+"Hapus centang untuk mengeluarkan file dari daftar." = "Uncheck a file to take it off the list.";
+"Hapus file rahasia selamanya" = "Delete private files forever";
+"Pilih file atau folder yang ingin dihapus permanen — tidak bisa dibatalkan." = "Choose files or folders to delete permanently — this can't be undone.";
+"Pilih file…" = "Choose Files…";
+"Shredder melewati Trash sepenuhnya — file langsung dihapus permanen dan tidak bisa di-Put Back. Di SSD/APFS isi lama tidak ditimpa: FileVault dan snapshot lokal Time Machine yang menentukan apakah sisanya masih bisa dipulihkan. Gunakan hanya untuk dokumen yang benar-benar sensitif; selain itu, biarkan pembersihan biasa lewat Trash yang bisa dibatalkan." = "The Shredder skips the Trash completely — files are deleted permanently and can't be put back. On SSD/APFS the old contents aren't overwritten: FileVault and local Time Machine snapshots decide whether any traces can still be recovered. Use it only for truly sensitive documents; for everything else, stick with regular cleanup through the Trash, which can be undone.";
+"Tidak bisa dibatalkan" = "Can't be undone";
+"Tidak bisa dibatalkan atau dikembalikan." = "This can't be undone or recovered.";
+"Untuk pembersihan biasa, pakai alat lain — semuanya lewat Trash dan aman." = "For regular cleanup, use the other tools — they all go through the Trash and are safe.";
+
+/* App/Sources/Windows/Modules/SimilarPhotosView.swift */
+"%d foto diperiksa · %d kelompok ditemukan" = "%d photos checked · %d groups found";
+"%d foto mirip" = "%d similar photos";
+"%d foto mirip · %@" = "%d similar photos · %@";
+"Cari foto yang hampir sama" = "Find photos that look almost the same";
+"Cari nama atau folder…" = "Search name or folder…";
+"Disarankan disimpan" = "Suggested to keep";
+"Disimpan" = "Kept";
+"Foto dibandingkan dari tampilannya, bukan dari namanya. Foto yang sama persis ikut terdeteksi." = "Photos are compared by how they look, not by their names. Identical photos are found too.";
+"Foto yang ditandai \"Disimpan\" biasanya versi dengan kualitas terbaik. Kalau semua dicentang, satu tetap disisakan." = "The photo marked \"Kept\" is usually the best-quality version. If every photo is checked, one is still kept.";
+"Foto yang diubah %d hari terakhir tidak dicentang otomatis." = "Photos changed in the last %d days aren't checked automatically.";
+"Ganti folder…" = "Change Folder…";
+"Menemukan foto beruntun, hasil edit, atau foto yang diubah ukurannya." = "Finds burst shots, edited copies, and resized photos.";
+"Mirip belum tentu sama. Lihat dulu fotonya — klik dua kali untuk memperbesar." = "Similar doesn't always mean the same. Look at the photos first — double-click to enlarge.";
+"Pilih folder berisi foto dulu, misalnya Pictures atau Downloads." = "Choose a folder with photos first, like Pictures or Downloads.";
+"Pilih folder berisi foto yang ingin diperiksa." = "Choose a folder of photos you want to check.";
+"Pilih folder foto…" = "Choose Photos Folder…";
+"Satu foto dari setiap kelompok selalu disimpan." = "One photo from each group is always kept.";
+"Semua foto di folder %@ berbeda satu sama lain." = "All the photos in the %@ folder are different from each other.";
+"Tidak ada foto mirip" = "No similar photos";
+
+/* App/Sources/Windows/Modules/SmartScanView.swift */
+"%d item · %@" = "%d items · %@";
+"Buang file sementara yang menumpuk" = "Remove temporary files that pile up";
+"Cache adalah file sementara yang dibuat aplikasi supaya lebih cepat. Kalau dihapus, aplikasi membuatnya lagi." = "Cache files are temporary files apps make so they can run faster. If you delete them, the apps make them again.";
+"Cache aplikasi" = "App cache";
+"Cache dan catatan lama di Mac kamu sudah bersih." = "The cache and old logs on your Mac are already clean.";
+"Cari nama aplikasi…" = "Search app names…";
+"Catatan lama" = "Old logs";
+"Catatan lama (log) hanya berguna untuk melacak masalah yang sudah lewat." = "Old logs are only useful for tracking down problems that already happened.";
+"Dibuat ulang otomatis oleh aplikasinya." = "Rebuilt automatically by the app.";
+"Dokumen, foto, dan file pribadimu tidak disentuh." = "Your documents, photos, and personal files aren't touched.";
+"Isi Trash" = "Trash contents";
+"Isi Trash hanya ditampilkan. Untuk mengosongkannya, pakai alat Trash." = "Trash contents are only shown here. To empty it, use the Trash tool.";
+"Memeriksa cache dan catatan lama dari aplikasi." = "Checking app cache and old logs.";
+"Semua" = "All";
+"Sudah di Trash — kosongkan lewat alat Trash." = "Already in the Trash — empty it with the Trash tool.";
+"Tidak dibutuhkan untuk pemakaian sehari-hari." = "Not needed for everyday use.";
+"Yang dicentang aman dihapus. Aplikasi akan membuatnya lagi saat dibutuhkan." = "Checked items are safe to delete. Apps will make them again when needed.";
+
+/* App/Sources/Windows/Modules/StartupItemsView.swift */
+"%@ tidak lagi otomatis jalan saat login" = "%@ no longer opens automatically at login";
+"%d aplikasi ditambahkan — berjalan saat login berikutnya" = "%d apps added — they'll open at your next login";
+"Agent milik user bisa dinyalakan/dimatikan langsung dari sini — berlaku saat login berikutnya. Tombol Tambah Aplikasi mendaftarkan app pilihanmu lewat LaunchAgent yang dikelola Respite. Agent SISTEM butuh hak admin: kelola lewat tombol Pengaturan Login Items." = "Agents that belong to you can be turned on or off right here — changes apply at your next login. The Add App button registers the app you choose through a LaunchAgent managed by Respite. SYSTEM agents need admin rights: manage them with the Open Login Items Settings button.";
+"Aplikasi yang otomatis jalan saat kamu masuk" = "Apps that open automatically when you log in";
+"Aplikasinya tidak lagi otomatis jalan saat kamu masuk. Aplikasinya sendiri tidak dihapus, dan kamu bisa menambahkannya lagi kapan saja." = "The app no longer opens automatically when you log in. The app itself isn't deleted, and you can add it back anytime.";
+"Asalnya tidak diketahui — matikan kalau kamu tidak mengenalnya" = "Unknown source — turn it off if you don't recognize it";
+"Bagian ini diatur oleh macOS atau aplikasi yang butuh izin admin. Tidak bisa diubah dari sini — kalau perlu, pakai Pengaturan Sistem." = "This section is managed by macOS or by apps that need admin rights. It can't be changed from here — use System Settings if needed.";
+"Bagian sistem (%d) — dikelola macOS" = "System items (%d) — managed by macOS";
+"Belum ada aplikasi yang otomatis jalan" = "No apps open automatically yet";
+"Buka Pengaturan Login Items" = "Open Login Items Settings";
+"Buka Pengaturan Sistem" = "Open System Settings";
+"Ditambahkan lewat Respite" = "Added with Respite";
+"Ditemukan %d item launchd. Klik kanan sebuah baris untuk melihat file plist-nya di Finder." = "Found %d launchd items. Right-click a row to show its plist file in Finder.";
+"Gagal mendaftarkan %@" = "Couldn't register %@";
+"Gagal mengubah %@" = "Couldn't change %@";
+"Hapus" = "Remove";
+"Hapus %@ dari daftar?" = "Remove %@ from the list?";
+"Jalan sejak Mac dinyalakan" = "Runs from the moment your Mac starts";
+"Lokasi yang diperiksa: ~/Library/LaunchAgents (LaunchAgent user), /Library/LaunchAgents (LaunchAgent sistem), dan /Library/LaunchDaemons (LaunchDaemon, jalan sejak boot). \"Asalnya tidak diketahui\" berarti label plist tidak cocok dengan app terinstall mana pun." = "Locations checked: ~/Library/LaunchAgents (user LaunchAgents), /Library/LaunchAgents (system LaunchAgents), and /Library/LaunchDaemons (LaunchDaemons, which run from startup). \"Unknown source\" means the plist label doesn't match any installed app.";
+"Mac kamu langsung siap dipakai saat masuk. Tekan \"Tambah Aplikasi…\" kalau ingin ada aplikasi yang otomatis terbuka." = "Your Mac is ready to use right after you log in. Click \"Add App…\" if you want an app to open automatically.";
+"Matikan yang tidak kamu butuhkan supaya Mac lebih cepat siap dipakai. Perubahan berlaku saat kamu masuk lagi." = "Turn off the ones you don't need so your Mac is ready to use sooner. Changes apply the next time you log in.";
+"Pilih aplikasi yang ingin dijalankan otomatis saat login." = "Choose the apps to open automatically at login.";
+"Tambah Aplikasi…" = "Add App…";
+
+/* App/Sources/Windows/Modules/ThermalDetectorView.swift */
+"%d%%" = "%d%%";
+"Batas kecepatan CPU" = "CPU speed limit";
+"Critical" = "Critical";
+"Fair — suhu meninggi" = "Fair — running warm";
+"Istirahatkan sebentar pekerjaan berat (game, edit video) sampai Mac dingin lagi." = "Take a short break from heavy work (games, video editing) until your Mac cools down.";
+"Jauhkan dari sinar matahari langsung dan ruangan yang panas." = "Keep it out of direct sunlight and hot rooms.";
+"Mac kamu tidak kepanasan dan berjalan dengan kecepatan penuh." = "Your Mac isn't overheating and is running at full speed.";
+"Mac mulai hangat, tapi masih berjalan normal." = "Your Mac is getting warm, but it's still running normally.";
+"Mac sengaja diperlambat supaya cepat dingin. Kelambanan saat ini karena panas, bukan karena file sampah." = "Your Mac is being slowed down on purpose so it can cool off. The slowness right now is from heat, not junk files.";
+"Nominal" = "Nominal";
+"Serious — throttling aktif" = "Serious — throttling active";
+"Sistem sedang menurunkan kecepatan CPU karena suhu. Tutup aplikasi berat dan pastikan ventilasi tidak tertutup — kelambanan saat ini berasal dari panas, bukan dari file sampah." = "The system is lowering CPU speed because of heat. Quit heavy apps and make sure the air vents aren't blocked — the slowness right now comes from heat, not junk files.";
+"Status thermal (thermalState)" = "Thermal status (thermalState)";
+"Status thermal dari sistem menyebut Fair, tetapi batas kecepatan CPU masih 100% — tidak ada penalti performa nyata saat ini. Nilai thermalState kadang tertinggal setelah Mac bangun dari sleep; Respite memeriksanya ulang setiap 2 detik dan setiap kali Mac bangun." = "The system reports a Fair thermal status, but the CPU speed limit is still 100% — there's no real slowdown right now. thermalState can lag behind after your Mac wakes from sleep; Respite checks it again every 2 seconds and every time your Mac wakes.";
+"Suhu CPU (sensor SMC)" = "CPU temperature (SMC sensor)";
+"Sumber: ProcessInfo.thermalState, pmset -g therm (CPU_Speed_Limit), dan sensor SMC (kalau terbaca). 100% berarti tidak ada throttling. Modul ini sepenuhnya baca-saja." = "Sources: ProcessInfo.thermalState, pmset -g therm (CPU_Speed_Limit), and SMC sensors (when readable). 100% means no throttling. This tool only reads information.";
+"Supaya Mac tetap dingin" = "To keep your Mac cool";
+"Taruh Mac di permukaan keras dan datar — jangan di atas kasur, bantal, atau pangkuan berselimut." = "Put your Mac on a hard, flat surface — not on a bed, a pillow, or a blanket on your lap.";
+"Tidak ada throttling — performa CPU berjalan penuh." = "No throttling — the CPU is running at full speed.";
+"Tutup aplikasi berat yang sedang tidak kamu pakai." = "Quit heavy apps you're not using right now.";
+"Yang bisa kamu lakukan" = "What you can do";
+"suhu prosesor" = "processor temperature";
+
+/* App/Sources/Windows/Modules/TopProcessesSection.swift */
+"\"Tutup\" meminta aplikasi menutup dengan sopan, jadi pekerjaanmu sempat disimpan. Pakai \"Tutup Paksa\" hanya kalau aplikasinya macet — pekerjaan yang belum disimpan bisa hilang." = "\"Quit\" asks the app to close politely, so your work has a chance to be saved. Use \"Force Quit\" only if the app is stuck — unsaved work may be lost.";
+"\"Tutup\" mengirim SIGTERM (aplikasi sempat menyimpan pekerjaan). \"Tutup Paksa\" mengirim SIGKILL — langsung mati tanpa menyimpan. Proses milik sistem/root tidak bisa dihentikan tanpa privilege; proses yang dijaga launchd bisa hidup lagi — matikan agent-nya di Aplikasi Saat Login." = "\"Quit\" sends SIGTERM (the app gets a chance to save its work). \"Force Quit\" sends SIGKILL — it stops right away without saving. System/root processes can't be stopped without admin rights; processes kept alive by launchd may come back — turn off their agent in Login Apps.";
+"%1$@ terus bekerja keras selama ±%3$d menit (rata-rata %2$d%% tenaga prosesor)" = "%1$@ has been working hard for about %3$d minutes (%2$d%% of processor power on average)";
+"100% berarti satu inti prosesor penuh; aplikasi yang memakai beberapa inti bisa lebih dari 100%." = "100% means one full processor core; apps that use several cores can go above 100%.";
+"Aplikasi yang paling banyak memakai memori. Tutup yang tidak sedang kamu pakai supaya Mac lebih lega." = "Apps that use the most memory. Quit the ones you're not using to give your Mac more room.";
+"Aplikasi yang paling berat" = "Heaviest apps";
+"Aplikasi yang sedang paling sibuk bekerja. Angkanya diperbarui sendiri setiap 2 detik." = "Apps that are working the hardest right now. The numbers update on their own every 2 seconds.";
+"Beban CPU per proses, dihitung dari delta waktu CPU antar pembaruan (metrik yang sama dengan Activity Monitor), diperbarui otomatis tiap 2 detik. Status \"Not Responding\" hanya bisa dibaca lewat API privat — app yang macet justru turun ke 0%." = "CPU load per process, calculated from the change in CPU time between updates (the same measure Activity Monitor uses), updated automatically every 2 seconds. \"Not Responding\" status can only be read through private APIs — a stuck app actually drops to 0%.";
+"Bukan lonjakan sesaat. Kalau kamu tidak sedang memakainya, sebaiknya ditutup." = "This isn't just a quick spike. If you're not using it, it's best to quit it.";
+"Gagal menghentikan %1$@ (%2$d dari %3$d terkirim) — %4$@. Kalau prosesnya hidup lagi setelah dihentikan, dia dijaga launchd: matikan agent-nya di Aplikasi Saat Login." = "Couldn't stop %1$@ (%2$d of %3$d sent) — %4$@. If it comes back after being stopped, launchd is keeping it running: turn off its agent in Login Apps.";
+"Lihat detail daftar ini" = "Show details about this list";
+"Memuat…" = "Loading…";
+"Proses-proses ini penyumbang tekanan memori terbesar — penyebab utama swap bertambah. Proses dengan nama sama digabung jadi satu baris. Atribusi swap per-proses tidak tersedia di API publik macOS." = "These processes put the most pressure on memory — the main reason swap grows. Processes with the same name are combined into one row. Per-process swap usage isn't available through public macOS APIs.";
+"Segarkan" = "Refresh";
+"Sinyal penghentian dikirim ke %@." = "Stop signal sent to %@.";
+"Sinyal penghentian dikirim ke %d proses %@." = "Stop signal sent to %d %@ processes.";
+"Tidak ada aplikasi yang memakai banyak memori." = "No apps are using a lot of memory.";
+"Tidak ada aplikasi yang membebani prosesor." = "No apps are putting load on the processor.";
+"Tutup" = "Quit";
+"Tutup %@?" = "Quit %@?";
+"Tutup Paksa" = "Force Quit";
+"memakai %@" = "using %@";
+"memakai %d%% tenaga prosesor" = "using %d%% of processor power";
+"proses ini dilindungi sistem dan tidak pernah bisa dihentikan" = "this process is protected by the system and can never be stopped";
+"prosesnya milik root/sistem — butuh privilege yang Respite sengaja tidak minta" = "it belongs to root/system — that needs admin rights Respite deliberately doesn't ask for";
+"prosesnya sudah berhenti dan PID-nya kini dipakai proses lain — tidak dihentikan" = "the process already ended and its PID is now used by another process — not stopped";
+"prosesnya sudah berhenti sendiri" = "the process already stopped on its own";
+
+/* App/Sources/Windows/Modules/UninstallerModel.swift */
+"%d item dipindah ke Trash (%@)." = "%d items moved to the Trash (%@).";
+
+/* App/Sources/Windows/OnboardingView.swift */
+"Belum bisa dipastikan" = "Not sure yet";
+"Bikin Mac kamu lega dan lancar lagi" = "Make your Mac roomy and smooth again";
+"Buka Pengaturan Privasi" = "Open Privacy Settings";
+"Cari file yang tidak terpakai — file sementara, file besar, dan sisa aplikasi." = "Find files you don't use — temporary files, large files, and app leftovers.";
+"Dokumen pribadi dan file sistem tidak pernah disentuh." = "Personal documents and system files are never touched.";
+"Izin belum diberikan" = "Access not given yet";
+"Izin sudah diberikan" = "Access given";
+"Izinkan akses file (boleh nanti)" = "Allow file access (you can do this later)";
+"Jelaskan kenapa Mac terasa lambat, dengan bahasa sederhana." = "Explain why your Mac feels slow, in plain words.";
+"Kamu selalu melihat daftarnya dulu dan memilih sendiri apa yang dibuang." = "You always see the list first and choose what to remove yourself.";
+"Kembali" = "Back";
+"Lanjut" = "Next";
+"Mulai pakai Respite" = "Start Using Respite";
+"Nyalakan Respite di daftar Akses Disk Penuh, lalu kembali ke sini. Boleh dilewati — sebagian besar fitur tetap bisa dipakai." = "Turn on Respite in the Full Disk Access list, then come back here. You can skip this — most features still work.";
+"Periksa ulang" = "Check again";
+"Semua berjalan di Mac kamu. Tidak ada data yang dikirim ke mana pun." = "Everything runs on your Mac. No data is sent anywhere.";
+"Semuanya masuk ke Trash, jadi bisa dikembalikan kapan saja." = "Everything goes to the Trash, so you can get it back anytime.";
+"Supaya Respite bisa menemukan semua file yang bisa dibersihkan, beri izin \"Akses Disk Penuh\". Tanpa izin ini, sebagian hasil bisa kosong." = "So Respite can find all the files that can be cleaned up, give it \"Full Disk Access\". Without it, some results may come up empty.";
+"Tidak ada yang dihapus tanpa persetujuanmu" = "Nothing is deleted without your OK";
+
+/* App/Sources/Windows/SettingsView.swift */
+"%d catatan" = "%d entries";
+"Aplikasi Saat Login diubah" = "Login Apps changed";
+"Bahasa" = "Language";
+"Batal" = "Cancel";
+"Belum ada pengecualian" = "No exclusions yet";
+"Belum ada riwayat." = "No history yet.";
+"Berlaku setelah Respite dibuka ulang." = "Takes effect after you reopen Respite.";
+"Bisa juga diatur di alat Aplikasi Saat Login." = "You can also set this in the Login Apps tool.";
+"Buka Folder Skrip" = "Open Scripts Folder";
+"Buka Respite otomatis saat kamu masuk ke Mac" = "Open Respite automatically when you log in to your Mac";
+"CSV" = "CSV";
+"Catatan riwayat akan dihapus. File di Trash tidak terpengaruh." = "History entries will be deleted. Files in the Trash aren't affected.";
+"Dihapus dari Aplikasi Saat Login" = "Removed from Login Apps";
+"Dihapus permanen" = "Deleted permanently";
+"Dirapikan ke arsip" = "Moved to archive";
+"Ditambahkan ke Aplikasi Saat Login" = "Added to Login Apps";
+"Ekspor Riwayat…" = "Export History…";
+"File yang baru saja kamu pakai tidak dicentang dulu, jadi tidak ikut terbuang tanpa sengaja. Kamu tetap bisa mencentangnya sendiri." = "Files you just used aren't checked right away, so they don't get removed by accident. You can still check them yourself.";
+"Folder berisi skrip Raycast siap pakai dan petunjuk Alfred (Workflow: Keyword → Open URL)." = "This folder has ready-to-use Raycast scripts and Alfred instructions (Workflow: Keyword → Open URL).";
+"Folder di sini tidak akan pernah diperiksa atau disarankan untuk dibersihkan." = "Folders here will never be checked or suggested for cleanup.";
+"Folder sistem dan dokumen pribadi selalu dilindungi, apa pun isi daftar ini." = "System folders and personal documents are always protected, no matter what's on this list.";
+"Hapus Riwayat" = "Clear History";
+"Hapus semua riwayat aksi?" = "Clear all action history?";
+"Ikut Sistem" = "Follow System";
+"Ingatkan saya kalau Mac perlu dibersihkan" = "Remind me when my Mac needs cleaning";
+"JSON" = "JSON";
+"Jangan centang otomatis file yang dipakai dalam %d hari terakhir" = "Don't automatically check files used in the last %d days";
+"Keamanan file" = "File safety";
+"Keluarkan" = "Remove from List";
+"Lihat & Unduh Versi Baru" = "See & Download New Version";
+"Menghapus catatan ini tidak mengubah file yang ada di Trash." = "Deleting these entries doesn't change the files in the Trash.";
+"Mulai ulang aplikasi" = "Restarted app";
+"Pembaruan" = "Updates";
+"Pembaruan tersedia: %@ → %@" = "Update available: %@ → %@";
+"Pembersihan rutin" = "Routine cleanup";
+"Pengecualian" = "Exclusions";
+"Pilih folder yang tidak ingin diperiksa Respite." = "Choose folders you don't want Respite to check.";
+"Pindah ke Trash" = "Moved to Trash";
+"Pintasan" = "Shortcuts";
+"Respite hanya memeriksa saat kamu menekan tombol ini. Tidak ada pemeriksaan otomatis dan tidak ada data pribadi yang dikirim." = "Respite only checks when you click this button. There are no automatic checks, and no personal data is sent.";
+"Respite sudah versi terbaru." = "Respite is up to date.";
+"Riwayat" = "History";
+"Sedang memeriksa…" = "Checking…";
+"Selama Respite berjalan, kondisi Mac dicek sesekali. Kamu dapat notifikasi kalau ada yang bisa dibersihkan — tidak ada yang dihapus otomatis." = "While Respite is running, it checks on your Mac every now and then. You'll get a notification when there's something to clean up — nothing is deleted automatically.";
+"Semua yang pernah dibersihkan Respite tercatat di sini." = "Everything Respite has cleaned up is listed here.";
+"Setiap kali kamu membersihkan atau menutup aplikasi, catatannya muncul di sini." = "Every time you clean up or quit an app, a record shows up here.";
+"Tambah Folder…" = "Add Folder…";
+"Tambahkan folder yang tidak ingin disentuh Respite." = "Add folders you don't want Respite to touch.";
+"Terakhir diperiksa %@" = "Last checked %@";
+"Tutup aplikasi" = "Quit app";
+"Umum" = "General";
+"Untuk pengguna Raycast atau Alfred: buka alat Respite lewat pintasan. Pintasan hanya membuka alatnya — tidak ada yang dijalankan atau dihapus otomatis. Respite harus sedang berjalan." = "For Raycast or Alfred users: open Respite tools with a shortcut. Shortcuts only open the tool — nothing runs or gets deleted automatically. Respite needs to be running.";
+"Versi terpasang" = "Installed version";
+
+/* App/Sources/Windows/ToolPage.swift */
+"%d dipilih" = "%d selected";
+"%d dipilih · %@" = "%d selected · %@";
+"%d item tidak bisa dipindahkan — lihat kenapa" = "%d items couldn't be moved — see why";
+"Belum ada yang dipilih" = "Nothing selected yet";
+"Bisa dikembalikan dari Trash kapan saja." = "You can get it back from the Trash anytime.";
+"Buka Trash" = "Open Trash";
+"File ada di Trash. Berubah pikiran? Buka Trash lalu pilih \"Kembalikan\"." = "The files are in the Trash. Changed your mind? Open the Trash and choose \"Put Back\".";
+"Ini bisa memakan waktu beberapa menit. Kamu boleh pindah ke alat lain." = "This may take a few minutes. Feel free to switch to another tool.";
+"Kamu masih bisa mengembalikannya dari Trash. Folder sistem dan dokumen pribadi tidak pernah disentuh." = "You can still get it back from the Trash. System folders and personal documents are never touched.";
+"Lihat detail" = "Show details";
+"Mulai Pindai" = "Start Scan";
+"Pindahkan %d item (%@) ke Trash?" = "Move %d items (%@) to the Trash?";
+"Pindahkan ke Trash" = "Move to Trash";
+"Pindai lagi" = "Scan Again";
+"Pindai ulang" = "Scan again";
+"Sedang mencari…" = "Searching…";
+"Tidak ada yang perlu dibersihkan" = "Nothing to clean up";
+"tanggal tidak diketahui" = "unknown date";
+
+/* RespiteCore/Sources/RespiteCore/System/AutoBootSetting.swift */
+"Perubahan dibatalkan atau ditolak — setting tidak diubah." = "Change canceled or denied — the setting wasn't changed.";
+"Proses melebihi batas waktu — kemungkinan dialog admin tidak terjawab. Coba lagi dan pastikan dialog password terlihat." = "This took too long — the admin prompt may not have been answered. Try again and make sure the password prompt is visible.";
+
+/* dynamic */
+"Alat Lain" = "More Tools";
+"Cek Kondisi Mac" = "Check Your Mac";
+"Dilindungi (Protected List) — tidak disentuh" = "Protected — not touched";
+"Dukungan" = "Support";
+"Kosongkan Ruang" = "Free Up Space";
+"Pengaturan & Dukungan" = "Settings & Support";
+"Sudah ada di Trash — kosongkan lewat Trash Manager" = "Already in the Trash — empty it with the Trash tool";

@@ -70,6 +70,9 @@ public struct SystemSnapshot: Sendable, Equatable {
 }
 
 public enum SystemStats {
+    /// Sekali saja — tiap mach_host_self() menambah ref send-right.
+    static let hostPort = mach_host_self()
+
     /// Waktu boot menurut kernel — dibaca sekali, nggak berubah selama proses hidup.
     private static let bootDate: Date? = {
         var mib: [Int32] = [CTL_KERN, KERN_BOOTTIME]
@@ -118,7 +121,7 @@ public enum SystemStats {
         var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64_data_t>.stride / MemoryLayout<integer_t>.stride)
         let result = withUnsafeMutableBytes(of: &stats) { buffer -> kern_return_t in
             guard let base = buffer.bindMemory(to: integer_t.self).baseAddress else { return KERN_FAILURE }
-            return host_statistics64(mach_host_self(), HOST_VM_INFO64, base, &count)
+            return host_statistics64(Self.hostPort, HOST_VM_INFO64, base, &count)
         }
         guard result == KERN_SUCCESS else { return nil }
 
@@ -145,8 +148,9 @@ public enum SystemStats {
         let plain = Int64(values.volumeAvailableCapacity ?? 0)
         let available = important > 0 ? important : plain
         // Purgeable = ruang yang cuma "available" kalau sistem boleh membuang
-        // cache/snapshot-nya sendiri. Selisih bisa 0/negatif di volume aneh → clamp.
-        let purgeable = max(0, plain - available)
+        // cache/snapshot-nya sendiri: important (termasuk purgeable) − plain.
+        // Selisih bisa negatif di volume aneh → clamp.
+        let purgeable = important > 0 ? max(0, important - plain) : 0
         return DiskStats(
             totalBytes: Int64(total),
             availableBytes: available,
