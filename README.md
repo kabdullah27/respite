@@ -4,54 +4,60 @@ A calm macOS cleaner. Free, local, and honest about what it can and can't do.
 
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue)
 ![Platform](https://img.shields.io/badge/macOS-13%2B-lightgrey)
-![Tests](https://img.shields.io/badge/unit%20tests-121%20passing-success)
+![Tests](https://img.shields.io/badge/unit%20tests-135%20passing-success)
 
 Most cleaning apps are built around fear: big red numbers, warnings about a "slow Mac", one-click magic that deletes first and explains later. Respite takes the opposite approach — it scans, explains what it found and why it's safe to remove, and moves everything to the Trash so you can undo. If a number can't be trusted, it doesn't show that number at all.
 
 <p align="center">
-  <img src="assets/screens/home.webp" alt="Respite Smart Care" width="100%">
+  <img src="assets/screens/home.webp" alt="Respite Home — status, storage, and one Clean Up My Mac button" width="100%">
 </p>
 
 <p align="center">
-  <img src="assets/screens/memory.webp" alt="Memory Monitor" width="49%">
-  <img src="assets/screens/uninstaller.webp" alt="App Uninstaller" width="49%">
+  <img src="assets/screens/diagnostic.webp" alt="Why Is My Mac Slow?" width="49%">
+  <img src="assets/screens/temperature.webp" alt="Mac Temperature" width="49%">
 </p>
 
 ## What it does
 
-**Cleaning**
+Every tool works the same way: a short explanation, one **Start Scan** button, a clear "X GB can be freed" summary, and one main action. Technical details stay behind **Show details**.
 
-- **Smart Scan** — caches, logs, and the Trash in one pass. Results are grouped per app, each with an explanation of why removal is safe.
-- **App Uninstaller** — removes apps with their leftover data, and finds orphaned files left behind by apps you deleted long ago.
-- **Large & Old Files**, **Duplicate Finder** (byte-identical, hard-link aware), **Similar Photos** (perceptual hashing, EXIF-aware).
-- **Developer Caches** — Xcode, Homebrew, CocoaPods/SPM, Composer, Go, Cargo, node_modules, and local AI app logs (Ollama / LM Studio — models are never touched).
-- **Browser Cleaner** — Chrome, Arc, Brave, Edge, Firefox, Safari. Running browsers are locked, with an explanation why.
+**Free Up Space**
 
-**Monitoring**
+- **Quick Clean** — app caches and old logs in one pass, grouped per app, each with a reason why it's safe to remove.
+- **Large Files** — big files you haven't opened in a long time. Recently used files are never pre-selected.
+- **Duplicate Files** (exact copies, hard-link aware) and **Similar Photos** (near-identical shots, EXIF-aware). One copy in every group is always kept.
+- **Uninstall Apps** — removes an app together with its leftover files, and finds leftovers from apps you deleted long ago.
+- **Browser Data** — cache, history, or cookies for Chrome, Arc, Brave, Edge, Firefox, and Safari. Open browsers are skipped, with an explanation why.
 
-- Menu bar with a live Health Score, memory/CPU/disk metrics, and one-click "Scan This Mac".
-- Process management with Stop and Force Stop, plus plain-language failure reasons.
-- Thermal state, CPU speed limit, battery health, uptime — measured, not guessed.
-- **Keyboard Lock** — hold all key presses behind a full-screen overlay while you wipe the screen. Trackpad keeps working; auto-unlocks on a timer (default 2 minutes).
-- **Power-on-when-lid-opens** toggle (firmware-level, reversible).
+**Check Your Mac**
+
+- **Why Is My Mac Slow?** — a plain-language status, what was found, and a button that takes you straight to the fix.
+- **Heavy Apps** — the apps using the most memory and processor power, with Quit and Force Quit, plus "refresh without restarting".
+- **Mac Temperature** and **Battery** — measured, not guessed.
+- Menu bar with a live health score, memory/storage/processor/temperature at a glance, and one-click **Clean Up Mac**.
+
+**More Tools** (for advanced users, folded away by default)
+
+- **Developer Cache** — Xcode, Homebrew, CocoaPods/SPM, Composer, Go, Cargo, node_modules, and local AI app logs (models are never touched).
+- **Login Apps**, **Delete Permanently**, **Keyboard Lock** (hold key presses behind a full-screen overlay while you wipe the screen), and **Power On Lid Open** (firmware-level, reversible).
 
 **Everywhere**
 
-- Every scan keeps running when you switch modules; a global banner shows what's still scanning.
-- Full Disk Access status is always visible in the sidebar, with a one-click path to fix it.
-- English and Indonesian, switchable in Settings.
+- Scans keep running when you switch tools; a banner shows what's still scanning.
+- File-access permission status is always visible in the sidebar, with a one-click path to fix it.
+- **English by default**, with full Indonesian — switch in Settings, which is also available right inside the main window.
 
 ## How it stays safe
 
-- Everything removable goes to the **Trash** first. The only irreversible module is the Shredder, behind layered confirmation.
+- Everything removable goes to the **Trash** first. The only irreversible tool is Delete Permanently, behind a type-to-confirm step.
 - Every destructive action is written to an audit **ledger before** it runs — exportable from Settings.
 - A hard-coded protected list guards system paths; your own exclusions sit on top, right-clickable from any result.
-- First run of each action shows a dry-run preview.
+- Every clean shows what will happen and asks first. Protected items are reported, never silently skipped or counted as "freed".
 
 ## What it won't tell you
 
 - It won't claim to clean "purgeable" space — macOS reclaims that on its own, and pretending otherwise is how cleaners inflate their numbers.
-- On most modern Apple Silicon Macs, the CPU temperature sensor is locked away from all apps. Where it's readable, Respite shows it; where it isn't, it stays quiet instead of inventing a number.
+- CPU temperature comes from the Mac's own sensors (Intel and Apple Silicon). If a Mac doesn't expose them, Respite shows the thermal state instead of inventing a number.
 - It has no background network activity. The only network call is "Check for Updates", and only when you press the button.
 
 ## Download
